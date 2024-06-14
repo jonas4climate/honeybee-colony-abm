@@ -46,7 +46,7 @@ class Bee(Agent):
     P_DANCEFLOOR: float = 0.001                 # as defined in [1]
     P_SCOUT: float = 0.00825                    # as defined in [1]
     
-    P_TIRED: float = 0.001                      # my own adaptation
+    P_TIRED: float = 0.01                       # my own adaptation
     TIRED_MIN: int = 15*60                      # [s], my own adaptation
     TIRED_MAX: int = 60*60                      # [s], my own adaptation
 
