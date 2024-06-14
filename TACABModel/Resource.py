@@ -45,4 +45,4 @@ class Resource(Agent):
 
     def step(self):
         # Should replentish or go extinct if quantity reaches 0
-        pass    
+        pass
