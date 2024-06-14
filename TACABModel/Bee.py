@@ -27,7 +27,15 @@ class Bee(Agent):
     tired: bool
 
     # Class constants
-    SPEED: float = 1.29     # [m/s] as used in [1]
+    SPEED: float = 1.29                     # [m/s] as used in [1]
+    P_DEATH: float = 0.0108                 # as defined in [1]
+    P_FULL_RETURN_SCOUT: float = 0.43       # as defined in [1]
+    P_FULL_RETURN_RECRUITED: float = 0.93   # as defined in [1]
+    P_DANCEFLOOR: float = 0.001             # as defined in [1]
+    P_SCOUT: float = 0.00825                # as defined in [1]
+
+    MIN_GO_OUT_TEMP: float = 11.0           # as defined in [1]
+    MAX_GO_OUT_TEMP: float = 40.0           # as defined in [1]
 
     # Subclass enumerator for denoting bee's current activity
     class State(Enum):

@@ -15,13 +15,17 @@ class BeeModel(Model):
     n_agents_existed: int
     agents: List[Agent]
 
-    def __init__(self: BeeModel, size: int):
+    day: int    # day of the year
+
+    def __init__(self: BeeModel, size: int, day:int=50):
         super().__init__()
 
         self.size = size
         self.space = ContinuousSpace(size, size, True)
         self.n_agents_existed = 0
         self.agents = []
+
+        self.day = day
 
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
         self.datacollector = DataCollector(
