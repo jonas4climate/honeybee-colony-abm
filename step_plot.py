@@ -24,12 +24,19 @@ chart_colors = {1:"#000000", # Black
                 3:"#E9AB17", # Yellow
                 4:"#FFC0CB"} # Pink
 chart_1 = ChartModule([
-    {"Label": "prop_bees", "Color": chart_colors[1]},
-    {"Label": "prop_resources", "Color":chart_colors[2]}])
+    {"Label": "prop_resources", "Color":chart_colors[2]},
+    {"Label": "prop_foragers", "Color": chart_colors[3]},
+    {"Label": "prop_baby_bees", "Color": chart_colors[4]}
+
+])
     # {"Label": "foragers", "Color":chart_colors[3]},
     # {"Label": "baby_bees", "Color": chart_colors[4]}])
 chart_2 = ChartModule([{"Label": "num_bees", "Color": chart_colors[1]},
-                       {"Label": "num_resources", "Color": chart_colors[2]}])
+                       {"Label": "num_resources", "Color": chart_colors[2]},
+                        {"Label": "num_foragers", "Color": chart_colors[3]},
+                        {"Label": "num_baby_bees", "Color": chart_colors[4]}
+
+])
 
 
 
@@ -40,7 +47,7 @@ server = ModularServer(
     {
         "SIZE": SIZE,
         # "height":HEIGHT,
-        # "temparature": UserSettableParameter("slider",
+        # "temperature": UserSettableParameter("slider",
         #                                      "temperature",
         #                                      value = 25,
         #                                      min_value=25,
