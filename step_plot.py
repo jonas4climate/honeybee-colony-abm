@@ -17,20 +17,26 @@ def agent_portrayal(agent):
         return portrayal
     
 canvas = CanvasGrid(agent_portrayal, SIZE, SIZE)
-chart_colors = {1:"#000000",
-                2:"#008000",
-                3:"#E9AB17",
-                4:"#FFC0CB"}
-chart = ChartModule([
-    {"Label": "num_bees", "Color": chart_colors[1]},
-    {"Label": "resources", "Color":chart_colors[2]}])
+
+
+chart_colors = {1:"#000000", # Black
+                2:"#008000", # Green
+                3:"#E9AB17", # Yellow
+                4:"#FFC0CB"} # Pink
+chart_1 = ChartModule([
+    {"Label": "prop_bees", "Color": chart_colors[1]},
+    {"Label": "prop_resources", "Color":chart_colors[2]}])
     # {"Label": "foragers", "Color":chart_colors[3]},
     # {"Label": "baby_bees", "Color": chart_colors[4]}])
+chart_2 = ChartModule([{"Label": "num_bees", "Color": chart_colors[1]},
+                       {"Label": "num_resources", "Color": chart_colors[2]}])
+
+
 
 server = ModularServer(
     BeeModel,
-    [canvas, chart],
-    "Hive",
+    [canvas, chart_1, chart_2],
+    "BeeModel",
     {
         "SIZE": SIZE,
         # "height":HEIGHT,
@@ -48,6 +54,8 @@ server = ModularServer(
     }
     
 )
+
+
 
 if __name__ == "__main__":
     # SIZE = 50
