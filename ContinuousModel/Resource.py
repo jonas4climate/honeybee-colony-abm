@@ -1,14 +1,22 @@
-# import mesa
+from __future__ import annotations
+
 from mesa import Agent
-# from mesa.space import ContinuousSpace
-# from mesa.datacollection import DataCollector
+from enum import Enum
 
 class Resource(Agent):
-    def __init__(self, id, model, location, type, quantity, persistent):
+
+    # Type of reosurce
+    class Type(Enum):
+        NECTAR = "nectar"
+        WATER = "water"
+        POLLEN = "pollen"
+
+    def __init__(self, id, model, location, type=Type.NECTAR, quantity=1.0, radius=50.0, persistent=True):
         super().__init__(id, model)
         self.location = location                    # (x,y) tuple
-        self.type = type                            # "honey", "water",...
+        self.type = type                            # "honey", "water",... # TODO: Implement a separate enum type
         self.quantity = quantity                    # Float: [0,1]
+        self.radius = radius                        # Float: effective radius of the resource
         self.persistent = persistent                # Bool: True if resource lasts forever
         
         def step(self):

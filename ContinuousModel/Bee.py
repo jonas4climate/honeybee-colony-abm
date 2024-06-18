@@ -1,25 +1,29 @@
-# import mesa
+from __future__ import annotations
+
 from mesa import Agent
-# from mesa.space import ContinuousSpace
-# from mesa.datacollection import DataCollector
 from enum import Enum
 
-
-class State(Enum):
-    RESTING = "resting"
-    EXPLORING = "exploring"
-    CARRYING = "carrying"
-    DANCING = "dancing"
-    FOLLOWING = "following"
-
 class Bee(Agent):
-    def __init__(self, id, model, age, fov, health, BeeHive, location, state, wiggle):
+
+    # Bee's current activity
+    class State(Enum):
+        RESTING = "resting"
+        EXPLORING = "exploring"
+        CARRYING = "carrying"
+        DANCING = "dancing"
+        FOLLOWING = "following"
+
+    # Class constants / fixed parameters
+    FIELD_OF_VIEW = 20
+
+    # Class methods
+    def __init__(self, id, model, hive, fov=FIELD_OF_VIEW, age=0, health=1.0, state=State.RESTING, wiggle=False):
         super().__init__(id, model)
         self.age = age                           # Float: Age of forager bee
         self.fov = fov                              # Float: Radius of vision    
         self.health = health                        # Float: [0,1]
-        self.hive = BeeHive                         # Hive: the hive the bee belongs to    
-        self.location = location                    # Tuple: (x,y)
+        self.hive = hive                            # Hive: the hive the bee belongs to    
+        self.location = hive.location               # Tuple: (x,y)
         self.state = state
         self.wiggle = wiggle                        # Bool: Whether the bee is wiggle dancing
     
@@ -29,13 +33,13 @@ class Bee(Agent):
         self.manage_death()                         # Manage death
 
     def step_by_caste(self, dt):
-        if self.state == State.RESTING:
+        if self.state == Bee.State.RESTING:
             # 1. Might perceive low resources at beehive -> and change to EXPLORING
             pass
             # 2. Otherwise, does random walk around beehive 
             pass
 
-        if self.state == State.EXPLORING:
+        if self.state == Bee.State.EXPLORING:
             # 1. Might abort
             pass
             # 2. Might perceive WIGGLEDANCE -> and change do FOLLOW!
@@ -45,7 +49,7 @@ class Bee(Agent):
             # 3. If not, it does random walk, biased towards resources and bee trails
             pass
 
-        if self.state == State.CARRYING:
+        if self.state == Bee.State.CARRYING:
             # 1. At first, spends some time gathering the resource without moving
             # This can be done by waiting for specific time or adding a GATHERING state
             pass
@@ -58,13 +62,13 @@ class Bee(Agent):
             pass
             # 4. On reaching the beeHive, deposit resources and switch to DANCING
         
-        if self.state == State.DANCING:
+        if self.state == Bee.State.DANCING:
             # 1. Does dance for some time, setting its self.waggle to True
             pass
             # 2. After some time, goes to RESTING
             pass
 
-        if self.state == State.FOLLOWING:
+        if self.state == Bee.State.FOLLOWING:
             # 1. First, it reads the resource direction from the other bee
             pass
             # 2. Then, it heads in that direction for some fixed time
@@ -75,13 +79,13 @@ class Bee(Agent):
     def manage_death(self):
         # TODO: Incorporate weather so bees that are not Resting have increased chance of dying!
 
-        death = False
-        if self.health <= 0: # Death by health
-            death = True
-        if self.max_age is not None and self.age >= self.max_age: # Death by age
-            death = True
+        # death = False
+        # if self.health <= 0: # Death by health
+        #     death = True
+        # if self.max_age is not None and self.age >= self.max_age: # Death by age
+        #     death = True
 
-        if death:
-            self.model.space.remove_agent(self)
-            self.model.schedule.remove(self)
+        # if death:
+        #     self.model.space.remove_agent(self)
+        #     self.model.schedule.remove(self)
         return

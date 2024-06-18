@@ -1,17 +1,14 @@
-# import mesa
 from mesa import Agent
-# from mesa.space import ContinuousSpace
-# from mesa.datacollection import DataCollector
 
-class BeeHive(Agent):
-    def __init__(self, id, model, location, radius, water, pollen, young_bees, p_new_forager):
+class Hive(Agent):
+    def __init__(self, id, model, location, radius=50.0, water=1.0, pollen=1.0, young_bees=0):
         super().__init__(id, model)
         self.location = location
         self.radius = radius
         self.water = water
         self.pollen = pollen
         self.young_bees = young_bees
-        self.p_new_forager = p_new_forager
+        self.p_new_forager = 0.0                    # TODO: If it's a function of reosurces, then this should be a class method
 
     def step(self):
         # 1. Feed bees
