@@ -1,39 +1,41 @@
 """
 Starting model definition, consisting on bees, hives and resources
 """
-
 import mesa
 from mesa import Agent, Model
 from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
 from enum import Enum
+from pathfinder import astar
 
-class Bee(Agent):
+
+class Bee(Agent):v
     def __init__(self, id, model, age, health, caste, location, BeeHive, max_age=None):
         super().__init__(id, model)
-        self.age = age                              # Float: number of days
-        self.max_age = max_age                      # Float: number of days (fixed)
+        self.age = age                              # Float: number of steps
+        self.max_age = max_age                      # Float: number of steps (fixed)
         self.health = health                        # Float: [0,1]
         self.caste = caste                          # String: "worker", "forager", "etc..."
         self.location = location                    # Tuple: (x,y)
-        self.hive = BeeHive                         # Hive: the hive the bee belongs to
         self.interaction_range = 0                  # Float: distance at which the bee can interact with other agents
-        # TODO: Complete
+        self.carrying_food = False
 
-    def step(self, dt=1):
-        # Manage action based on caste
-        self.step_by_caste(dt)
+        # Hive information
+        self.hive = BeeHive  # Hive: the hive the bee belongs to
+        self._hive_location = self.hive.location
 
-        # Manage ageing
-        self.age += dt
+    def in_hive(self):
+        return self.location == self._hive_location
 
-        # Manage caste change
-        self.manage_caste_change()
-        
-        # Manage death
-        self.manage_death()
 
-    def step_by_caste(self, dt):
+
+
+    def step(self):
+        self.age += 1
+
+
+
+    def step_by_caste(self):
         if self.caste == Caste.FORAGER:
             # If not carrying resource, go follow scout information somehow to find resources
             self.try_collect_resources()
@@ -63,10 +65,6 @@ class Bee(Agent):
             self.model.schedule.remove(self)
         return
 
-    def is_in_hive(self):
-        x, y = self.location
-        return True if x**2 + y**2 < self.hive.radius else False
-    
     def try_collect_resources(self):
         x, y = self.location
         neighbors = self.model.space.get_neighbors(self.location, include_center=True, radius=self.interaction_range)
@@ -77,16 +75,6 @@ class Bee(Agent):
 class Caste(Enum):
     FORAGER = "forager"
     SCOUT = "scout"
-
-class BeeHive(Agent):
-    def __init__(self, id, model, location, radius):
-        super().__init__(id, model)
-        self.location = location                    # (x,y) tuple
-        self.radius = radius                        # Beehive has a circle shape, size may change with population
-        # TODO: Complete    
-
-    def step(self):
-        pass
 
 class Resource(Agent):
     def __init__(self, id, model, location, type, quantity, persistent):
@@ -99,7 +87,7 @@ class Resource(Agent):
 
     def step(self):
         # Should replentish or go extinct if quantity reaches 0
-        pass    
+        pass
 
 # TODO: Define model, including step
 class BeeModel(Model):
@@ -123,7 +111,7 @@ class BeeModel(Model):
         self.space.place_agent(agent, agent.location)
         self.n_agents_existed += 1
         return agent
-    
+
     def create_agents(self, agent_type, n, **kwargs):
         agents = [self.create_agent(agent_type, **kwargs) for _ in range(n)]
         return agents

@@ -3,7 +3,7 @@ from __future__ import annotations
 from mesa import Agent
 from typing import Tuple
 
-from TACABModel.BeeModel import BeeModel
+# from TACABModel.BeeModel import BeeModel
 
 class BeeHive(Agent):
 

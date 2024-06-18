@@ -3,8 +3,7 @@ from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.UserParam import UserSettableParameter
 # Get parameters for the model
 from set_parameters import SIZE
-
-from basic_model import Bee, Resource, BeeHive, BeeModel
+from TACABModel import Bee, BeeHive, BeeModel, Resource
 
 colors = {BeeHive: "#000000", Bee: "#E9AB17", Resource: "#00A36C"}
 
@@ -18,23 +17,27 @@ def agent_portrayal(agent):
     
 canvas = CanvasGrid(agent_portrayal, SIZE, SIZE)
 
-
 chart_colors = {1:"#000000", # Black
                 2:"#008000", # Green
                 3:"#E9AB17", # Yellow
                 4:"#FFC0CB"} # Pink
-chart_1 = ChartModule([
+
+    # {"Label": "foragers", "Color":chart_colors[3]},
+    # {"Label": "baby_bees", "Color": chart_colors[4]}])
+
+all_agents = ChartModule([{"Label": "num_bees", "Color": chart_colors[1]},
+                       {"Label": "num_resources", "Color": chart_colors[2]},
+                        {"Label": "num_foragers", "Color": chart_colors[3]},
+                        {"Label": "num_baby_bees", "Color": chart_colors[4]}],
+                      data_collector_name = "datacollecter")
+
+model_instance = BeeModel(size=SIZE)
+# model_instance.datacollector
+
+prop_bees = ChartModule([
     {"Label": "prop_resources", "Color":chart_colors[2]},
     {"Label": "prop_foragers", "Color": chart_colors[3]},
     {"Label": "prop_baby_bees", "Color": chart_colors[4]}
-
-])
-    # {"Label": "foragers", "Color":chart_colors[3]},
-    # {"Label": "baby_bees", "Color": chart_colors[4]}])
-chart_2 = ChartModule([{"Label": "num_bees", "Color": chart_colors[1]},
-                       {"Label": "num_resources", "Color": chart_colors[2]},
-                        {"Label": "num_foragers", "Color": chart_colors[3]},
-                        {"Label": "num_baby_bees", "Color": chart_colors[4]}
 
 ])
 
@@ -42,10 +45,10 @@ chart_2 = ChartModule([{"Label": "num_bees", "Color": chart_colors[1]},
 
 server = ModularServer(
     BeeModel,
-    [canvas, chart_1, chart_2],
+    [canvas, all_agents, prop_bees],
     "BeeModel",
     {
-        "SIZE": SIZE,
+        "size": SIZE,
         # "height":HEIGHT,
         # "temperature": UserSettableParameter("slider",
         #                                      "temperature",

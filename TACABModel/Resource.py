@@ -4,7 +4,7 @@ from mesa import Agent
 from typing import Tuple
 from numpy import pi, sqrt, exp
 
-from TACABModel.BeeModel import BeeModel
+# from TACABModel.BeeModel import BeeModel
 
 class Resource(Agent):
     # Type-annotated class attribtues

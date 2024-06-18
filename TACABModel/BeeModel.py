@@ -1,11 +1,12 @@
 from __future__ import annotations
+from mesa import Model
+# from mesa.space import ContinuousSpace
+# from mesa.datacollection import DataCollector
+# from typing import List
+from Bee import Bee
+from Agent import Agent
+from BeeHive import BeeHive
 
-from mesa import Model, Agent
-from mesa.space import ContinuousSpace
-from mesa.datacollection import DataCollector
-from typing import List
-
-from TACABModel.Bee import Bee
 
 class BeeModel(Model):
 
