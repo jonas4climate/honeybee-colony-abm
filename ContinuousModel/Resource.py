@@ -1,23 +1,39 @@
 from __future__ import annotations
 
-from mesa import Agent
+from mesa import Agent, Model
 from enum import Enum
+
+from typing import Tuple
 
 class Resource(Agent):
 
-    # Type of reosurce
+    # Type of resource
     class Type(Enum):
         NECTAR = "nectar"
         WATER = "water"
         POLLEN = "pollen"
 
+    # Class properties
+    id: int                         # unique identifier, required in mesa package
+    model: Model                    # model the agent belongs to
+
+    location: Tuple[int, int]       # agent's current position, x and y coordinate
+    type: Resource.Type             # type of the resource
+
+    quantity: float                 # how much of the resource is left
+    radius: float                   # effective radius of the resource
+    persistent: bool                # whether the resource persists forever
+
+    # Class methods
     def __init__(self, id, model, location, type=Type.NECTAR, quantity=1.0, radius=50.0, persistent=True):
         super().__init__(id, model)
-        self.location = location                    # (x,y) tuple
-        self.type = type                            # "honey", "water",... # TODO: Implement a separate enum type
-        self.quantity = quantity                    # Float: [0,1]
-        self.radius = radius                        # Float: effective radius of the resource
-        self.persistent = persistent                # Bool: True if resource lasts forever
+        
+        self.location = location
+        self.type = type
+
+        self.quantity = quantity
+        self.radius = radius
+        self.persistent = persistent
         
         def step(self):
             # 1. Depletion, if quantity reaches 0

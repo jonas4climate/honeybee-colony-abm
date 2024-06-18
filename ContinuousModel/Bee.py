@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from mesa import Agent
+from mesa import Agent, Model
 from enum import Enum
+from typing import Tuple
+
+from ContinuousModel.Hive import Hive
 
 class Bee(Agent):
 
@@ -16,16 +19,33 @@ class Bee(Agent):
     # Class constants / fixed parameters
     FIELD_OF_VIEW = 20
 
+    # Class properties
+    id: int                         # unique identifier, required in mesa package
+    model: Model                    # model the agent belongs to
+
+    hive: Hive                      # the Hive the Bee agent belongs to
+    location: Tuple[int, int]       # agent's current position, x and y coordinate
+
+    state: Bee.State                # Bee's current activity
+    wiggle: bool                    # whether the Bee agent is currently wiggle dancing
+
+    age: float                      # agent's current age (which has influence on their activity)
+    fov: float                      # radius around the agent in which it can perceive the environment
+    health: float                   # agent's health status
+
     # Class methods
     def __init__(self, id, model, hive, fov=FIELD_OF_VIEW, age=0, health=1.0, state=State.RESTING, wiggle=False):
         super().__init__(id, model)
-        self.age = age                           # Float: Age of forager bee
-        self.fov = fov                              # Float: Radius of vision    
-        self.health = health                        # Float: [0,1]
-        self.hive = hive                            # Hive: the hive the bee belongs to    
-        self.location = hive.location               # Tuple: (x,y)
+
+        self.hive = hive
+        self.location = hive.location
+
         self.state = state
-        self.wiggle = wiggle                        # Bool: Whether the bee is wiggle dancing
+        self.wiggle = wiggle
+
+        self.age = age
+        self.fov = fov
+        self.health = health
     
     def step(self, dt=1):
         self.step_by_caste(dt)                      # Manage action based on caste

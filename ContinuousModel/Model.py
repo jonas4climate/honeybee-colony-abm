@@ -4,18 +4,30 @@ Jonas, Bartek and Pablo
 Based on the PDF Pablo sent on Saturday.
 """
 
-from mesa import  Model
+from mesa import  Agent, Model
 from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
 
+from typing import List
+
 class Model(Model):
 
+    # Class properties
+    size: int                   # side length of the square-shaped continuous space
+    n_agents_existed: int       # counter for all the agents that were added to the model
+    
+    space: ContinuousSpace      # continous space container from mesa package
+    agents: List[Agent]         # current list of agents
+
+    # Class methods
     def __init__(self, SIZE):
         super().__init__()
-        self.size = SIZE                                        # Int: Size of the square space considered for the simulation
+
+        self.size = SIZE
+        self.n_agents_existed = 0
+
         self.space = ContinuousSpace(SIZE, SIZE, True)
-        self.n_agents_existed = 0                               # Counter for all agents to have created, used as unique id
-        self.agents = []                                        # List of all agents in the model
+        self.agents = []
 
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
         self.datacollector = DataCollector(
