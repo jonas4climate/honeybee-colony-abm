@@ -3,8 +3,45 @@ from __future__ import annotations
 from mesa import Agent, Model
 from enum import Enum
 from typing import Tuple
+from random import uniform, random
+from math import atan2,cos,sin,sqrt
 
 from ContinuousModel.Hive import Hive
+
+
+def move_random(bee,max_movement=0.1):
+    """
+    Moves randomly in x and y in the interval [-max_movement,max_movement]
+    """
+    # TODO: Use bee STATE to incorporate different biases in random walk!
+
+    bee.location = (max(0, min(bee.model.size, bee.x + uniform(max_movement,max_movement))),
+                             max(0, min(bee.model.size, bee.y + uniform(max_movement,max_movement))))
+    return
+
+
+def move_towards_hive(self, speed=1):
+        """
+        Moves deterministically in straight line towards a target location
+        """
+        # TODO: Add stochasticity to dx and dy with weather :)
+        dx = self.hive.x - self.x
+        dy = self.hive.y - self.y
+        
+        distance = (dx**2 + dy**2)**0.5
+        if distance > speed:
+            angle = atan2(dy, dx)
+            new_x = self.x + speed * cos(angle)
+            new_y = self.y + speed * sin(angle)
+            self.model.space.move_agent(self, (new_x, new_y))
+        else:
+            self.model.space.move_agent(self, (self.hive.x, self.hive.y))
+
+def is_close_to_hive(self, threshold=0.1):
+    distance = sqrt((self.x - self.hive.x)**2 + (self.y - self.hive.y)**2)
+    return distance <= threshold
+
+
 
 class Bee(Agent):
 
@@ -24,7 +61,8 @@ class Bee(Agent):
     model: Model                    # model the agent belongs to
 
     hive: Hive                      # the Hive the Bee agent belongs to
-    location: Tuple[int, int]       # agent's current position, x and y coordinate
+    x: float                        # agent's current position, x and y coordinate (have to be separated into x and y!)
+    y: float
 
     state: Bee.State                # Bee's current activity
     wiggle: bool                    # whether the Bee agent is currently wiggle dancing
@@ -32,13 +70,16 @@ class Bee(Agent):
     age: float                      # agent's current age (which has influence on their activity)
     fov: float                      # radius around the agent in which it can perceive the environment
     health: float                   # agent's health status
+    load:float                      # agent amount of resources its carrying
 
     # Class methods
     def __init__(self, id, model, hive, fov=FIELD_OF_VIEW, age=0, health=1.0, state=State.RESTING, wiggle=False):
         super().__init__(id, model)
 
         self.hive = hive
-        self.location = hive.location
+        self.x = hive.x
+        self.y = hive.y
+        
 
         self.state = state
         self.wiggle = wiggle
@@ -46,6 +87,7 @@ class Bee(Agent):
         self.age = age
         self.fov = fov
         self.health = health
+        self.load = 0
     
     def step(self, dt=1):
         self.step_by_caste(dt)                      # Manage action based on caste
@@ -53,40 +95,99 @@ class Bee(Agent):
         self.manage_death()                         # Manage death
 
     def step_by_caste(self, dt):
+        # TODO: Use dt
+        
         if self.state == Bee.State.RESTING:
             # 1. Might perceive low resources at beehive -> and change to EXPLORING
-            pass
-            # 2. Otherwise, does random walk around beehive 
-            pass
+            # 2. Otherwise, does random walk around beehive
+            ## TODO: Add constraint that hive should be in FOV
+            ## TODO: Add reasonable low resource limit to start exploring instead of arbitrary 2
+            ## TODO: Make random walk biased towards hive
+            low_resources = self.hive.nectar < 2 or self.hive.water < 2 or self.hive.nectar <2
+            
+            if low_resources:
+                self.state == Bee.State.EXPLORING
+            else:
+                move_random(self,0.01)
+
+
 
         if self.state == Bee.State.EXPLORING:
-            # 1. Might abort
-            pass
-            # 2. Might perceive WIGGLEDANCE -> and change do FOLLOW!
-            # TODO: Incorporate weather so bees FOV is reduced
-            real_fov = self.fov*0.5
-            pass
-            # 3. If not, it does random walk, biased towards resources and bee trails
-            pass
+            # Might abort with some chance. If not, ight perceive WIGGLEDANCE -> and change do FOLLOW!
+            # If not, it does random walk, biased towards resources and bee trails
+            ## TODO: Make p_abort dependent on weather
+            ## TODO: Make p_follow dependent on weather
+            p_abort = 0.2
+            abort = True if random() < p_abort else False
+
+            if abort:
+                self.state = Bee.State.RESTING
+            else:
+                bees_in_fov = [other_agent for other_agent in self.model.schedule.agents if other_agent != self and ((other_agent.pos[0] - self.location[0])**2 + (other_agent.pos[1] - self.location[1])**2)**0.5 <= self.fov and isinstance(other_agent, Bee)]
+                for other_bee in bees_in_fov:
+                    if other_bee.wiggle:
+                        p_follow = 0.8
+                        follow_dance = True if random() < p_follow else False
+                        if follow_dance:
+                            self.state = Bee.State.FOLLOWING
+                            return
+                # If not, move randomly but biased towards resources and trails
+                move_random(self,0.01)
+
+
 
         if self.state == Bee.State.CARRYING:
             # 1. At first, spends some time gathering the resource without moving
             # This can be done by waiting for specific time or adding a GATHERING state
-            pass
-            # 2. Leaves some trail on its location
-            # TODO: Incorporate weather so bees that are not Resting have increased chance of dying!
-            pass
+            # For now, its done with random chance
+            # TODO: Make p_finish_gathering dependent on weather!
+            # TODO: Make load of bee reasonable instead of arbitrary 1
+            if self.load == 0:
+                p_finish_gathering = 0.9
+                finish_gathering = True if random() < p_finish_gathering else False
+                if finish_gathering:
+                    self.load = 1
+            else:
+                # 2. Leaves some trail on its location
+                ## TODO: Add trail
+                ## TODO: Incorporate weather so bees that are not Resting have increased chance of dying!
+                pass
 
-            # 3. Does random walk, heavily biased towards self.BeeHive.location
-            # Alternatively, heads in straight line there
-            pass
-            # 4. On reaching the beeHive, deposit resources and switch to DANCING
+                # 4. On reaching the beeHive, deposit resources and switch to DANCING
+                if is_close_to_hive(self,threshold=0.1):
+                    # TODO: Account for resource type, right now it always deposists nectar
+                    self.hive.nectar += self.load
+                    self.load = 0
+                    self.wiggle = True
+                    self.state = Bee.State.DANCING
+                else:
+                    # If not on beehive yet, does random walk, heavily biased towards self.BeeHive.location
+                    # Alternatively, heads in straight line there
+                    move_towards_hive(self, speed=1)
+                
         
+
         if self.state == Bee.State.DANCING:
             # 1. Does dance for some time, setting its self.waggle to True
-            pass
             # 2. After some time, goes to RESTING
-            pass
+            # TODO: Make it follow a more sensible distribution
+            p_stop_dance = 0.4
+            stop_dancing = True if random() < p_stop_dance else False
+
+            if stop_dancing:
+                self.wiggle = False
+                self.state = Bee.State.RESTING
+            else:
+                #self.wiggle should be True, as it was setted in the CARRYING state loop
+                # As it wiggles, it Moves randomly or towards hive 50% chance
+                p_random_walk = 0.5
+                move_randomly = True if random() < p_random_walk else False
+ 
+                if move_randomly:
+                    move_random(self,0.01)
+                else:
+                    move_towards_hive(self)
+
 
         if self.state == Bee.State.FOLLOWING:
             # 1. First, it reads the resource direction from the other bee
@@ -97,7 +198,7 @@ class Bee(Agent):
             pass
 
     def manage_death(self):
-        # TODO: Incorporate weather so bees that are not Resting have increased chance of dying!
+        # TODO: Incorporate weather so bees that are not Resting have increased chance of dying!   
 
         # death = False
         # if self.health <= 0: # Death by health
