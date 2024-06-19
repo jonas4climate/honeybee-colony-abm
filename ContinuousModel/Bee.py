@@ -7,7 +7,7 @@ from random import uniform, random
 from math import atan2,cos,sin,sqrt
 
 from ContinuousModel.Hive import Hive
-
+from ContinuousModel.Resource import Resource
 
 def move_random(bee,max_movement=0.1):
     """
@@ -41,6 +41,28 @@ def is_close_to_hive(self, threshold=0.1):
     distance = sqrt((self.x - self.hive.x)**2 + (self.y - self.hive.y)**2)
     return distance <= threshold
 
+def is_resource_close_to_bee(self, resource, threshold):
+    distance = sqrt((self.x - resource.x)**2 + (self.y - resource.y)**2)
+    return distance <= threshold
+
+
+def move_towards(self, destiny, speed=1):
+        """
+        Moves deterministically in straight line towards a target location
+        """
+        # TODO: Add stochasticity to dx and dy with weather :)
+        dx = destiny.x - self.x
+        dy = destiny.y - self.y
+        
+        distance = (dx**2 + dy**2)**0.5
+        if distance > speed:
+            angle = atan2(dy, dx)
+            new_x = self.x + speed * cos(angle)
+            new_y = self.y + speed * sin(angle)
+            self.model.space.move_agent(self, (new_x, new_y))
+        else:
+            self.model.space.move_agent(self, (destiny.x, destiny.y))
+
 
 
 class Bee(Agent):
@@ -71,6 +93,7 @@ class Bee(Agent):
     fov: float                      # radius around the agent in which it can perceive the environment
     health: float                   # agent's health status
     load:float                      # agent amount of resources its carrying
+    wiggle_destiny:Tuple[float,float]      # Location of bee resource once it finds it, which is passed to other bees when wiggle dancing 
 
     # Class methods
     def __init__(self, id, model, hive, fov=FIELD_OF_VIEW, age=0, health=1.0, state=State.RESTING, wiggle=False):
@@ -96,7 +119,7 @@ class Bee(Agent):
 
     def step_by_caste(self, dt):
         # TODO: Use dt
-        
+
         if self.state == Bee.State.RESTING:
             # 1. Might perceive low resources at beehive -> and change to EXPLORING
             # 2. Otherwise, does random walk around beehive
@@ -129,8 +152,20 @@ class Bee(Agent):
                         p_follow = 0.8
                         follow_dance = True if random() < p_follow else False
                         if follow_dance:
+                            self.wiggle_destiny = other_bee.wiggle_destiny
                             self.state = Bee.State.FOLLOWING
                             return
+                
+                # See if there is resource near!
+                ## TODO: Add detection of bee close to resource
+                resources_in_fov = [resource for resource in self.model.schedule.agents if resource != self and ((other_agent.pos[0] - self.location[0])**2 + (other_agent.pos[1] - self.location[1])**2)**0.5 <= self.fov and isinstance(other_agent, Resource)]
+
+                for resource in resources_in_fov:
+                    if is_resource_close_to_bee(self,resource,threshold=0.05):
+                        self.wiggle_destiny = (resource.x,resource.y)
+                        self.state = Bee.State.CARRYING
+                        return
+
                 # If not, move randomly but biased towards resources and trails
                 move_random(self,0.01)
 
@@ -143,6 +178,7 @@ class Bee(Agent):
             # TODO: Make p_finish_gathering dependent on weather!
             # TODO: Make load of bee reasonable instead of arbitrary 1
             if self.load == 0:
+
                 p_finish_gathering = 0.9
                 finish_gathering = True if random() < p_finish_gathering else False
                 if finish_gathering:
@@ -190,13 +226,17 @@ class Bee(Agent):
 
 
         if self.state == Bee.State.FOLLOWING:
-            # 1. First, it reads the resource direction from the other bee
-            pass
+            # 1. First, it reads the resource direction from the other bee (THIS WAS DONE in the exploring loop)
             # 2. Then, it heads in that direction for some fixed time
-            pass
             # 3. Then, switch to EXPLORING
-            pass
+            p_stop_follow = 0.4
+            stop_following = True if random() < p_stop_follow else False
 
+            if stop_following:
+                self.state = Bee.State.EXPLORING
+            else:              
+                move_towards(self, self.wiggle_destiny, speed=1)
+  
     def manage_death(self):
         # TODO: Incorporate weather so bees that are not Resting have increased chance of dying!   
 
