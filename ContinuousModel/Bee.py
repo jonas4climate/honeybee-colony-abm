@@ -146,7 +146,7 @@ class Bee(Agent):
             if abort:
                 self.state = Bee.State.RESTING
             else:
-                bees_in_fov = [other_agent for other_agent in self.model.schedule.agents if other_agent != self and ((other_agent.pos[0] - self.location[0])**2 + (other_agent.pos[1] - self.location[1])**2)**0.5 <= self.fov and isinstance(other_agent, Bee)]
+                bees_in_fov = [other_agent for other_agent in self.model.schedule.agents if other_agent != self and ((other_agent.x - self.x)**2 + (other_agent.y - self.y)**2)**0.5 <= self.fov and isinstance(other_agent, Bee)]
                 for other_bee in bees_in_fov:
                     if other_bee.wiggle:
                         p_follow = 0.8
