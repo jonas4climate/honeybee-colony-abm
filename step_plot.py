@@ -1,9 +1,9 @@
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
-from mesa.visualization.UserParam import UserSettableParameter
+# from mesa.visualization.UserParam import UserSettableParameter
 # Get parameters for the model
-from set_parameters import SIZE
-from TACABModel import Bee, BeeHive, BeeModel, Resource
+from set_parameters import WIDTH, HEIGHT, NUM_BEES, RESOURCE_DENSITY, NR_HIVES
+from model import BeeModel; from Bee import Bee; from BeeHive import BeeHive; from Resource import Resource
 
 colors = {BeeHive: "#000000", Bee: "#E9AB17", Resource: "#00A36C"}
 
@@ -15,7 +15,7 @@ def agent_portrayal(agent):
         portrayal["Color"] = colors[type(agent)]
         return portrayal
     
-canvas = CanvasGrid(agent_portrayal, SIZE, SIZE)
+canvas = CanvasGrid(agent_portrayal, WIDTH, HEIGHT)
 
 chart_colors = {1:"#000000", # Black
                 2:"#008000", # Green
@@ -31,7 +31,8 @@ all_agents = ChartModule([{"Label": "num_bees", "Color": chart_colors[1]},
                         {"Label": "num_baby_bees", "Color": chart_colors[4]}],
                       data_collector_name = "datacollecter")
 
-model_instance = BeeModel(size=SIZE)
+model_instance = BeeModel(width=WIDTH, height=HEIGHT, num_bees=NUM_BEES,
+                          resource_density=RESOURCE_DENSITY, nr_hives=NR_HIVES, PLOT=True)
 # model_instance.datacollector
 
 prop_bees = ChartModule([
@@ -48,7 +49,12 @@ server = ModularServer(
     [canvas, all_agents, prop_bees],
     "BeeModel",
     {
-        "size": SIZE,
+        "width": WIDTH,
+        "height": HEIGHT,
+        "num_bees": NUM_BEES,
+        "resource_density": RESOURCE_DENSITY,
+        "nr_hives": NR_HIVES,
+        "PLOT": True
         # "height":HEIGHT,
         # "temperature": UserSettableParameter("slider",
         #                                      "temperature",
