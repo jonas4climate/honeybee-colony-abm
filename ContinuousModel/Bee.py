@@ -6,7 +6,7 @@ from typing import Tuple
 from random import uniform, random
 from math import atan2,cos,sin,sqrt
 
-from ContinuousModel.Hive import Hive
+#from ContinuousModel.Hive import Hive               # Should not need this import to avoid circular import, its only used in suggestion for class property type
 from ContinuousModel.Resource import Resource
 
 def move_random(bee,max_movement=0.1):
@@ -82,7 +82,7 @@ class Bee(Agent):
     id: int                         # unique identifier, required in mesa package
     model: Model                    # model the agent belongs to
 
-    hive: Hive                      # the Hive the Bee agent belongs to
+    #hive: Hive                      # the Hive the Bee agent belongs to
     x: float                        # agent's current position, x and y coordinate (have to be separated into x and y!)
     y: float
 
