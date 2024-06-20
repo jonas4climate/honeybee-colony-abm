@@ -57,7 +57,7 @@ class Hive(Agent):
     young_bees: int                 # Number of non-forager bees (about to become foragers)
 
     # Class methods
-    def __init__(self, id, model, location, radius=50.0, nectar=0.5, water=0.5, pollen=0.5, young_bees=0):
+    def __init__(self, id, model, location, radius=10.0, nectar=0.5, water=0.5, pollen=0.5, young_bees=0):
         super().__init__(id, model)
 
         self.location = location
