@@ -8,7 +8,7 @@ from random import random
 def feed_bees(self):
     # Get all young ones as well as foragers around beehive
     ## Right now this entails bees around beehive up to 1.5*radius
-    bees_in_hive = [other_agent for other_agent in self.model.agents if other_agent != self and ((other_agent.x - self.location[0])**2 + (other_agent.y - self.location[1])**2)**0.5 <= (self.radius*1.5) and isinstance(other_agent, Bee)]
+    bees_in_hive = [other_agent for other_agent in self.model.agents if other_agent != self and ((other_agent.location[0] - self.location[0])**2 + (other_agent.location[1] - self.location[1])**2)**0.5 <= (self.radius*1.5) and isinstance(other_agent, Bee)]
 
     for bee in bees_in_hive:
         # Feed it, recall maximum health and that there should be resources

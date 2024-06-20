@@ -15,8 +15,8 @@ def move_random(bee,max_movement=0.1):
     """
     # TODO: Use bee STATE to incorporate different biases in random walk!
 
-    bee.location = (max(0, min(bee.model.size, bee.x + uniform(max_movement,max_movement))),
-                             max(0, min(bee.model.size, bee.y + uniform(max_movement,max_movement))))
+    bee.location = (max(0, min(bee.model.size, bee.location[0] + uniform(max_movement,max_movement))),
+                             max(0, min(bee.model.size, bee.location[1] + uniform(max_movement,max_movement))))
     return
 
 
@@ -25,24 +25,24 @@ def move_towards_hive(self, speed=1):
         Moves deterministically in straight line towards a target location
         """
         # TODO: Add stochasticity to dx and dy with weather :)
-        dx = self.hive.x - self.x
-        dy = self.hive.y - self.y
+        dx = self.hive.location[0] - self.location[0]
+        dy = self.hive.location[1] - self.location[1]
         
         distance = (dx**2 + dy**2)**0.5
         if distance > speed:
             angle = atan2(dy, dx)
-            new_x = self.x + speed * cos(angle)
-            new_y = self.y + speed * sin(angle)
+            new_x = self.location[0] + speed * cos(angle)
+            new_y = self.location[1] + speed * sin(angle)
             self.model.space.move_agent(self, (new_x, new_y))
         else:
-            self.model.space.move_agent(self, (self.hive.x, self.hive.y))
+            self.model.space.move_agent(self, (self.hive.location[0], self.hive.location[1]))
 
 def is_close_to_hive(self, threshold=0.1):
-    distance = sqrt((self.x - self.hive.x)**2 + (self.y - self.hive.y)**2)
+    distance = sqrt((self.location[0] - self.hive.location[0])**2 + (self.location[1] - self.hive.location[1])**2)
     return distance <= threshold
 
 def is_resource_close_to_bee(self, resource, threshold):
-    distance = sqrt((self.x - resource.x)**2 + (self.y - resource.y)**2)
+    distance = sqrt((self.location[0] - resource.location[0])**2 + (self.location[1] - resource.location[1])**2)
     return distance <= threshold
 
 
@@ -51,14 +51,14 @@ def move_towards(self, destiny, speed=1):
         Moves deterministically in straight line towards a target location
         """
         # TODO: Add stochasticity to dx and dy with weather :)
-        dx = destiny.x - self.x
-        dy = destiny.y - self.y
+        dx = destiny.location[0] - self.location[0]
+        dy = destiny.location[1] - self.location[1]
         
         distance = (dx**2 + dy**2)**0.5
         if distance > speed:
             angle = atan2(dy, dx)
-            new_x = self.x + speed * cos(angle)
-            new_y = self.y + speed * sin(angle)
+            new_x = self.location[0] + speed * cos(angle)
+            new_y = self.location[1] + speed * sin(angle)
             self.model.space.move_agent(self, (new_x, new_y))
         else:
             self.model.space.move_agent(self, (destiny.x, destiny.y))
@@ -83,8 +83,9 @@ class Bee(Agent):
     model: Model                    # model the agent belongs to
 
     #hive: Hive                      # the Hive the Bee agent belongs to
-    x: float                        # agent's current position, x and y coordinate (have to be separated into x and y!)
-    y: float
+    location: Tuple[float,float]
+    #x: float                        # agent's current position, x and y coordinate (have to be separated into x and y!)
+    #y: float
 
     state: Bee.State                # Bee's current activity
     wiggle: bool                    # whether the Bee agent is currently wiggle dancing
@@ -96,12 +97,11 @@ class Bee(Agent):
     wiggle_destiny:Tuple[float,float]      # Location of bee resource once it finds it, which is passed to other bees when wiggle dancing 
 
     # Class methods
-    def __init__(self, id, model, hive, fov=FIELD_OF_VIEW, age=0, health=1.0, state=State.RESTING, wiggle=False):
+    def __init__(self, id, model, hive, location, fov=1, age=0, health=1.0, state=State.RESTING, wiggle=False):
         super().__init__(id, model)
 
         self.hive = hive
-        self.x = hive.x
-        self.y = hive.y
+        self.location = location
         
 
         self.state = state
