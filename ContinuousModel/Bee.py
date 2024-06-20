@@ -9,15 +9,20 @@ from math import atan2,cos,sin,sqrt
 #from ContinuousModel.Hive import Hive               # Should not need this import to avoid circular import, its only used in suggestion for class property type
 from ContinuousModel.Resource import Resource
 
-def move_random(bee,max_movement=0.1):
+def move_random(bee,max_movement=0.2):
     """
     Moves randomly in x and y in the interval [-max_movement,max_movement]
     """
+    print('MOVE RANDOM')
     # TODO: Use bee STATE to incorporate different biases in random walk!
+    x = bee.location[0] + uniform(-max_movement,max_movement)
+    y = bee.location[1] + uniform(-max_movement,max_movement)
+    
+    # Bound to model region [-size,size]
+    x = max(-x, min(bee.model.size, x))
+    y = max(-y, min(bee.model.size, y))
 
-    bee.location = (max(0, min(bee.model.size, bee.location[0] + uniform(max_movement,max_movement))),
-                             max(0, min(bee.model.size, bee.location[1] + uniform(max_movement,max_movement))))
-    return
+    return (x,y)
 
 
 def move_towards_hive(self, speed=1):
@@ -128,8 +133,10 @@ class Bee(Agent):
             ## TODO: Make random walk biased towards hive
             low_resources = self.hive.nectar < 2 or self.hive.water < 2 or self.hive.nectar <2
             
+            #print('Bee resting',low_resources)
+
             if low_resources:
-                self.state == Bee.State.EXPLORING
+                self.state = Bee.State.EXPLORING
             else:
                 move_random(self,0.01)
 
@@ -146,7 +153,7 @@ class Bee(Agent):
             if abort:
                 self.state = Bee.State.RESTING
             else:
-                bees_in_fov = [other_agent for other_agent in self.model.schedule.agents if other_agent != self and ((other_agent.x - self.x)**2 + (other_agent.y - self.y)**2)**0.5 <= self.fov and isinstance(other_agent, Bee)]
+                bees_in_fov = [other_agent for other_agent in self.model.agents if other_agent != self and ((other_agent.location[0] - self.location[0])**2 + (other_agent.location[1] - self.location[1])**2)**0.5 <= self.fov and isinstance(other_agent, Bee)]
                 for other_bee in bees_in_fov:
                     if other_bee.wiggle:
                         p_follow = 0.8
@@ -158,7 +165,7 @@ class Bee(Agent):
                 
                 # See if there is resource near!
                 ## TODO: Add detection of bee close to resource
-                resources_in_fov = [resource for resource in self.model.schedule.agents if resource != self and ((other_agent.pos[0] - self.location[0])**2 + (other_agent.pos[1] - self.location[1])**2)**0.5 <= self.fov and isinstance(other_agent, Resource)]
+                resources_in_fov = [resource for resource in self.model.agents if resource != self and ((resource.location[0] - self.location[0])**2 + (resource.location[1] - self.location[1])**2)**0.5 <= self.fov and isinstance(resource, Resource)]
 
                 for resource in resources_in_fov:
                     if is_resource_close_to_bee(self,resource,threshold=0.05):
@@ -167,7 +174,7 @@ class Bee(Agent):
                         return
 
                 # If not, move randomly but biased towards resources and trails
-                move_random(self,0.01)
+                self.location = move_random(self,0.4)
 
 
 
