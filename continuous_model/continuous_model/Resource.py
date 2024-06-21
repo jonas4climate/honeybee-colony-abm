@@ -17,7 +17,7 @@ class Resource(Agent):
     id: int                         # unique identifier, required in mesa package
     model: Model                    # model the agent belongs to
 
-    location: Tuple[int, int]       # agent's current position, x and y coordinate
+    pos: Tuple[int, int]       # agent's current position, x and y coordinate
     type: Resource.Type             # type of the resource
 
     quantity: float                 # how much of the resource is left
@@ -25,10 +25,10 @@ class Resource(Agent):
     persistent: bool                # whether the resource persists forever
 
     # Class methods
-    def __init__(self, id, model, location, type=Type.NECTAR, quantity=1.0, radius=5.0, persistent=True):
+    def __init__(self, id, model, location, type=Type.NECTAR, quantity=1.0, radius=50.0, persistent=True):
         super().__init__(id, model)
         
-        self.location = location
+        self.pos = location
         self.type = type
 
         self.quantity = quantity

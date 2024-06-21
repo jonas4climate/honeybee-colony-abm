@@ -1,14 +1,14 @@
 from mesa import Agent, Model
 
 from typing import Tuple
-from ContinuousModel.Bee import Bee
+from continuous_model.Bee import Bee
 from random import random
 
 
 def feed_bees(self):
     # Get all young ones as well as foragers around beehive
     ## Right now this entails bees around beehive up to 1.5*radius
-    bees_in_hive = [other_agent for other_agent in self.model.agents if other_agent != self and ((other_agent.location[0] - self.location[0])**2 + (other_agent.location[1] - self.location[1])**2)**0.5 <= (self.radius*1.5) and isinstance(other_agent, Bee)]
+    bees_in_hive = [other_agent for other_agent in self.model.agents if other_agent != self and ((other_agent.pos[0] - self.pos[0])**2 + (other_agent.pos[1] - self.pos[1])**2)**0.5 <= (self.radius*1.5) and isinstance(other_agent, Bee)]
 
     for bee in bees_in_hive:
         # Feed it, recall maximum health and that there should be resources
@@ -47,7 +47,7 @@ class Hive(Agent):
     id: int                         # unique identifier, required in mesa package
     model: Model                    # model the agent belongs to
 
-    location: Tuple[int, int]       # agent's current position, x and y coordinate
+    pos: Tuple[int, int]            # agent's current position, x and y coordinate
     radius: float                   # effective radius of the hive, within that radius bees are considered "inside the hive"
     
     nectar: float                   # Current amount of stored nectar
@@ -56,11 +56,14 @@ class Hive(Agent):
     
     young_bees: int                 # Number of non-forager bees (about to become foragers)
 
+    # Class constants
+    RADIUS = 20                     # for drawing in Javascript server visualization
+
     # Class methods
     def __init__(self, id, model, location, radius=10.0, nectar=0.5, water=0.5, pollen=0.5, young_bees=0):
         super().__init__(id, model)
 
-        self.location = location
+        self.pos = location
         self.radius = radius
         
         self.nectar = nectar
