@@ -65,19 +65,27 @@ class Bee(Agent):
         self.age += dt                              # Manage ageing
         self.manage_death()                         # Manage death
     
-    def move_random(self, max_movement=0.2):
+    def move_random(self):
         """
         Moves randomly in x and y in the interval [-max_movement,max_movement]
         """
         # TODO: Use bee STATE to incorporate different biases in random walk!
-        x = self.pos[0] + uniform(-max_movement,max_movement)
-        y = self.pos[1] + uniform(-max_movement,max_movement)
-        
-        # Bound to model region [-size,size]
-        x = max(-x, min(self.model.size, x))
-        y = max(-y, min(self.model.size, y))
+        # x = self.pos[0] + uniform(-max_movement,max_movement)
+        # y = self.pos[1] + uniform(-max_movement,max_movement)
 
-        return (x,y)
+        dx = uniform(0, Bee.SPEED) * (1 if random() < 0.5 else -1)
+        dy = sqrt(Bee.SPEED**2 - dx**2) * (1 if random() < 0.5 else -1)
+
+        newx = self.pos[0] + dx
+        newx = max(-newx, min(self.model.size, newx))
+
+        newy = self.pos[1] + dy
+        newy = max(-newy, min(self.model.size, newy))
+
+        newpos = (newx, newy)
+        self.model.space.move_agent(self, newpos)
+
+        return newpos
 
     def move_towards_hive(self, speed=1):
         """
@@ -137,8 +145,6 @@ class Bee(Agent):
             #print('Bee resting',low_resources)
             if low_resources:
                 self.state = Bee.State.EXPLORING
-            else:
-                self.move_random(0.01)
 
 
         if self.state == Bee.State.EXPLORING:
@@ -173,7 +179,7 @@ class Bee(Agent):
                         return
 
                 # If not, move randomly but biased towards resources and trails
-                self.pos = self.move_random(0.4)
+                self.move_random()
 
 
 
@@ -226,7 +232,7 @@ class Bee(Agent):
                 move_randomly = True if random() < p_random_walk else False
  
                 if move_randomly:
-                    self.move_random(0.01)
+                    self.move_random()
                 else:
                     self.move_towards_hive()
 
