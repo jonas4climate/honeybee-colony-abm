@@ -8,6 +8,15 @@ from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
 
+bee_colors = {
+    Bee.State.RESTING : "#fc0303",
+    Bee.State.EXPLORING : "#0af5f1",
+    Bee.State.CARRYING : "#59a2c2",
+    Bee.State.DANCING : "#ff52df",
+    Bee.State.FOLLOWING : "#0a54f5"
+}
+
+
 def bee_draw(agent):
     # if not agent.neighbors:  # Only for the first Frame
     #     neighbors = len(agent.model.space.get_neighbors(agent.pos, agent.vision, False))
@@ -19,11 +28,11 @@ def bee_draw(agent):
     # elif neighbors >= 2:
     #     return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "Green"}
     if isinstance(agent, Bee):
-        return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "#f7df00", "gco": "source-over"}
+        return {"Shape": "circle", "r": 2, "Filled": "true", "Color": bee_colors[agent.state]}
     elif isinstance(agent, Hive):
-        return {"Shape": "circle", "r": Hive.RADIUS, "Filled": "true", "Color": "#82817c", "gco": "source-over"}
+        return {"Shape": "circle", "r": Hive.RADIUS, "Filled": "true", "Color": "#82817c"}
     elif isinstance(agent, Resource):
-        return {"Shape": "circle", "r": agent.radius, "Filled": "true", "Color": "#77dae640", "gco": "source-in"}
+        return {"Shape": "circle", "r": agent.radius, "Filled": "true", "Color": "#77dae640"}
 
 
 forager_canvas = SimpleCanvas(
