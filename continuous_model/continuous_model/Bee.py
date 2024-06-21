@@ -3,8 +3,11 @@ from __future__ import annotations
 from mesa import Agent, Model
 from enum import Enum
 from typing import Tuple
-from random import uniform, random
 from math import atan2,cos,sin,sqrt
+
+import numpy as np
+from numpy.random import uniform, random
+from scipy.stats import multivariate_normal
 
 #from ContinuousModel.Hive import Hive               # Should not need this import to avoid circular import, its only used in suggestion for class property type
 from continuous_model.Resource import Resource
@@ -65,17 +68,24 @@ class Bee(Agent):
         self.age += dt                              # Manage ageing
         self.manage_death()                         # Manage death
     
-    def move_random(self):
+    def resource_attraction(self, pos):
+        # TODO: Make it a vectorized operation
+        attraction = 0.0
+        for resource in self.model.get_agents_of_type(Resource):
+            # TODO: Change the covariance value to a reasonable number
+            attraction += multivariate_normal.pdf(list(pos), list(resource.pos), cov=self.model.size)
+        return attraction
+
+    def move_random_exploration(self):
         """
         Moves randomly in x and y in the interval [-max_movement,max_movement]
         """
-        # TODO: Use bee STATE to incorporate different biases in random walk!
-        # x = self.pos[0] + uniform(-max_movement,max_movement)
-        # y = self.pos[1] + uniform(-max_movement,max_movement)
 
-        dx = uniform(0, Bee.SPEED) * (1 if random() < 0.5 else -1)
-        dy = sqrt(Bee.SPEED**2 - dx**2) * (1 if random() < 0.5 else -1)
+        # Choose a random point at a fixed radius from the bee (assumption of bee's constant speed)
+        dx = np.random.uniform(0, Bee.SPEED) * (1 if np.random.random() < 0.5 else -1)
+        dy = sqrt(Bee.SPEED**2 - dx**2) * (1 if np.random.random() < 0.5 else -1)
 
+        # Calculate the new position, taking the boundaries into account
         newx = self.pos[0] + dx
         newx = max(-newx, min(self.model.size, newx))
 
@@ -83,9 +93,20 @@ class Bee(Agent):
         newy = max(-newy, min(self.model.size, newy))
 
         newpos = (newx, newy)
-        self.model.space.move_agent(self, newpos)
 
-        return newpos
+        # Calculate resource attraction bias
+        # TODO: Use bee STATE to incorporate different biases in random walk!
+        # TODO: Positive bias towards the resources
+        attraction_current = self.resource_attraction(self.pos)
+        attraction_new = self.resource_attraction(newpos)
+        
+        # TODO: Negative bias away from the hive
+        # dist_to_hive = np.hypot(newpos[0] - self.hive.pos[0], newpos[1] - self.hive.pos[1])
+        # if dist_to_hive < Bee.HIVE_MOVE_AWAY_TH:
+
+        # Metropolis algorithm
+        if attraction_new > attraction_current or np.random.random() < (attraction_new / attraction_current):
+            self.model.space.move_agent(self, newpos)
 
     def move_towards_hive(self, speed=1):
         """
@@ -111,7 +132,6 @@ class Bee(Agent):
     def is_resource_close_to_bee(self, resource, threshold):
         distance = sqrt((self.pos[0] - resource.pos[0])**2 + (self.pos[1] - resource.pos[1])**2)
         return distance <= threshold
-
 
     def move_towards(self, destiny, speed=1):
             """
@@ -153,7 +173,7 @@ class Bee(Agent):
             ## TODO: Make p_abort dependent on weather
             ## TODO: Make p_follow dependent on weather
             p_abort = 0.2
-            abort = True if random() < p_abort else False
+            abort = True if np.random.random() < p_abort else False
 
             if abort:
                 self.state = Bee.State.RESTING
@@ -162,7 +182,7 @@ class Bee(Agent):
                 for other_bee in bees_in_fov:
                     if other_bee.wiggle:
                         p_follow = 0.8
-                        follow_dance = True if random() < p_follow else False
+                        follow_dance = True if np.random.random() < p_follow else False
                         if follow_dance:
                             self.wiggle_destiny = other_bee.wiggle_destiny
                             self.state = Bee.State.FOLLOWING
@@ -179,7 +199,7 @@ class Bee(Agent):
                         return
 
                 # If not, move randomly but biased towards resources and trails
-                self.move_random()
+                self.move_random_exploration()
 
 
 
@@ -192,7 +212,7 @@ class Bee(Agent):
             if self.load == 0:
 
                 p_finish_gathering = 0.9
-                finish_gathering = True if random() < p_finish_gathering else False
+                finish_gathering = True if np.random.random() < p_finish_gathering else False
                 if finish_gathering:
                     self.load = 1
             else:
@@ -220,7 +240,7 @@ class Bee(Agent):
             # 2. After some time, goes to RESTING
             # TODO: Make it follow a more sensible distribution
             p_stop_dance = 0.4
-            stop_dancing = True if random() < p_stop_dance else False
+            stop_dancing = True if np.random.random() < p_stop_dance else False
 
             if stop_dancing:
                 self.wiggle = False
@@ -229,10 +249,11 @@ class Bee(Agent):
                 #self.wiggle should be True, as it was setted in the CARRYING state loop
                 # As it wiggles, it Moves randomly or towards hive 50% chance
                 p_random_walk = 0.5
-                move_randomly = True if random() < p_random_walk else False
+                move_randomly = True if np.random.random() < p_random_walk else False
  
                 if move_randomly:
-                    self.move_random()
+                    # TODO: Implement random small movement within the hive
+                    pass
                 else:
                     self.move_towards_hive()
 
@@ -242,7 +263,7 @@ class Bee(Agent):
             # 2. Then, it heads in that direction for some fixed time
             # 3. Then, switch to EXPLORING
             p_stop_follow = 0.4
-            stop_following = True if random() < p_stop_follow else False
+            stop_following = True if np.random.random() < p_stop_follow else False
 
             if stop_following:
                 self.state = Bee.State.EXPLORING

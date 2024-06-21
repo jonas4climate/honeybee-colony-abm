@@ -51,7 +51,7 @@ model_params = {
     "SIZE": 500,
     "n_hives": 2,
     "hive_locations": [(100,100), (200,250)],
-    "n_bees_per_hive": [2, 3],
+    "n_bees_per_hive": [20, 50],
     "n_resources": 5,
     "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
     # "height": 100
