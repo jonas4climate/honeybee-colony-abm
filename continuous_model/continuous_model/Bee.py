@@ -7,7 +7,8 @@ from random import uniform, random
 from math import atan2,cos,sin,sqrt
 
 #from ContinuousModel.Hive import Hive               # Should not need this import to avoid circular import, its only used in suggestion for class property type
-from continuous_model.Resource import Resource
+from .Resource import Resource
+from .Weather import Weather
 
 def move_random(bee,max_movement=0.2):
     """
@@ -81,7 +82,10 @@ class Bee(Agent):
         FOLLOWING = "following"
 
     # Class constants / fixed parameters
-    FIELD_OF_VIEW = 20
+    FIELD_OF_VIEW = 20              # TODO: calibrate
+    STARVATION_SPEED = 0.001        # TODO: calibrate
+    MAX_AGE = 100                   # TODO: calibrate
+    P_DEATH_BY_STORM = 0.01         # TODO: calibrate
 
     # Class properties
     id: int                         # unique identifier, required in mesa package
@@ -97,12 +101,11 @@ class Bee(Agent):
 
     age: float                      # agent's current age (which has influence on their activity)
     fov: float                      # radius around the agent in which it can perceive the environment
-    health: float                   # agent's health status
     load:float                      # agent amount of resources its carrying
     wiggle_destiny:Tuple[float,float]      # Location of bee resource once it finds it, which is passed to other bees when wiggle dancing 
 
     # Class methods
-    def __init__(self, id, model, hive, location=-1, fov=1, age=0, health=1.0, state=State.RESTING, wiggle=False):
+    def __init__(self, id, model, hive, location=-1, fov=1, age=0, fed=1.0, state=State.RESTING, wiggle=False):
         super().__init__(id, model)
 
         self.hive = hive
@@ -119,12 +122,11 @@ class Bee(Agent):
 
         self.age = age
         self.fov = fov
-        self.health = health
+        self.fed = fed
         self.load = 0
     
     def step(self, dt=1):
         self.step_by_caste(dt)                      # Manage action based on caste
-        self.age += dt                              # Manage ageing
         self.manage_death()                         # Manage death
 
     def step_by_caste(self, dt):
@@ -135,17 +137,16 @@ class Bee(Agent):
             # 2. Otherwise, does random walk around beehive
             ## TODO: Add constraint that hive should be in FOV
             ## TODO: Add reasonable low resource limit to start exploring instead of arbitrary 2
-            ## TODO: Make random walk biased towards hive
-            low_resources = self.hive.nectar < 2 or self.hive.water < 2 or self.hive.nectar <2
+            low_resources = self.hive.nectar < 2 or self.hive.water < 2
             
             #print('Bee resting',low_resources)
 
             if low_resources:
                 self.state = Bee.State.EXPLORING
-            else:
-                move_random(self,0.01)
+            # else:
+            #     move_random(self,0.01)
 
-
+        # TODO: Add a state Returning which has the bee move to the hive after aborting exploring
 
         if self.state == Bee.State.EXPLORING:
             # Might abort with some chance. If not, ight perceive WIGGLEDANCE -> and change do FOLLOW!
@@ -156,7 +157,7 @@ class Bee(Agent):
             abort = True if random() < p_abort else False
 
             if abort:
-                self.state = Bee.State.RESTING
+                self.state = Bee.State.RESTING # TODO: Returning state
             else:
                 bees_in_fov = [other_agent for other_agent in self.model.agents if other_agent != self and ((other_agent.pos[0] - self.pos[0])**2 + (other_agent.pos[1] - self.pos[1])**2)**0.5 <= self.fov and isinstance(other_agent, Bee)]
                 for other_bee in bees_in_fov:
@@ -179,29 +180,18 @@ class Bee(Agent):
                         return
 
                 # If not, move randomly but biased towards resources and trails
-                self.pos = move_random(self,0.4)
+                self.pos = move_random(self,0.4) # TODO: metropolis moving instead
 
 
 
         if self.state == Bee.State.CARRYING:
-            # 1. At first, spends some time gathering the resource without moving
+            # 1. At first, gather resource without moving
             # This can be done by waiting for specific time or adding a GATHERING state
-            # For now, its done with random chance
             # TODO: Make p_finish_gathering dependent on weather!
             # TODO: Make load of bee reasonable instead of arbitrary 1
             if self.load == 0:
-
-                p_finish_gathering = 0.9
-                finish_gathering = True if random() < p_finish_gathering else False
-                if finish_gathering:
-                    self.load = 1
+                self.load = 1
             else:
-                # 2. Leaves some trail on its location
-                ## TODO: Add trail
-                ## TODO: Incorporate weather so bees that are not Resting have increased chance of dying!
-                pass
-
-                # 4. On reaching the beeHive, deposit resources and switch to DANCING
                 if is_close_to_hive(self,threshold=0.1):
                     # TODO: Account for resource type, right now it always deposists nectar
                     self.hive.nectar += self.load
@@ -213,52 +203,54 @@ class Bee(Agent):
                     # Alternatively, heads in straight line there
                     move_towards_hive(self, speed=1)
                 
-        
 
         if self.state == Bee.State.DANCING:
             # 1. Does dance for some time, setting its self.waggle to True
             # 2. After some time, goes to RESTING
-            # TODO: Make it follow a more sensible distribution
+            # TODO: Make it follow fixed time DANCING_TIME
             p_stop_dance = 0.4
             stop_dancing = True if random() < p_stop_dance else False
 
             if stop_dancing:
                 self.wiggle = False
                 self.state = Bee.State.RESTING
-            else:
-                #self.wiggle should be True, as it was setted in the CARRYING state loop
-                # As it wiggles, it Moves randomly or towards hive 50% chance
-                p_random_walk = 0.5
-                move_randomly = True if random() < p_random_walk else False
- 
-                if move_randomly:
-                    move_random(self,0.01)
-                else:
-                    move_towards_hive(self)
-
 
         if self.state == Bee.State.FOLLOWING:
             # 1. First, it reads the resource direction from the other bee (THIS WAS DONE in the exploring loop)
             # 2. Then, it heads in that direction for some fixed time
             # 3. Then, switch to EXPLORING
-            p_stop_follow = 0.4
+            
+            # 1 Have we reach destiny already? 
+            # self.pos - self.wiggle.destiny isclose
+            # If so switch ro carrying
+
+            if is_resource_close_to_bee(self, self.wiggle_destiny, threshold=0.05):
+                self.state = Bee.State.CARRYING
+                # wiggle_destiny is already set to resource location
+            
+            p_stop_follow = 0.01 # TODO: instead have it be scale based on distance?
             stop_following = True if random() < p_stop_follow else False
 
             if stop_following:
                 self.state = Bee.State.EXPLORING
-            else:              
+            else:
                 move_towards(self, self.wiggle_destiny, speed=1)
   
-    def manage_death(self):
-        # TODO: Incorporate weather so bees that are not Resting have increased chance of dying!   
+    def manage_death(self, dt=1):
+        self.fed -= Bee.STARVATION_SPEED*dt
+        if self.fed <= 0: # Death by starvation
+            self.model.space.remove_agent(self)
+            self.model.schedule.remove(self)
+            return
+        
+        self.age += dt
+        if self.age >= Bee.MAX_AGE: # Death by age
+            self.model.space.remove_agent(self)
+            self.model.schedule.remove(self)
+            return
 
-        # death = False
-        # if self.health <= 0: # Death by health
-        #     death = True
-        # if self.max_age is not None and self.age >= self.max_age: # Death by age
-        #     death = True
-
-        # if death:
-        #     self.model.space.remove_agent(self)
-        #     self.model.schedule.remove(self)
-        return
+        # TODO: Add weather related death
+        if self.model.weather == Weather.STORM and random.random() < Bee.P_DEATH_BY_STORM:
+            self.model.space.remove_agent(self)
+            self.model.schedule.remove(self)
+            return

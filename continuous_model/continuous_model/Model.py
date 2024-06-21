@@ -9,17 +9,24 @@ from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
 from mesa.time import RandomActivation
 
+from enum import Enum
 from typing import List
+from random import random
 
 from .Bee import Bee
 from .Hive import Hive
 from .Resource import Resource
+from .Weather import Weather
 
 class ForagerModel(Model):
+    P_STORM = 0.001             # Probability of a storm happening in a given step
+    STORM_DURATION = 10         # Time
 
     # Class properties
+    storm_time_passed = 0       # Time duration of storm thus far
     size: int                   # side length of the square-shaped continuous space
     n_agents_existed: int       # counter for all the agents that were added to the model
+    weather = Weather.NORMAL    # weather object
     
     space: ContinuousSpace      # continous space container from mesa package
     agents: List[Agent]         # current list of agents
@@ -70,9 +77,24 @@ class ForagerModel(Model):
         for i in range(n_resources):
             self.create_agent(Resource, location=resource_locations[i])
 
-    def step(self):
+    def step(self, dt=1):
         for agent in self.agents:
-            agent.step()
+            agent.step() # TODO: add time for all agents
+
+        self.manage_weather_events(dt)
+            
         # TODO: Add interaction of agents (?)
         self.datacollector.collect(self)    # Record step variables in the DataCollector
         # TODO: self.schedule.step()
+
+    def manage_weather_events(self, dt):
+        # Keep storming until storm duration passed
+        if self.weather == Weather.STORM:
+            self.storm_time_passed += dt
+            if self.storm_time_passed >= self.STORM_DURATION:
+                self.weather = Weather.NORMAL
+                storm_time_passed = 0
+
+        # Start storming
+        if random.random() < self.P_STORM:
+            self.weather = Weather.STORM
