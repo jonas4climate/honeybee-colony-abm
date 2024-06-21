@@ -18,5 +18,5 @@ RESOURCE_DENSITY = 0.1
 NR_HIVES = 1
 
 # BEE CONSTANTS
-BABY_FEED = 0.5
-BABY_AGELIMIT = 10
+BABY_FEED = 0.5  # TODO : Add heterogeneity  
+BABY_AGELIMIT = 10  # TODO : Add heterogeneity

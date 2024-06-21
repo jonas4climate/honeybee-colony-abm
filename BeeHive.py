@@ -14,10 +14,10 @@ class BeeHive(Agent):
     def __init__(self, model, location):
         super().__init__(model.next_id(), model)
         self.model = model
-        self.location = location                    # (x,y) tuple
-        self.num_bees = 0                           # Integer: number of bees in the hive
-        self.nectar = 0                          # Integer: amount of nectar in the hive
-        self.consume = CONSUME_RATE                            # Integer: amount of food consumed by bees per day
+        self.location = location  # (x,y) tuple
+        self.num_bees = 0  # Integer: number of bees in the hive
+        self.nectar = 0  # Integer: amount of nectar in the hive
+        self.consume = CONSUME_RATE  # Integer: amount of food consumed by bees per day
         self.reproduce_rate = REPRODUCTION_RATE
         self.food = 20
         self.necessary_food = NECESSORY_FOOD
