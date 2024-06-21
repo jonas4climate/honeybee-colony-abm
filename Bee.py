@@ -65,12 +65,12 @@ class Bee(Agent):
         else:
             self.state_step(self)
 
-    # def try_collect_resources(self):
-    #     x, y = self.location
-    #     neighbors = self.model.grid.get_neighbors(self.location, include_center=True, radius=self.interaction_range)
-    #     resource_neighbors = [n for n in neighbors if isinstance(n, Resource)]
-    #     # TODO : Make decision which resource to collect
-    #     return
+    def try_collect_resources(self):
+        x, y = self.location
+        neighbors = self.model.grid.get_neighbors(self.location, include_center=True, radius=self.interaction_range)
+        resource_neighbors = [n for n in neighbors if isinstance(n, Resource)]
+        # TODO : Make decision which resource to collect
+        return
     
     def move(self, target):
         """Move the bee to the target location."""
@@ -81,3 +81,31 @@ class Bee(Agent):
         neighbors = self.model.grid.get_neighborhood(self.location, moore=True, include_center=False)
         new_location = self.random.choice(neighbors)
         self.move(new_location)
+
+    def move_to_hive(self):
+        """Return to the hive."""
+        x, y = self.location
+        hx, hy = self.hive.location
+        dx = hx - x
+        dy = hy - y
+        if dx == 0 and dy == 0:
+            self.reach_hive()
+        if dx != 0:
+            x += dx // abs(dx)
+        if dy != 0:
+            y += dy // abs(dy)
+        self.move((x, y))
+
+    def move_to_resource(self):
+        """Move to the nearest resource NOTE: We should use this for a bee's field of vision."""
+        x, y = self.location
+        hx, hy = self.hive.location
+        dx = hx - x
+        dy = hy - y
+        if dx == 0 and dy == 0:
+            return self.reach_hive()
+        if dx != 0:
+            x += dx // abs(dx)
+        if dy != 0:
+            y += dy // abs(dy)
+        self.move((x, y))
