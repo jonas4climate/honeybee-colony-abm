@@ -172,7 +172,7 @@ class Bee(Agent):
             # If not, it does random walk, biased towards resources and bee trails
             ## TODO: Make p_abort dependent on weather
             ## TODO: Make p_follow dependent on weather
-            p_abort = 0.2
+            p_abort = 0.0
             abort = True if np.random.random() < p_abort else False
 
             if abort:
