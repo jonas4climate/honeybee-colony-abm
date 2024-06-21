@@ -193,7 +193,7 @@ class Bee(Agent):
                 resources_in_fov = [resource for resource in self.model.agents if resource != self and ((resource.pos[0] - self.pos[0])**2 + (resource.pos[1] - self.pos[1])**2)**0.5 <= self.fov and isinstance(resource, Resource)]
 
                 for resource in resources_in_fov:
-                    if self.is_resource_close_to_bee(self, resource, threshold=0.05):
+                    if self.is_resource_close_to_bee(resource, threshold=0.05):
                         self.wiggle_destiny = resource.pos
                         self.state = Bee.State.CARRYING
                         return
