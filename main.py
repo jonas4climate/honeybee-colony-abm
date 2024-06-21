@@ -1,11 +1,14 @@
-from model import BeeModel
 import time
+
+from BeeModel import BeeModel
+from utils import timed
+
+
+@timed
 def main(steps):
-    start_time = time.time()
     model = BeeModel()
     model.run(steps)
-    end_time = time.time()
-    print("Execution time: ", end_time - start_time)
+
 
 if __name__ == "__main__":
     main(100)

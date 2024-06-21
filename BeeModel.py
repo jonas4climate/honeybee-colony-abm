@@ -1,39 +1,51 @@
-from BeeModelGrid import BeeModelGrid
-from mesa import Model
-from set_parameters import WIDTH, HEIGHT, RESOURCE_DENSITY, NUM_BEES
-from mesa.datacollection import DataCollector
-from CustomScheduler import CustomScheduler
 from random import shuffle
-from BeeHive import BeeHive
-from Bee import Bee
-from Resource import Resource
-from pathfinder import astar
 
-# parameters for debugging
-width = WIDTH
-height = HEIGHT
-resource_density = RESOURCE_DENSITY
-num_bees = NUM_BEES
+from mesa import Model
+from mesa.datacollection import DataCollector
+
+from Bee import Bee
+from BeeHive import BeeHive
+from BeeModelGrid import BeeModelGrid
+from CustomScheduler import CustomScheduler
+from pathfinder import astar
+from Resource import Resource
+from set_parameters import WIDTH, HEIGHT, RESOURCE_DENSITY, NUM_BEES
+
 
 class BeeModel(Model):
-    from set_parameters import WIDTH, HEIGHT, RESOURCE_DENSITY, NUM_BEES
-    def __init__(self, width=WIDTH, height=HEIGHT, num_bees=NUM_BEES, resource_density=RESOURCE_DENSITY, nr_hives=1, PLOT=False):
-        super().__init__()
-        self.n_agents_existed = 0  # Counter for all agents to have created, used as unique id
-        self.agents = []  # List of all agents in the model
-        self.hives = {}
-        self.width = width
-        self.height = height
-        self.resource_density = resource_density
-        self.grid = BeeModelGrid(width, height, torus=True, PLOT=PLOT)
-        self.schedule = CustomScheduler(self)
-        self.nr_hives = nr_hives
 
-        # Information of bees introduced and removed
+    def __init__(
+        self,
+        width=WIDTH,
+        height=HEIGHT,
+        num_bees=NUM_BEES,
+        resource_density=RESOURCE_DENSITY,
+        nr_hives=1,
+        PLOT=False,
+    ):
+        super().__init__()
+
+        # grid setup
+        self.height = height
+        self.width = width
+        self.grid = BeeModelGrid(width, height, torus=True, PLOT=PLOT)
+
+        # environment setup
+        self.hives = {}
+        self.nr_hives = nr_hives
+        self.resource_density = resource_density
+
+        # agent setup
+        self.agents = []
         self.dead_bees = 0
         self.born_bees = 0
+        self.n_agents_existed = 0
 
-        hive_location, food_location = self.init_grid(width, height, resource_density, nr_hives)
+        self.schedule = CustomScheduler(self)
+
+        hive_location, food_location = self.init_grid(
+            width, height, resource_density, nr_hives
+        )
 
         if nr_hives == 1:
             hive = BeeHive(self, hive_location)
@@ -62,51 +74,56 @@ class BeeModel(Model):
         # self.datacollector = DataCollector({
         # })
 
+    @staticmethod
+    def init_grid(width, height, resource_density, n_hives=1):
+        """Initialize the grid with resources and hives."""
+        positions = [(x, y) for x in range(width) for y in range(height)]
+        n_positions = len(positions)
+        n_resources = int((n_positions * resource_density))  # FIXME - floor or ceil?
+
+        shuffle(positions)
+
+        food_location = positions[0:n_resources]
+        if n_hives != 1:
+            i_hives = n_resources + n_hives
+            hive_location = positions[n_resources:i_hives]
+        else:
+            hive_location = positions[n_resources + 1]
+        return hive_location, food_location
+
     def add_agent(self, agent, location):
+        """Register a new agent in the model."""
         self.agents.append(agent)
         self.grid.place_agent(agent, location)
         self.schedule.add(agent)
         self.n_agents_existed += 1
 
     def remove_agent(self, agent):
+        """Remove an existing agent from the model."""
         if type(agent) == Bee:
             self.dead_bees += 1
-
         self.grid.remove_agent(agent)
         self.schedule.remove(agent)
 
     def add_bee(self, hive):
+        """Add a bee to the model."""
         bee = Bee(self, location=hive.location, hive=hive)
         self.add_agent(bee, hive.location)
 
     def add_baby(self, hive):
+        """Add a baby bee to the model."""
         bee = Bee(self, location=hive.location, hive=hive, max_age=10)
-        bee.state = 'baby'
+        bee.state = "baby"
         self.born_bees += 1
         hive.num_bees += 1
         self.add_agent(bee, hive.location)
 
     def step(self):
+        """Advance the model by one time step."""
         self.schedule.step()
-        # self.datacollector.collect(self)
-
         # TODO: datacollector
+        # self.datacollector.collect(self)
         # self.datacollector.collect(self)  # Record step variables in the DataCollector
-
-    @staticmethod
-    def init_grid(width, height, resource_density, nr_hives=1):
-        all_positions = [(x, y) for x in range(width) for y in range(height)]
-        total_locations = len(all_positions)
-        total_food = int((total_locations * resource_density))
-        shuffle(all_positions)
-
-        food_location = all_positions[0:total_food]
-        if nr_hives != 1:
-            index_hives = total_food + nr_hives
-            hive_location = all_positions[total_food:index_hives]
-        else:
-            hive_location = all_positions[total_food + 1]
-        return hive_location, food_location
 
     def run(self, steps):
         for i in range(steps):

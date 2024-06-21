@@ -1,10 +1,14 @@
 """
 This file contains the BeeHive class.
 """
-from mesa import Agent
-from set_parameters import REPRODUCTION_RATE, CONSUME_RATE, NECESSORY_FOOD, NECTAR_NEEDED
-from Bee import Bee
+
 from random import random
+
+from mesa import Agent
+
+from Bee import Bee
+from set_parameters import REPRODUCTION_RATE, CONSUME_RATE, NECESSORY_FOOD, NECTAR_NEEDED
+
 
 class BeeHive(Agent):
     def __init__(self, model, location):

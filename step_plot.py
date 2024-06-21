@@ -3,7 +3,7 @@ from mesa.visualization.modules import CanvasGrid, ChartModule
 # from mesa.visualization.UserParam import UserSettableParameter
 # Get parameters for the model
 from set_parameters import WIDTH, HEIGHT, NUM_BEES, RESOURCE_DENSITY, NR_HIVES
-from model import BeeModel; from Bee import Bee; from BeeHive import BeeHive; from Resource import Resource
+from BeeModel import BeeModel; from Bee import Bee; from BeeHive import BeeHive; from Resource import Resource
 
 colors = {BeeHive: "#000000", Bee: "#E9AB17", Resource: "#00A36C"}
 

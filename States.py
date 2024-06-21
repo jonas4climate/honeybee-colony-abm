@@ -1,6 +1,6 @@
-# from set_parameters import BABYTIME, BABYBITE
-from set_parameters import CONSUME_RATE, BABY_AGELIMIT, BABY_FEED
 from Resource import Resource
+from set_parameters import CONSUME_RATE, BABY_AGELIMIT, BABY_FEED
+
 def step_baby(bee):
     """
     Stays in the hive until it grows
@@ -13,7 +13,6 @@ def step_baby(bee):
     if bee.age > BABY_AGELIMIT:
         bee.state = "resting"
         bee.resting_duration = 5 # Reset resting duration
-
 
 def step_resting(bee):
     """
