@@ -9,67 +9,6 @@ from math import atan2,cos,sin,sqrt
 #from ContinuousModel.Hive import Hive               # Should not need this import to avoid circular import, its only used in suggestion for class property type
 from continuous_model.Resource import Resource
 
-def move_random(bee,max_movement=0.2):
-    """
-    Moves randomly in x and y in the interval [-max_movement,max_movement]
-    """
-    print('MOVE RANDOM')
-    # TODO: Use bee STATE to incorporate different biases in random walk!
-    x = bee.pos[0] + uniform(-max_movement,max_movement)
-    y = bee.pos[1] + uniform(-max_movement,max_movement)
-    
-    # Bound to model region [-size,size]
-    x = max(-x, min(bee.model.size, x))
-    y = max(-y, min(bee.model.size, y))
-
-    return (x,y)
-
-
-def move_towards_hive(self, speed=1):
-        """
-        Moves deterministically in straight line towards a target location
-        """
-        # TODO: Add stochasticity to dx and dy with weather :)
-        dx = self.hive.pos[0] - self.pos[0]
-        dy = self.hive.pos[1] - self.pos[1]
-        
-        distance = (dx**2 + dy**2)**0.5
-        if distance > speed:
-            angle = atan2(dy, dx)
-            new_x = self.pos[0] + speed * cos(angle)
-            new_y = self.pos[1] + speed * sin(angle)
-            self.model.space.move_agent(self, (new_x, new_y))
-        else:
-            self.model.space.move_agent(self, (self.hive.pos[0], self.hive.pos[1]))
-
-def is_close_to_hive(self, threshold=0.1):
-    distance = sqrt((self.pos[0] - self.hive.pos[0])**2 + (self.pos[1] - self.hive.pos[1])**2)
-    return distance <= threshold
-
-def is_resource_close_to_bee(self, resource, threshold):
-    distance = sqrt((self.pos[0] - resource.pos[0])**2 + (self.pos[1] - resource.pos[1])**2)
-    return distance <= threshold
-
-
-def move_towards(self, destiny, speed=1):
-        """
-        Moves deterministically in straight line towards a target location
-        """
-        # TODO: Add stochasticity to dx and dy with weather :)
-        dx = destiny.pos[0] - self.pos[0]
-        dy = destiny.pos[1] - self.pos[1]
-        
-        distance = (dx**2 + dy**2)**0.5
-        if distance > speed:
-            angle = atan2(dy, dx)
-            new_x = self.pos[0] + speed * cos(angle)
-            new_y = self.pos[1] + speed * sin(angle)
-            self.model.space.move_agent(self, (new_x, new_y))
-        else:
-            self.model.space.move_agent(self, (destiny.x, destiny.y))
-
-
-
 class Bee(Agent):
 
     # Bee's current activity
@@ -82,15 +21,14 @@ class Bee(Agent):
 
     # Class constants / fixed parameters
     FIELD_OF_VIEW = 20
+    SPEED = 5
 
     # Class properties
     id: int                         # unique identifier, required in mesa package
     model: Model                    # model the agent belongs to
 
     #hive: Hive                      # the Hive the Bee agent belongs to
-    pos: Tuple[float,float]
-    #x: float                        # agent's current position, x and y coordinate (have to be separated into x and y!)
-    #y: float
+    pos: Tuple[float,float]          # agent's current position
 
     state: Bee.State                # Bee's current activity
     wiggle: bool                    # whether the Bee agent is currently wiggle dancing
@@ -126,6 +64,63 @@ class Bee(Agent):
         self.step_by_caste(dt)                      # Manage action based on caste
         self.age += dt                              # Manage ageing
         self.manage_death()                         # Manage death
+    
+    def move_random(self, max_movement=0.2):
+        """
+        Moves randomly in x and y in the interval [-max_movement,max_movement]
+        """
+        # TODO: Use bee STATE to incorporate different biases in random walk!
+        x = self.pos[0] + uniform(-max_movement,max_movement)
+        y = self.pos[1] + uniform(-max_movement,max_movement)
+        
+        # Bound to model region [-size,size]
+        x = max(-x, min(self.model.size, x))
+        y = max(-y, min(self.model.size, y))
+
+        return (x,y)
+
+    def move_towards_hive(self, speed=1):
+        """
+        Moves deterministically in straight line towards a target location
+        """
+        # TODO: Add stochasticity to dx and dy with weather :)
+        dx = self.hive.pos[0] - self.pos[0]
+        dy = self.hive.pos[1] - self.pos[1]
+        
+        distance = (dx**2 + dy**2)**0.5
+        if distance > speed:
+            angle = atan2(dy, dx)
+            new_x = self.pos[0] + speed * cos(angle)
+            new_y = self.pos[1] + speed * sin(angle)
+            self.model.space.move_agent(self, (new_x, new_y))
+        else:
+            self.model.space.move_agent(self, (self.hive.pos[0], self.hive.pos[1]))
+
+    def is_close_to_hive(self, threshold=0.1):
+        distance = sqrt((self.pos[0] - self.hive.pos[0])**2 + (self.pos[1] - self.hive.pos[1])**2)
+        return distance <= threshold
+
+    def is_resource_close_to_bee(self, resource, threshold):
+        distance = sqrt((self.pos[0] - resource.pos[0])**2 + (self.pos[1] - resource.pos[1])**2)
+        return distance <= threshold
+
+
+    def move_towards(self, destiny, speed=1):
+            """
+            Moves deterministically in straight line towards a target location
+            """
+            # TODO: Add stochasticity to dx and dy with weather :)
+            dx = destiny.pos[0] - self.pos[0]
+            dy = destiny.pos[1] - self.pos[1]
+            
+            distance = (dx**2 + dy**2)**0.5
+            if distance > speed:
+                angle = atan2(dy, dx)
+                new_x = self.pos[0] + speed * cos(angle)
+                new_y = self.pos[1] + speed * sin(angle)
+                self.model.space.move_agent(self, (new_x, new_y))
+            else:
+                self.model.space.move_agent(self, (destiny.x, destiny.y))
 
     def step_by_caste(self, dt):
         # TODO: Use dt
@@ -136,15 +131,14 @@ class Bee(Agent):
             ## TODO: Add constraint that hive should be in FOV
             ## TODO: Add reasonable low resource limit to start exploring instead of arbitrary 2
             ## TODO: Make random walk biased towards hive
-            low_resources = self.hive.nectar < 2 or self.hive.water < 2 or self.hive.nectar <2
+            # low_resources = self.hive.nectar < 2 or self.hive.water < 2 or self.hive.nectar <2
+            low_resources = self.hive.nectar < 2
             
             #print('Bee resting',low_resources)
-
             if low_resources:
                 self.state = Bee.State.EXPLORING
             else:
-                move_random(self,0.01)
-
+                self.move_random(0.01)
 
 
         if self.state == Bee.State.EXPLORING:
@@ -173,13 +167,13 @@ class Bee(Agent):
                 resources_in_fov = [resource for resource in self.model.agents if resource != self and ((resource.pos[0] - self.pos[0])**2 + (resource.pos[1] - self.pos[1])**2)**0.5 <= self.fov and isinstance(resource, Resource)]
 
                 for resource in resources_in_fov:
-                    if is_resource_close_to_bee(self,resource,threshold=0.05):
-                        self.wiggle_destiny = (resource.x,resource.y)
+                    if self.is_resource_close_to_bee(self, resource, threshold=0.05):
+                        self.wiggle_destiny = resource.pos
                         self.state = Bee.State.CARRYING
                         return
 
                 # If not, move randomly but biased towards resources and trails
-                self.pos = move_random(self,0.4)
+                self.pos = self.move_random(0.4)
 
 
 
@@ -202,7 +196,7 @@ class Bee(Agent):
                 pass
 
                 # 4. On reaching the beeHive, deposit resources and switch to DANCING
-                if is_close_to_hive(self,threshold=0.1):
+                if self.is_close_to_hive(threshold=0.1):
                     # TODO: Account for resource type, right now it always deposists nectar
                     self.hive.nectar += self.load
                     self.load = 0
@@ -211,7 +205,7 @@ class Bee(Agent):
                 else:
                     # If not on beehive yet, does random walk, heavily biased towards self.BeeHive.pos
                     # Alternatively, heads in straight line there
-                    move_towards_hive(self, speed=1)
+                    self.move_towards_hive(speed=1)
                 
         
 
@@ -232,9 +226,9 @@ class Bee(Agent):
                 move_randomly = True if random() < p_random_walk else False
  
                 if move_randomly:
-                    move_random(self,0.01)
+                    self.move_random(0.01)
                 else:
-                    move_towards_hive(self)
+                    self.move_towards_hive()
 
 
         if self.state == Bee.State.FOLLOWING:
@@ -247,7 +241,7 @@ class Bee(Agent):
             if stop_following:
                 self.state = Bee.State.EXPLORING
             else:              
-                move_towards(self, self.wiggle_destiny, speed=1)
+                self.move_towards(self.wiggle_destiny, speed=1)
   
     def manage_death(self):
         # TODO: Incorporate weather so bees that are not Resting have increased chance of dying!   

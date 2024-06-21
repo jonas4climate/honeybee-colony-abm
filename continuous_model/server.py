@@ -39,12 +39,12 @@ model_params = {
     #     step=5,
     #     description="Choose how many agents to include in the model",
     # ),
-    "SIZE": 100,
+    "SIZE": 500,
     "n_hives": 2,
-    "hive_locations": [(20,20), (50,50)],
-    "n_bees_per_hive": [10, 20],
+    "hive_locations": [(100,100), (200,250)],
+    "n_bees_per_hive": [2, 3],
     "n_resources": 5,
-    "resource_locations": [(3,3), (10, 15), (10, 20), (15, 30), (15, 20)],
+    "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
     # "height": 100
     # "speed": mesa.visualization.Slider(
     #     name="Speed of Boids",

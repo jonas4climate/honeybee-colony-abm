@@ -51,8 +51,8 @@ class Hive(Agent):
     radius: float                   # effective radius of the hive, within that radius bees are considered "inside the hive"
     
     nectar: float                   # Current amount of stored nectar
-    water: float                    # Current amount of stored water
-    pollen: float                   # Current amount of stored pollen
+    # water: float                    # Current amount of stored water
+    # pollen: float                   # Current amount of stored pollen
     
     young_bees: int                 # Number of non-forager bees (about to become foragers)
 
