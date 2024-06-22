@@ -82,10 +82,10 @@ class Bee(Agent):
         FOLLOWING = "following"
 
     # Class constants / fixed parameters
-    FIELD_OF_VIEW = 20              # TODO: calibrate
-    STARVATION_SPEED = 0.001        # TODO: calibrate
-    MAX_AGE = 100                   # TODO: calibrate
-    P_DEATH_BY_STORM = 0.01         # TODO: calibrate
+    FIELD_OF_VIEW = 20              # 20 (meters) TODO: calibrate further using real data
+    STARVATION_SPEED = 1/(24*60*60) # within 1 day (rate / second) TODO: calibrate further using real data
+    MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in seconds) TODO: calibrate further using real data
+    P_DEATH_BY_STORM = 0.5          # (probability) TODO: calibrate further
 
     # Class properties
     id: int                         # unique identifier, required in mesa package
@@ -127,24 +127,25 @@ class Bee(Agent):
     
     def step(self, dt=1):
         self.step_by_caste(dt)                      # Manage action based on caste
-        self.manage_death()                         # Manage death
+        self.manage_death(dt)                       # Manage death
 
     def step_by_caste(self, dt):
         # TODO: Use dt
 
         if self.state == Bee.State.RESTING:
+            assert self.load == 0, "Bee cannot be resting and carrying at the same time"
+            assert self.wiggle == False, "Bee cannot be resting and wiggle dancing at the same time"
+            assert self.wiggle_destiny == None, "Bee cannot be resting and have a wiggle destiny at the same time"
+            assert is_close_to_hive(self,threshold=0.1), "Bee cannot be resting and not close to hive"
+
             # 1. Might perceive low resources at beehive -> and change to EXPLORING
             # 2. Otherwise, does random walk around beehive
-            ## TODO: Add constraint that hive should be in FOV
             ## TODO: Add reasonable low resource limit to start exploring instead of arbitrary 2
-            low_resources = self.hive.nectar < 2 or self.hive.water < 2
+            if is_close_to_hive(self,threshold=0.1) and (self.hive.nectar < 2 or self.hive.water < 2):
+                perceive_low_resources = True
             
-            #print('Bee resting',low_resources)
-
-            if low_resources:
+            if perceive_low_resources:
                 self.state = Bee.State.EXPLORING
-            # else:
-            #     move_random(self,0.01)
 
         # TODO: Add a state Returning which has the bee move to the hive after aborting exploring
 
@@ -249,7 +250,6 @@ class Bee(Agent):
             self.model.schedule.remove(self)
             return
 
-        # TODO: Add weather related death
         if self.model.weather == Weather.STORM and random.random() < Bee.P_DEATH_BY_STORM:
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
