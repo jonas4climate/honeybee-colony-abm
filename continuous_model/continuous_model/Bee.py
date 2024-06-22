@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 from mesa import Agent, Model
+
 from enum import Enum
 from typing import Tuple
 from math import atan2,cos,sin,sqrt
-
 import numpy as np
-from numpy.random import uniform, random
 from scipy.stats import multivariate_normal
 
-#from ContinuousModel.Hive import Hive               # Should not need this import to avoid circular import, its only used in suggestion for class property type
 from .Resource import Resource
 from .Weather import Weather
 
@@ -60,6 +58,7 @@ class Bee(Agent):
 
         self.state = state
         self.wiggle = wiggle
+        self.wiggle_destiny = None
 
         self.age = age
         self.fov = fov
@@ -269,7 +268,7 @@ class Bee(Agent):
                 # wiggle_destiny is already set to resource location
             
             p_stop_follow = 0.01 # TODO: instead have it be scale based on distance?
-            stop_following = True if random() < p_stop_follow else False
+            stop_following = True if np.random.random() < p_stop_follow else False
 
             if stop_following:
                 self.state = Bee.State.EXPLORING
@@ -289,7 +288,7 @@ class Bee(Agent):
             self.model.schedule.remove(self)
             return
 
-        if self.model.weather == Weather.STORM and random.random() < Bee.P_DEATH_BY_STORM:
+        if self.model.weather == Weather.STORM and np.random.random() < Bee.P_DEATH_BY_STORM:
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
             return

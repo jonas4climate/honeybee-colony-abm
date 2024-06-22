@@ -9,9 +9,8 @@ from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
 from mesa.time import RandomActivation
 
-from enum import Enum
+import numpy as np
 from typing import List
-from random import random
 
 from .Bee import Bee
 from .Hive import Hive
@@ -96,5 +95,5 @@ class ForagerModel(Model):
                 storm_time_passed = 0
 
         # Start storming
-        if random.random() < self.P_STORM:
+        if np.random.random() < self.P_STORM:
             self.weather = Weather.STORM

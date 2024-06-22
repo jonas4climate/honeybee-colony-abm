@@ -1,8 +1,9 @@
 from mesa import Agent, Model
 
 from typing import Tuple
-from continuous_model.Bee import Bee
-from random import random
+import numpy as np
+
+from .Bee import Bee
 
 
 def feed_bees(self):
@@ -21,9 +22,9 @@ def feed_bees(self):
 def mature_bees(self):
     # This entails maturing young bees to foragers with some probability based on resources, weather etc...
     for young_bee in range(self.young_bees):
-        mature = True if random() < self.p_new_forager else False
+        mature = True if np.random.random() < self.p_new_forager else False
         if mature:
-            new_forager = Bee(self,fov=0.5, age=4, health=1, state="resting", wiggle=False)
+            new_forager = Bee(self, self.model, self.model.hive, fov=0.5, age=4, fed=1, state="resting", wiggle=False)
             self.grid.place_agent(new_forager, (0, 0))
             self.young_bees -= 1
     
@@ -36,7 +37,7 @@ def update_p_forager(self):
 def create_bees(self):
     ## TODO: Update probability with resources, weather...
     p_new_young_bee = 0.1
-    new_young = True if random() < p_new_young_bee else False
+    new_young = True if np.random.random() < p_new_young_bee else False
     if new_young:
         self.young_bees += 1
 

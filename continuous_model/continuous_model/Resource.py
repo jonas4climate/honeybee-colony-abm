@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from mesa import Agent, Model
-from enum import Enum
 
+from enum import Enum
 from typing import Tuple
 
 class Resource(Agent):
