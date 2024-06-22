@@ -23,18 +23,19 @@ class Bee(Agent):
         FOLLOWING = "following"
 
     # Class constants / fixed parameters
-    FIELD_OF_VIEW = 20              # 20 (meters) TODO: calibrate further using real data
-    STARVATION_SPEED = 1/(60*60*24) # within 1 day (rate / second)
-    MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in seconds)
+    FIELD_OF_VIEW = 20              # 20 (in m) TODO: calibrate further using real data
+    STARVATION_SPEED = 1/(60*60*24) # within 1 day (in rate/s)
+    MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in s)
     P_DEATH_BY_STORM = 1/(60*60)    # on average within 1 hour (probability) TODO: calibrate further
-    SPEED = 5                       # 5 (meters / second) 
-    PERCEIVE_AS_LOW_FOOD = 2        # 2 (units of food) TODO: calibrate further
-    DANCING_TIME = 60               # 1 minute (in seconds) TODO: calibrate further
+    SPEED = 5                       # 5 (in m/s) 
+    PERCEIVE_AS_LOW_FOOD = 2        # 2 (in kg) TODO: calibrate further
+    DANCING_TIME = 60               # 1 minute (in s) TODO: calibrate further
     P_FOLLOW_WIGGLE_DANCE = 1       # 100% (probability) TODO: calibrate further
     P_ABORT_EXPLORING = 1/(60*60)   # on average within 1 hour (probability) TODO: calibrate further
-    STORM_ABORT_FACTOR = 10         # 10 times more likely to abort during storm (factor) TODO: calibrate further
-    CARRYING_CAPACITY = 1           # 1 (unit of food) TODO: calibrate further
-    GATHERING_RATE = 1              # 1 (seconds / unit of food) TODO: calibrate further
+    P_ABORT_FOLLOWING = 1/(60*60)   # on average within 1 hour (probability) TODO: calibrate further
+    STORM_ABORT_FACTOR = 10         # 10 times more likely to abort during storm TODO: calibrate further
+    CARRYING_CAPACITY = 0.001       # 1g (in kg) TODO: calibrate further
+    GATHERING_RATE = 0.0001         # 0.1g/s (kg/s) TODO: calibrate further
 
     # Class properties
     id: int                         # unique identifier, required in mesa package
@@ -155,8 +156,8 @@ class Bee(Agent):
             self.model.space.move_agent(self, (destiny.x, destiny.y))
 
     def step_by_caste(self):
-        # Resting in the hive until changing mind and exploring
-        if self.state == Bee.State.RESTING:
+
+        if self.state == Bee.State.RESTING: # Resting in the hive until changing mind and exploring
             assert self.load == 0, "Bee cannot be resting and carrying at the same time"
             assert self.wiggle == False, "Bee cannot be resting and wiggle dancing at the same time"
             assert self.wiggle_destiny == None, "Bee cannot be resting and have a wiggle destiny at the same time"
@@ -167,21 +168,19 @@ class Bee(Agent):
                 perceive_low_resources = True
             
             if perceive_low_resources:
+                # Understand need for resource gathering
                 self.state = Bee.State.EXPLORING
             return
-
-        # Return straight to the hive and start resting
-        if self.state == Bee.State.RETURNING:
+        elif self.state == Bee.State.RETURNING: # Return straight to the hive and start resting
             if self.is_close_to_hive():
-                # Arrived, start resting
                 self.state = Bee.State.RESTING
             else:
                 self.move_towards_hive()
             return
-
-        # Exploring with random walk unless see waggle dances or choose to abort
-        if self.state == Bee.State.EXPLORING:
-            p_abort = Bee.P_ABORT_EXPLORING if self.model.weather == Weather.NORMAL else Bee.P_ABORT_EXPLORING*Bee.STORM_ABORT_FACTOR
+        elif self.state == Bee.State.EXPLORING: # Exploring with random walk unless see waggle dances or choose to abort
+            p_abort = Bee.P_ABORT_EXPLORING
+            if self.model.weather == Weather.STORM:
+                p_abort *= Bee.STORM_ABORT_FACTOR
 
             if np.random.random() < p_abort:
                 # Abort exploring and start returning to hive
@@ -207,11 +206,7 @@ class Bee(Agent):
                 # Explore randomly
                 self.move_random_exploration()
             return
-
-
-        # Start carrying resources and bring back to the hive
-        if self.state == Bee.State.CARRYING:
-            # TODO: Make p_finish_gathering dependent on weather?
+        elif self.state == Bee.State.CARRYING: # Start carrying resources and bring back to the hive
             # Instantly gather resources
             if self.load == 0:
                 self.load = Bee.CARRYING_CAPACITY
@@ -225,47 +220,24 @@ class Bee(Agent):
             else:
                 self.move_towards_hive()
             return
-        
-
-        if self.state == Bee.State.DANCING: 
+        elif self.state == Bee.State.DANCING: # Wiggle dance to communicate resource location
             self.dancing_time += self.model.dt
+            # Rest if done dancing
             if self.dancing_time >= Bee.DANCING_TIME:
                 self.dancing_time = 0
                 self.wiggle_destiny = None
                 self.state = Bee.State.RESTING
             return
-            # else:
-            #     #self.wiggle should be True, as it was setted in the CARRYING state loop
-            #     # As it wiggles, it Moves randomly or towards hive 50% chance
-            #     p_random_walk = 0.5
-            #     move_randomly = True if np.random.random() < p_random_walk else False
- 
-            #     if move_randomly:
-            #         # TODO: Implement random small movement within the hive
-            #         pass
-            #     else:
-            #         self.move_towards_hive()
-
-
-        if self.state == Bee.State.FOLLOWING:
-            # 1. First, it reads the resource direction from the other bee (THIS WAS DONE in the exploring loop)
-            # 2. Then, it heads in that direction for some fixed time
-            # 3. Then, switch to EXPLORING
-            
-            # 1 Have we reach destiny already? 
-            # self.pos - self.wiggle.destiny isclose
-            # If so switch ro carrying
-
-            if self.is_resource_close_to_bee(self.wiggle_destiny, threshold=0.05):
+        elif self.state == Bee.State.FOLLOWING: # Take straight path to waggle destiny resource if not aborting on the way
+            # Carry resource if arrived
+            if self.is_resource_close_to_bee(self.wiggle_destiny):
                 self.state = Bee.State.CARRYING
                 # wiggle_destiny is already set to resource location
             
-            p_stop_follow = 0.01 # TODO: instead have it be scale based on distance?
-            stop_following = True if np.random.random() < p_stop_follow else False
-
-            if stop_following:
+            # TODO: instead have it be scale based on distance to resource (i.e. expected time taken to get there)
+            if np.random.random() < Bee.P_ABORT_FOLLOWING*self.model.dt:
                 self.state = Bee.State.EXPLORING
-            else:   
+            else:
                 self.move_towards(self.wiggle_destiny)
             return
   
@@ -282,7 +254,7 @@ class Bee(Agent):
             self.model.schedule.remove(self)
             return
 
-        if self.model.weather == Weather.STORM and np.random.random() < Bee.P_DEATH_BY_STORM*self.model.dt:
+        if self.model.weather == Weather.STORM and np.random.random() < Bee.P_DEATH_BY_STORM*self.model.dt: # Death by storm
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
             return
