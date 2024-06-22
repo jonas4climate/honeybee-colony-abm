@@ -16,6 +16,7 @@ class Bee(Agent):
     # Bee's current activity
     class State(Enum):
         RESTING = "resting"
+        RETURNING = "returning"
         EXPLORING = "exploring"
         CARRYING = "carrying"
         DANCING = "dancing"
@@ -27,6 +28,7 @@ class Bee(Agent):
     MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in seconds) TODO: calibrate further using real data
     P_DEATH_BY_STORM = 0.5          # (probability) TODO: calibrate further
     SPEED = 5                       # 5 (meters / second) 
+    PERCEIVE_AS_LOW_FOOD = 2        # (units of food) TODO: calibrate further
 
     # Class properties
     id: int                         # unique identifier, required in mesa package
@@ -41,10 +43,9 @@ class Bee(Agent):
     age: float                      # agent's current age (which has influence on their activity)
     fov: float                      # radius around the agent in which it can perceive the environment
     load:float                      # agent amount of resources its carrying
-    wiggle_destiny:Tuple[float,float]      # Location of bee resource once it finds it, which is passed to other bees when wiggle dancing 
 
     # Class methods
-    def __init__(self, id, model, hive, location=-1, fov=1, age=0, fed=1.0, state=State.RESTING, wiggle=False):
+    def __init__(self, id, model, hive, location=-1, fov=FIELD_OF_VIEW, age=0, fed=1.0, state=State.RESTING, wiggle=False):
         super().__init__(id, model)
 
         self.hive = hive
@@ -58,16 +59,16 @@ class Bee(Agent):
 
         self.state = state
         self.wiggle = wiggle
-        self.wiggle_destiny = None
+        self.wiggle_destiny = None # Location of bee resource once it finds it, which is passed to other bees if wiggle dancing 
 
         self.age = age
         self.fov = fov
         self.fed = fed
         self.load = 0
     
-    def step(self, dt=1):
-        self.step_by_caste(dt)                      # Manage action based on caste
-        self.manage_death(dt)                       # Manage death
+    def step(self):
+        self.step_by_caste()                      # Manage action based on caste
+        self.manage_death()                       # Manage death
     
     def resource_attraction(self, pos):
         # TODO: Make it a vectorized operation
@@ -81,10 +82,10 @@ class Bee(Agent):
         """
         Moves randomly in x and y in the interval [-max_movement,max_movement]
         """
-
+        distance = Bee.SPEED*self.model.dt
         # Choose a random point at a fixed radius from the bee (assumption of bee's constant speed)
-        dx = np.random.uniform(0, Bee.SPEED) * (1 if np.random.random() < 0.5 else -1)
-        dy = sqrt(Bee.SPEED**2 - dx**2) * (1 if np.random.random() < 0.5 else -1)
+        dx = np.random.uniform(0, distance) * (1 if np.random.random() < 0.5 else -1)
+        dy = sqrt(distance**2 - dx**2) * (1 if np.random.random() < 0.5 else -1)
 
         # Calculate the new position, taking the boundaries into account
         newx = self.pos[0] + dx
@@ -109,51 +110,39 @@ class Bee(Agent):
         if attraction_new > attraction_current or np.random.random() < (attraction_new / attraction_current):
             self.model.space.move_agent(self, newpos)
 
-    def move_towards_hive(self, speed=1):
+    def is_close_to_hive(self, threshold=0.1):
+        return self.is_close_to(self.hive, threshold)
+
+    def is_resource_close_to_bee(self, resource, threshold=0.1):
+        return self.is_close_to(resource, threshold)
+    
+    def is_close_to(self, agent, threshold):
+        distance = sqrt((self.pos[0] - agent.pos[0])**2 + (self.pos[1] - agent.pos[1])**2)
+        return distance <= threshold
+    
+    def move_towards_hive(self):
+        self.move_towards(self.hive)
+
+    def move_towards(self, destiny):
         """
         Moves deterministically in straight line towards a target location
         """
         # TODO: Add stochasticity to dx and dy with weather :)
-        dx = self.hive.pos[0] - self.pos[0]
-        dy = self.hive.pos[1] - self.pos[1]
+        dx = destiny.pos[0] - self.pos[0]
+        dy = destiny.pos[1] - self.pos[1]
         
         distance = (dx**2 + dy**2)**0.5
-        if distance > speed:
+        move_distance = Bee.SPEED*self.model.dt
+        if distance > move_distance:
             angle = atan2(dy, dx)
-            new_x = self.pos[0] + speed * cos(angle)
-            new_y = self.pos[1] + speed * sin(angle)
+            new_x = self.pos[0] + Bee.SPEED * cos(angle)
+            new_y = self.pos[1] + Bee.SPEED * sin(angle)
             self.model.space.move_agent(self, (new_x, new_y))
         else:
-            self.model.space.move_agent(self, (self.hive.pos[0], self.hive.pos[1]))
+            self.model.space.move_agent(self, (destiny.x, destiny.y))
 
-    def is_close_to_hive(self, threshold=0.1):
-        distance = sqrt((self.pos[0] - self.hive.pos[0])**2 + (self.pos[1] - self.hive.pos[1])**2)
-        return distance <= threshold
-
-    def is_resource_close_to_bee(self, resource, threshold):
-        distance = sqrt((self.pos[0] - resource.pos[0])**2 + (self.pos[1] - resource.pos[1])**2)
-        return distance <= threshold
-
-    def move_towards(self, destiny, speed=1):
-            """
-            Moves deterministically in straight line towards a target location
-            """
-            # TODO: Add stochasticity to dx and dy with weather :)
-            dx = destiny.pos[0] - self.pos[0]
-            dy = destiny.pos[1] - self.pos[1]
-            
-            distance = (dx**2 + dy**2)**0.5
-            if distance > speed:
-                angle = atan2(dy, dx)
-                new_x = self.pos[0] + speed * cos(angle)
-                new_y = self.pos[1] + speed * sin(angle)
-                self.model.space.move_agent(self, (new_x, new_y))
-            else:
-                self.model.space.move_agent(self, (destiny.x, destiny.y))
-
-    def step_by_caste(self, dt):
-        # TODO: Use dt
-
+    def step_by_caste(self):
+        # Bees are resting in the hive until they change their mind and explore
         if self.state == Bee.State.RESTING:
             assert self.load == 0, "Bee cannot be resting and carrying at the same time"
             assert self.wiggle == False, "Bee cannot be resting and wiggle dancing at the same time"
@@ -161,16 +150,20 @@ class Bee(Agent):
             assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
 
             # 1. Might perceive low resources at beehive -> and change to EXPLORING
-            ## TODO: Add reasonable low resource limit to start exploring instead of arbitrary 2
-            if self.is_close_to_hive() and (self.hive.nectar < 2):
+            if self.is_close_to_hive() and (self.hive.nectar < Bee.PERCEIVE_AS_LOW_FOOD):
                 perceive_low_resources = True
             
             if perceive_low_resources:
                 self.state = Bee.State.EXPLORING
 
-        # TODO: Add a state Returning which has the bee move to the hive after aborting exploring
+        # If bees abort their exploration, they return straight to the hive and start resting
+        if self.state == Bee.State.RETURNING:
+            if self.is_close_to_hive():
+                self.state = Bee.State.RESTING
+            else:
+                self.move_towards_hive()
 
-
+        # Bees exploring with random walk if they don't perceive waggle dances
         if self.state == Bee.State.EXPLORING:
             # Might abort with some chance. If not, ight perceive WIGGLEDANCE -> and change do FOLLOW!
             # If not, it does random walk, biased towards resources and bee trails
@@ -180,7 +173,7 @@ class Bee(Agent):
             abort = True if np.random.random() < p_abort else False
 
             if abort:
-                self.state = Bee.State.RESTING # TODO: Returning state
+                self.state = Bee.State.RETURNING
             else:
                 bees_in_fov = [other_agent for other_agent in self.model.agents if other_agent != self and ((other_agent.pos[0] - self.pos[0])**2 + (other_agent.pos[1] - self.pos[1])**2)**0.5 <= self.fov and isinstance(other_agent, Bee)]
                 for other_bee in bees_in_fov:
@@ -275,14 +268,14 @@ class Bee(Agent):
             else:   
                 self.move_towards(self.wiggle_destiny)
   
-    def manage_death(self, dt=1):
-        self.fed -= Bee.STARVATION_SPEED*dt
+    def manage_death(self):
+        self.fed -= Bee.STARVATION_SPEED*self.model.dt
         if self.fed <= 0: # Death by starvation
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
             return
         
-        self.age += dt
+        self.age += self.model.dt
         if self.age >= Bee.MAX_AGE: # Death by age
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)

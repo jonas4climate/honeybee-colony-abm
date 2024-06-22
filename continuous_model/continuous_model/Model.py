@@ -31,11 +31,12 @@ class ForagerModel(Model):
     agents: List[Agent]         # current list of agents
 
     # Class methods
-    def __init__(self, SIZE, n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations):
+    def __init__(self, SIZE, n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations, dt=10):
         super().__init__()
 
         self.size = SIZE
         self.n_agents_existed = 0
+        self.dt = dt                    # Time step in seconds
 
         self.space = ContinuousSpace(SIZE, SIZE, True)
         self.schedule = RandomActivation(self)
@@ -76,23 +77,23 @@ class ForagerModel(Model):
         for i in range(n_resources):
             self.create_agent(Resource, location=resource_locations[i])
 
-    def step(self, dt=1):
+    def step(self):
         for agent in self.agents:
-            agent.step() # TODO: add time for all agents
+            agent.step()
 
-        self.manage_weather_events(dt)
+        self.manage_weather_events()
             
         # TODO: Add interaction of agents (?)
         self.datacollector.collect(self)    # Record step variables in the DataCollector
         # TODO: self.schedule.step()
 
-    def manage_weather_events(self, dt):
+    def manage_weather_events(self):
         # Keep storming until storm duration passed
         if self.weather == Weather.STORM:
-            self.storm_time_passed += dt
+            self.storm_time_passed += self.dt
             if self.storm_time_passed >= self.STORM_DURATION:
                 self.weather = Weather.NORMAL
-                storm_time_passed = 0
+                self.storm_time_passed = 0
 
         # Start storming
         if np.random.random() < self.P_STORM:
