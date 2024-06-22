@@ -122,11 +122,11 @@ class Bee(Agent):
             # Retry so we ensure the bee moves and doesn't stay still
             self.move_random_exploration()
 
-    def is_close_to_hive(self, threshold=0.1):
-        return self.is_close_to(self.hive, threshold)
+    def is_close_to_hive(self):
+        return self.is_close_to(self.hive, self.hive.radius)
 
-    def is_resource_close_to_bee(self, resource, threshold=0.1):
-        return self.is_close_to(resource, threshold)
+    def is_close_to_resource(self, resource):
+        return self.is_close_to(resource, resource.radius)
     
     def is_close_to(self, agent, threshold):
         return self.distance_to_agent(agent) <= threshold
@@ -137,13 +137,13 @@ class Bee(Agent):
     def distance_to_agent(self, agent):
         return sqrt((self.pos[0] - agent.pos[0])**2 + (self.pos[1] - agent.pos[1])**2)
 
-    def move_towards(self, destiny):
+    def move_towards(self, destiny_agent):
         """
         Moves deterministically in straight line towards a target location
         """
         # TODO: Add stochasticity to dx and dy with weather :)
-        dx = destiny.pos[0] - self.pos[0]
-        dy = destiny.pos[1] - self.pos[1]
+        dx = destiny_agent.pos[0] - self.pos[0]
+        dy = destiny_agent.pos[1] - self.pos[1]
         
         distance = (dx**2 + dy**2)**0.5
         move_distance = Bee.SPEED*self.model.dt
@@ -153,7 +153,7 @@ class Bee(Agent):
             new_y = self.pos[1] + move_distance * sin(angle)
             self.model.space.move_agent(self, (new_x, new_y))
         else:
-            self.model.space.move_agent(self, (destiny.pos[0], destiny.pos[1]))
+            self.model.space.move_agent(self, (destiny_agent.pos[0], destiny_agent.pos[1]))
 
     def step_by_caste(self):
 
@@ -198,8 +198,8 @@ class Bee(Agent):
                 # Try gather resources
                 resources_in_fov = [resource for resource in self.model.agents if resource != self and self.distance_to_agent(resource) <= self.fov and isinstance(resource, Resource)]
                 for resource in resources_in_fov:
-                    if self.is_resource_close_to_bee(resource):
-                        self.wiggle_destiny = resource.pos
+                    if self.is_close_to_resource(resource):
+                        self.wiggle_destiny = resource
                         self.state = Bee.State.CARRYING
                         return
 
@@ -226,11 +226,12 @@ class Bee(Agent):
             if self.dancing_time >= Bee.DANCING_TIME:
                 self.dancing_time = 0
                 self.wiggle_destiny = None
+                self.wiggle = False
                 self.state = Bee.State.RESTING
             return
         elif self.state == Bee.State.FOLLOWING: # Take straight path to waggle destiny resource if not aborting on the way
             # Carry resource if arrived
-            if self.is_resource_close_to_bee(self.wiggle_destiny):
+            if self.is_close_to_resource(self.wiggle_destiny):
                 self.state = Bee.State.CARRYING
                 # wiggle_destiny is already set to resource location
             
