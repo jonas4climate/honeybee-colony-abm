@@ -31,7 +31,7 @@ class ForagerModel(Model):
     agents: List[Agent]         # current list of agents
 
     # Class methods
-    def __init__(self, SIZE, n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations, dt=10):
+    def __init__(self, SIZE, n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations, dt=1):
         super().__init__()
 
         self.size = SIZE

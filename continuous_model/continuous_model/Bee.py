@@ -153,7 +153,7 @@ class Bee(Agent):
             new_y = self.pos[1] + move_distance * sin(angle)
             self.model.space.move_agent(self, (new_x, new_y))
         else:
-            self.model.space.move_agent(self, (destiny.x, destiny.y))
+            self.model.space.move_agent(self, (destiny.pos[0], destiny.pos[1]))
 
     def step_by_caste(self):
 
@@ -178,7 +178,7 @@ class Bee(Agent):
                 self.move_towards_hive()
             return
         elif self.state == Bee.State.EXPLORING: # Exploring with random walk unless see waggle dances or choose to abort
-            p_abort = Bee.P_ABORT_EXPLORING
+            p_abort = Bee.P_ABORT_EXPLORING*self.model.dt
             if self.model.weather == Weather.STORM:
                 p_abort *= Bee.STORM_ABORT_FACTOR
 

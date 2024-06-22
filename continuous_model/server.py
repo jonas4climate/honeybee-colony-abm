@@ -9,12 +9,12 @@ from continuous_model.Resource import Resource
 
 
 bee_colors = {
-    Bee.State.RESTING : "#fc0303",
-    Bee.State.RETURNING: "#3bf55a",
-    Bee.State.EXPLORING : "#0af5f1",
-    Bee.State.CARRYING : "#59a2c2",
-    Bee.State.DANCING : "#ff52df",
-    Bee.State.FOLLOWING : "#0a54f5"
+    Bee.State.RESTING : "#fc0303", # red
+    Bee.State.RETURNING: "#3bf55a", # green
+    Bee.State.EXPLORING : "#0af5f1", # blue
+    Bee.State.CARRYING : "#59a2c2", # light blue
+    Bee.State.DANCING : "#ff52df", # pink
+    Bee.State.FOLLOWING : "#0a54f5" # dark blue
 }
 
 
