@@ -8,6 +8,15 @@ from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
 
+bee_colors = {
+    Bee.State.RESTING : "#fc0303",
+    Bee.State.EXPLORING : "#0af5f1",
+    Bee.State.CARRYING : "#59a2c2",
+    Bee.State.DANCING : "#ff52df",
+    Bee.State.FOLLOWING : "#0a54f5"
+}
+
+
 def bee_draw(agent):
     # if not agent.neighbors:  # Only for the first Frame
     #     neighbors = len(agent.model.space.get_neighbors(agent.pos, agent.vision, False))
@@ -19,11 +28,11 @@ def bee_draw(agent):
     # elif neighbors >= 2:
     #     return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "Green"}
     if isinstance(agent, Bee):
-        return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "#f7df00", "gco": "source-over"}
+        return {"Shape": "circle", "r": 2, "Filled": "true", "Color": bee_colors[agent.state]}
     elif isinstance(agent, Hive):
-        return {"Shape": "circle", "r": Hive.RADIUS, "Filled": "true", "Color": "#82817c", "gco": "source-over"}
+        return {"Shape": "circle", "r": Hive.RADIUS, "Filled": "true", "Color": "#82817c"}
     elif isinstance(agent, Resource):
-        return {"Shape": "circle", "r": agent.radius, "Filled": "true", "Color": "#77dae640", "gco": "source-in"}
+        return {"Shape": "circle", "r": agent.radius, "Filled": "true", "Color": "#77dae640"}
 
 
 forager_canvas = SimpleCanvas(
@@ -39,12 +48,12 @@ model_params = {
     #     step=5,
     #     description="Choose how many agents to include in the model",
     # ),
-    "SIZE": 100,
+    "SIZE": 500,
     "n_hives": 2,
-    "hive_locations": [(20,20), (50,50)],
-    "n_bees_per_hive": [10, 20],
+    "hive_locations": [(100,100), (200,250)],
+    "n_bees_per_hive": [20, 50],
     "n_resources": 5,
-    "resource_locations": [(3,3), (10, 15), (10, 20), (15, 30), (15, 20)],
+    "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
     # "height": 100
     # "speed": mesa.visualization.Slider(
     #     name="Speed of Boids",
