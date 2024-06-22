@@ -35,21 +35,21 @@ class Resource(Agent):
         self.radius = radius
         self.persistent = persistent
         
-        def step(self):
-            # 1. Depletion, if quantity reaches 0
-            if not self.persistent and self.quantity <= 0:
-                self.model.schedule.remove(self)
+    def step(self):
+        # 1. Depletion, if quantity reaches 0
+        if not self.persistent and self.quantity <= 0:
+            self.model.schedule.remove(self)
 
-        def get_type(self):
-            # 1. First method called by bees to extract the resource
-            return self.type
+    def get_type(self):
+        # 1. First method called by bees to extract the resource
+        return self.type
 
-        def extraction(self,bee_carrying_capacity):
-            # 2. Second method called by bees to extract the resource            
-            if self.persistent == True:
-                return bee_carrying_capacity
-            elif quantity <= bee_carrying_capacity:
-                return quantity
-            else:
-                quantity -= bee_carrying_capacity
-                return bee_carrying_capacity
+    def extraction(self,bee_carrying_capacity):
+        # 2. Second method called by bees to extract the resource            
+        if self.persistent == True:
+            return bee_carrying_capacity
+        elif self.quantity <= bee_carrying_capacity:
+            return self.quantity
+        else:
+            self.quantity -= bee_carrying_capacity
+            return bee_carrying_capacity

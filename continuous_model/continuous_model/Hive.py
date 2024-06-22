@@ -14,8 +14,8 @@ def feed_bees(self):
         # Feed it, recall maximum health and that there should be resources
         ## TODO: Prioritize hunger ones! Turning water and pollen into bee health
         ## TODO: Use two resources
-        if bee.health <= 1 and self.nectar > 0.01:
-            bee.health += 0.01
+        if bee.fed <= 1 and self.nectar > 0.01:
+            bee.fed += 0.01
             self.nectar -= 0.01
 
 def mature_bees(self):

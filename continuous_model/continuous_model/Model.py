@@ -19,8 +19,8 @@ from .Resource import Resource
 from .Weather import Weather
 
 class ForagerModel(Model):
-    P_STORM = 0.001             # Probability of a storm happening in a given step
-    STORM_DURATION = 10         # Time
+    P_STORM = 1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
+    STORM_DURATION = 60*60*24   # 1 day (in seconds) | Duration of a storm
 
     # Class properties
     storm_time_passed = 0       # Time duration of storm thus far

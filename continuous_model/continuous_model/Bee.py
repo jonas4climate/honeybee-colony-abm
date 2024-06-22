@@ -13,66 +13,6 @@ from scipy.stats import multivariate_normal
 from .Resource import Resource
 from .Weather import Weather
 
-def move_random(bee,max_movement=0.2):
-    """
-    Moves randomly in x and y in the interval [-max_movement,max_movement]
-    """
-    print('MOVE RANDOM')
-    # TODO: Use bee STATE to incorporate different biases in random walk!
-    x = bee.pos[0] + uniform(-max_movement,max_movement)
-    y = bee.pos[1] + uniform(-max_movement,max_movement)
-    
-    # Bound to model region [-size,size]
-    x = max(-x, min(bee.model.size, x))
-    y = max(-y, min(bee.model.size, y))
-
-    return (x,y)
-
-
-def move_towards_hive(self, speed=1):
-        """
-        Moves deterministically in straight line towards a target location
-        """
-        # TODO: Add stochasticity to dx and dy with weather :)
-        dx = self.hive.pos[0] - self.pos[0]
-        dy = self.hive.pos[1] - self.pos[1]
-        
-        distance = (dx**2 + dy**2)**0.5
-        if distance > speed:
-            angle = atan2(dy, dx)
-            new_x = self.pos[0] + speed * cos(angle)
-            new_y = self.pos[1] + speed * sin(angle)
-            self.model.space.move_agent(self, (new_x, new_y))
-        else:
-            self.model.space.move_agent(self, (self.hive.pos[0], self.hive.pos[1]))
-
-def is_close_to_hive(self, threshold=0.1):
-    distance = sqrt((self.pos[0] - self.hive.pos[0])**2 + (self.pos[1] - self.hive.pos[1])**2)
-    return distance <= threshold
-
-def is_resource_close_to_bee(self, resource, threshold):
-    distance = sqrt((self.pos[0] - resource.pos[0])**2 + (self.pos[1] - resource.pos[1])**2)
-    return distance <= threshold
-
-
-def move_towards(self, destiny, speed=1):
-        """
-        Moves deterministically in straight line towards a target location
-        """
-        # TODO: Add stochasticity to dx and dy with weather :)
-        dx = destiny.pos[0] - self.pos[0]
-        dy = destiny.pos[1] - self.pos[1]
-        
-        distance = (dx**2 + dy**2)**0.5
-        if distance > speed:
-            angle = atan2(dy, dx)
-            new_x = self.pos[0] + speed * cos(angle)
-            new_y = self.pos[1] + speed * sin(angle)
-            self.model.space.move_agent(self, (new_x, new_y))
-        else:
-            self.model.space.move_agent(self, (destiny.x, destiny.y))
-
-
 class Bee(Agent):
 
     # Bee's current activity
@@ -219,11 +159,11 @@ class Bee(Agent):
             assert self.load == 0, "Bee cannot be resting and carrying at the same time"
             assert self.wiggle == False, "Bee cannot be resting and wiggle dancing at the same time"
             assert self.wiggle_destiny == None, "Bee cannot be resting and have a wiggle destiny at the same time"
-            assert is_close_to_hive(self,threshold=0.1), "Bee cannot be resting and not close to hive"
+            assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
 
             # 1. Might perceive low resources at beehive -> and change to EXPLORING
             ## TODO: Add reasonable low resource limit to start exploring instead of arbitrary 2
-            if is_close_to_hive(self,threshold=0.1) and (self.hive.nectar < 2):
+            if self.is_close_to_hive() and (self.hive.nectar < 2):
                 perceive_low_resources = True
             
             if perceive_low_resources:
@@ -235,8 +175,8 @@ class Bee(Agent):
         if self.state == Bee.State.EXPLORING:
             # Might abort with some chance. If not, ight perceive WIGGLEDANCE -> and change do FOLLOW!
             # If not, it does random walk, biased towards resources and bee trails
-            ## TODO: Make p_abort dependent on weather
-            ## TODO: Make p_follow dependent on weather
+            ## TODO: increase p_abort dependent on weather
+            ## TODO: Make p_follow dependent on weather?
             p_abort = 0.0
             abort = True if np.random.random() < p_abort else False
 
@@ -281,25 +221,14 @@ class Bee(Agent):
                 if finish_gathering:
                     self.load = 1
             else:
-                if is_close_to_hive(self,threshold=0.1):
-                # 2. Leaves some trail on its location
-                ## TODO: Add trail
-                ## TODO: Incorporate weather so bees that are not Resting have increased chance of dying!
-                pass
-
-                # 4. On reaching the beeHive, deposit resources and switch to DANCING
-                if self.is_close_to_hive(threshold=0.1):
+                if self.is_close_to_hive():
                     # TODO: Account for resource type, right now it always deposists nectar
                     self.hive.nectar += self.load
                     self.load = 0
                     self.wiggle = True
                     self.state = Bee.State.DANCING
                 else:
-                    # If not on beehive yet, does random walk, heavily biased towards self.BeeHive.pos
-                    # Alternatively, heads in straight line there
-                    move_towards_hive(self, speed=1)
-                
-                    self.move_towards_hive(speed=1)
+                    self.move_towards_hive()
                 
         
 
@@ -335,7 +264,7 @@ class Bee(Agent):
             # self.pos - self.wiggle.destiny isclose
             # If so switch ro carrying
 
-            if is_resource_close_to_bee(self, self.wiggle_destiny, threshold=0.05):
+            if self.is_resource_close_to_bee(self.wiggle_destiny, threshold=0.05):
                 self.state = Bee.State.CARRYING
                 # wiggle_destiny is already set to resource location
             
@@ -344,10 +273,8 @@ class Bee(Agent):
 
             if stop_following:
                 self.state = Bee.State.EXPLORING
-            else:
-                move_towards(self, self.wiggle_destiny, speed=1)
-            else:              
-                self.move_towards(self.wiggle_destiny, speed=1)
+            else:   
+                self.move_towards(self.wiggle_destiny)
   
     def manage_death(self, dt=1):
         self.fed -= Bee.STARVATION_SPEED*dt
