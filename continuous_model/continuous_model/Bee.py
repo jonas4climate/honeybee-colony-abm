@@ -24,9 +24,9 @@ class Bee(Agent):
 
     # Class constants / fixed parameters
     FIELD_OF_VIEW = 20              # 20 (meters) TODO: calibrate further using real data
-    STARVATION_SPEED = 1/(24*60*60) # within 1 day (rate / second) TODO: calibrate further using real data
+    STARVATION_SPEED = 1/(60*60*24) # within 1 day (rate / second) TODO: calibrate further using real data
     MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in seconds) TODO: calibrate further using real data
-    P_DEATH_BY_STORM = 0.5          # (probability) TODO: calibrate further
+    P_DEATH_BY_STORM = 1/(60*60)    # on average within 1 hour (probability) TODO: calibrate further
     SPEED = 5                       # 5 (meters / second) 
     PERCEIVE_AS_LOW_FOOD = 2        # (units of food) TODO: calibrate further
 
@@ -83,9 +83,10 @@ class Bee(Agent):
         Moves randomly in x and y in the interval [-max_movement,max_movement]
         """
         distance = Bee.SPEED*self.model.dt
-        # Choose a random point at a fixed radius from the bee (assumption of bee's constant speed)
-        dx = np.random.uniform(0, distance) * (1 if np.random.random() < 0.5 else -1)
-        dy = sqrt(distance**2 - dx**2) * (1 if np.random.random() < 0.5 else -1)
+        # Choose a random point with radius equivalent to speed times time step
+        angle = np.random.uniform(0, 2*np.pi)
+        dx = distance * np.cos(angle)
+        dy = distance * np.sin(angle)
 
         # Calculate the new position, taking the boundaries into account
         newx = self.pos[0] + dx
@@ -109,6 +110,9 @@ class Bee(Agent):
         # Metropolis algorithm
         if attraction_new > attraction_current or np.random.random() < (attraction_new / attraction_current):
             self.model.space.move_agent(self, newpos)
+        else:
+            # Retry so we ensure the bee moves and doesn't stay still
+            self.move_random_exploration()
 
     def is_close_to_hive(self, threshold=0.1):
         return self.is_close_to(self.hive, threshold)
@@ -135,8 +139,8 @@ class Bee(Agent):
         move_distance = Bee.SPEED*self.model.dt
         if distance > move_distance:
             angle = atan2(dy, dx)
-            new_x = self.pos[0] + Bee.SPEED * cos(angle)
-            new_y = self.pos[1] + Bee.SPEED * sin(angle)
+            new_x = self.pos[0] + move_distance * cos(angle)
+            new_y = self.pos[1] + move_distance * sin(angle)
             self.model.space.move_agent(self, (new_x, new_y))
         else:
             self.model.space.move_agent(self, (destiny.x, destiny.y))
@@ -281,7 +285,7 @@ class Bee(Agent):
             self.model.schedule.remove(self)
             return
 
-        if self.model.weather == Weather.STORM and np.random.random() < Bee.P_DEATH_BY_STORM:
+        if self.model.weather == Weather.STORM and np.random.random() < Bee.P_DEATH_BY_STORM*self.model.dt:
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
             return
