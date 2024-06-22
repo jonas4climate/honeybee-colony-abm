@@ -24,11 +24,17 @@ class Bee(Agent):
 
     # Class constants / fixed parameters
     FIELD_OF_VIEW = 20              # 20 (meters) TODO: calibrate further using real data
-    STARVATION_SPEED = 1/(60*60*24) # within 1 day (rate / second) TODO: calibrate further using real data
-    MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in seconds) TODO: calibrate further using real data
+    STARVATION_SPEED = 1/(60*60*24) # within 1 day (rate / second)
+    MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in seconds)
     P_DEATH_BY_STORM = 1/(60*60)    # on average within 1 hour (probability) TODO: calibrate further
     SPEED = 5                       # 5 (meters / second) 
-    PERCEIVE_AS_LOW_FOOD = 2        # (units of food) TODO: calibrate further
+    PERCEIVE_AS_LOW_FOOD = 2        # 2 (units of food) TODO: calibrate further
+    DANCING_TIME = 60               # 1 minute (in seconds) TODO: calibrate further
+    P_FOLLOW_WIGGLE_DANCE = 1       # 100% (probability) TODO: calibrate further
+    P_ABORT_EXPLORING = 1/(60*60)   # on average within 1 hour (probability) TODO: calibrate further
+    STORM_ABORT_FACTOR = 10         # 10 times more likely to abort during storm (factor) TODO: calibrate further
+    CARRYING_CAPACITY = 1           # 1 (unit of food) TODO: calibrate further
+    GATHERING_RATE = 1              # 1 (seconds / unit of food) TODO: calibrate further
 
     # Class properties
     id: int                         # unique identifier, required in mesa package
@@ -60,6 +66,7 @@ class Bee(Agent):
         self.state = state
         self.wiggle = wiggle
         self.wiggle_destiny = None # Location of bee resource once it finds it, which is passed to other bees if wiggle dancing 
+        self.dancing_time = 0
 
         self.age = age
         self.fov = fov
@@ -121,11 +128,13 @@ class Bee(Agent):
         return self.is_close_to(resource, threshold)
     
     def is_close_to(self, agent, threshold):
-        distance = sqrt((self.pos[0] - agent.pos[0])**2 + (self.pos[1] - agent.pos[1])**2)
-        return distance <= threshold
+        return self.distance_to_agent(agent) <= threshold
     
     def move_towards_hive(self):
         self.move_towards(self.hive)
+
+    def distance_to_agent(self, agent):
+        return sqrt((self.pos[0] - agent.pos[0])**2 + (self.pos[1] - agent.pos[1])**2)
 
     def move_towards(self, destiny):
         """
@@ -146,109 +155,96 @@ class Bee(Agent):
             self.model.space.move_agent(self, (destiny.x, destiny.y))
 
     def step_by_caste(self):
-        # Bees are resting in the hive until they change their mind and explore
+        # Resting in the hive until changing mind and exploring
         if self.state == Bee.State.RESTING:
             assert self.load == 0, "Bee cannot be resting and carrying at the same time"
             assert self.wiggle == False, "Bee cannot be resting and wiggle dancing at the same time"
             assert self.wiggle_destiny == None, "Bee cannot be resting and have a wiggle destiny at the same time"
             assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
 
-            # 1. Might perceive low resources at beehive -> and change to EXPLORING
+            # Perceive resources locally
             if self.is_close_to_hive() and (self.hive.nectar < Bee.PERCEIVE_AS_LOW_FOOD):
                 perceive_low_resources = True
             
             if perceive_low_resources:
                 self.state = Bee.State.EXPLORING
+            return
 
-        # If bees abort their exploration, they return straight to the hive and start resting
+        # Return straight to the hive and start resting
         if self.state == Bee.State.RETURNING:
             if self.is_close_to_hive():
+                # Arrived, start resting
                 self.state = Bee.State.RESTING
             else:
                 self.move_towards_hive()
+            return
 
-        # Bees exploring with random walk if they don't perceive waggle dances
+        # Exploring with random walk unless see waggle dances or choose to abort
         if self.state == Bee.State.EXPLORING:
-            # Might abort with some chance. If not, ight perceive WIGGLEDANCE -> and change do FOLLOW!
-            # If not, it does random walk, biased towards resources and bee trails
-            ## TODO: increase p_abort dependent on weather
-            ## TODO: Make p_follow dependent on weather?
-            p_abort = 0.0
-            abort = True if np.random.random() < p_abort else False
+            p_abort = Bee.P_ABORT_EXPLORING if self.model.weather == Weather.NORMAL else Bee.P_ABORT_EXPLORING*Bee.STORM_ABORT_FACTOR
 
-            if abort:
+            if np.random.random() < p_abort:
+                # Abort exploring and start returning to hive
                 self.state = Bee.State.RETURNING
             else:
-                bees_in_fov = [other_agent for other_agent in self.model.agents if other_agent != self and ((other_agent.pos[0] - self.pos[0])**2 + (other_agent.pos[1] - self.pos[1])**2)**0.5 <= self.fov and isinstance(other_agent, Bee)]
-                for other_bee in bees_in_fov:
-                    if other_bee.wiggle:
-                        p_follow = 0.8
-                        follow_dance = True if np.random.random() < p_follow else False
-                        if follow_dance:
-                            self.wiggle_destiny = other_bee.wiggle_destiny
-                            self.state = Bee.State.FOLLOWING
-                            return
+                # Try follow wiggle dance
+                wiggling_bees_in_fov = np.array([other_agent for other_agent in self.model.agents if other_agent != self and isinstance(other_agent, Bee) and other_agent.wiggle and self.distance_to_agent(other_agent) <= self.fov])
+                np.random.shuffle(wiggling_bees_in_fov)
+                for wiggling_bee in wiggling_bees_in_fov:
+                    if np.random.random() < Bee.P_FOLLOW_WIGGLE_DANCE:
+                        self.wiggle_destiny = wiggling_bee.wiggle_destiny
+                        self.state = Bee.State.FOLLOWING
+                        return
                 
-                # See if there is resource near!
-                ## TODO: Add detection of bee close to resource
-                resources_in_fov = [resource for resource in self.model.agents if resource != self and ((resource.pos[0] - self.pos[0])**2 + (resource.pos[1] - self.pos[1])**2)**0.5 <= self.fov and isinstance(resource, Resource)]
-
+                # Try gather resources
+                resources_in_fov = [resource for resource in self.model.agents if resource != self and self.distance_to_agent(resource) <= self.fov and isinstance(resource, Resource)]
                 for resource in resources_in_fov:
-                    if self.is_resource_close_to_bee(resource, threshold=0.05):
+                    if self.is_resource_close_to_bee(resource):
                         self.wiggle_destiny = resource.pos
                         self.state = Bee.State.CARRYING
                         return
 
-                # If not, move randomly but biased towards resources and trails
+                # Explore randomly
                 self.move_random_exploration()
+            return
 
 
-
+        # Start carrying resources and bring back to the hive
         if self.state == Bee.State.CARRYING:
-            # 1. At first, gather resource without moving
-            # This can be done by waiting for specific time or adding a GATHERING state
-            # TODO: Make p_finish_gathering dependent on weather!
-            # TODO: Make load of bee reasonable instead of arbitrary 1
+            # TODO: Make p_finish_gathering dependent on weather?
+            # Instantly gather resources
             if self.load == 0:
-                self.load = 1
+                self.load = Bee.CARRYING_CAPACITY
 
-                p_finish_gathering = 0.9
-                finish_gathering = True if np.random.random() < p_finish_gathering else False
-                if finish_gathering:
-                    self.load = 1
+            # Fly back and deposit, then start dancing
+            if self.is_close_to_hive():
+                self.hive.nectar += self.load
+                self.load = 0
+                self.wiggle = True
+                self.state = Bee.State.DANCING
             else:
-                if self.is_close_to_hive():
-                    # TODO: Account for resource type, right now it always deposists nectar
-                    self.hive.nectar += self.load
-                    self.load = 0
-                    self.wiggle = True
-                    self.state = Bee.State.DANCING
-                else:
-                    self.move_towards_hive()
-                
+                self.move_towards_hive()
+            return
         
 
-        if self.state == Bee.State.DANCING:
-            # 1. Does dance for some time, setting its self.waggle to True
-            # 2. After some time, goes to RESTING
-            # TODO: Make it follow fixed time DANCING_TIME
-            p_stop_dance = 0.4
-            stop_dancing = True if np.random.random() < p_stop_dance else False
-
-            if stop_dancing:
-                self.wiggle = False
+        if self.state == Bee.State.DANCING: 
+            self.dancing_time += self.model.dt
+            if self.dancing_time >= Bee.DANCING_TIME:
+                self.dancing_time = 0
+                self.wiggle_destiny = None
                 self.state = Bee.State.RESTING
-            else:
-                #self.wiggle should be True, as it was setted in the CARRYING state loop
-                # As it wiggles, it Moves randomly or towards hive 50% chance
-                p_random_walk = 0.5
-                move_randomly = True if np.random.random() < p_random_walk else False
+            return
+            # else:
+            #     #self.wiggle should be True, as it was setted in the CARRYING state loop
+            #     # As it wiggles, it Moves randomly or towards hive 50% chance
+            #     p_random_walk = 0.5
+            #     move_randomly = True if np.random.random() < p_random_walk else False
  
-                if move_randomly:
-                    # TODO: Implement random small movement within the hive
-                    pass
-                else:
-                    self.move_towards_hive()
+            #     if move_randomly:
+            #         # TODO: Implement random small movement within the hive
+            #         pass
+            #     else:
+            #         self.move_towards_hive()
 
 
         if self.state == Bee.State.FOLLOWING:
@@ -271,6 +267,7 @@ class Bee(Agent):
                 self.state = Bee.State.EXPLORING
             else:   
                 self.move_towards(self.wiggle_destiny)
+            return
   
     def manage_death(self):
         self.fed -= Bee.STARVATION_SPEED*self.model.dt
