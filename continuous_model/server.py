@@ -2,6 +2,8 @@ import mesa
 
 from continuous_model.Model import ForagerModel
 from SimpleContinuousModule import SimpleCanvas
+from mesa.visualization.modules import ChartModule
+
 
 from continuous_model.Bee import Bee
 from continuous_model.Hive import Hive
@@ -82,11 +84,17 @@ model_params = {
     # ),
 }
 
+
+# Evolving plot of number of bees, read from model_reporters
+bee_number_plot = ChartModule([{"Label": "n_agents_existed", "Color": "black"}])
+
+
+
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,
-    visualization_elements=[forager_canvas],
+    visualization_elements=[forager_canvas,bee_number_plot],
     name="Forager Bee Model",
     model_params=model_params,
 )
 
-server.port=8521
+server.port=8523

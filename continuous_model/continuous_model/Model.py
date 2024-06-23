@@ -44,7 +44,7 @@ class ForagerModel(Model):
 
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
         self.datacollector = DataCollector(
-            model_reporters={},             # Collect metrics from literature at every step
+            model_reporters={'n_agents_existed': lambda mod: mod.n_agents_existed},             # Collect metrics from literature at every step
             agent_reporters={}              # As well as bee agent information
         )
 
