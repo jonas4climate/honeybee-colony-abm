@@ -252,11 +252,13 @@ class Bee(Agent):
         
         self.age += self.model.dt
         if self.age >= Bee.MAX_AGE: # Death by age
+            self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
             return
 
         if self.model.weather == Weather.STORM and np.random.random() < Bee.P_DEATH_BY_STORM*self.model.dt: # Death by storm
+            self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
             return
