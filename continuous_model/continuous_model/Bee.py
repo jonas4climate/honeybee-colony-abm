@@ -245,6 +245,7 @@ class Bee(Agent):
     def manage_death(self):
         self.fed -= Bee.STARVATION_SPEED*self.model.dt
         if self.fed <= 0: # Death by starvation
+            self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
             return
