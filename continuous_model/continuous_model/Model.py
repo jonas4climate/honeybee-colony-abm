@@ -18,8 +18,8 @@ from .Resource import Resource
 from .Weather import Weather
 
 class ForagerModel(Model):
-    P_STORM = 1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
-    STORM_DURATION = 60*60*24   # 1 day (in seconds) | Duration of a storm
+    P_STORM = 1/10 #1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
+    STORM_DURATION = 10 #60*60*24   # 1 day (in seconds) | Duration of a storm
 
     # Class properties
     storm_time_passed = 0       # Time duration of storm thus far
@@ -42,9 +42,14 @@ class ForagerModel(Model):
         self.schedule = RandomActivation(self)
         self.agents = []
 
+        # Method to report weather events in scale with number of agents for easy plotting in same graph
+        def get_weather(model):
+            return model.n_agents_existed if model.weather == Weather.STORM else 0
+
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
         self.datacollector = DataCollector(
-            model_reporters={'n_agents_existed': lambda mod: mod.n_agents_existed},             # Collect metrics from literature at every step
+            model_reporters={'n_agents_existed': lambda mod: mod.n_agents_existed,
+                             'weather_event': get_weather},             # Collect metrics from literature at every step
             agent_reporters={}              # As well as bee agent information
         )
 

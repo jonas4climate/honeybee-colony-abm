@@ -86,7 +86,8 @@ model_params = {
 
 
 # Evolving plot of number of bees, read from model_reporters
-bee_number_plot = ChartModule([{"Label": "n_agents_existed", "Color": "black"}])
+bee_number_plot = ChartModule([{"Label": "n_agents_existed", "Color": "black"},
+                               {"Label":"weather_event","Color":"red"}])
 
 
 
@@ -97,4 +98,4 @@ server = mesa.visualization.ModularServer(
     model_params=model_params,
 )
 
-server.port=8523
+server.port=8524
