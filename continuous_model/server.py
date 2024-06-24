@@ -98,4 +98,4 @@ server = mesa.visualization.ModularServer(
     model_params=model_params,
 )
 
-server.port=8524
+server.port=8525

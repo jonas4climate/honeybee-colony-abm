@@ -47,6 +47,7 @@ class ForagerModel(Model):
             return model.n_agents_existed if model.weather == Weather.STORM else 0
 
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
+        # TODO: Add method with % of each type of bee among all LIVING bees
         self.datacollector = DataCollector(
             model_reporters={'n_agents_existed': lambda mod: mod.n_agents_existed,
                              'weather_event': get_weather},             # Collect metrics from literature at every step
