@@ -68,9 +68,15 @@ class ForagerModel(Model):
     def create_agent(self, agent_type, **kwargs):
         agent = agent_type(self.n_agents_existed, self, **kwargs)
         self.agents.append(agent)
+
+        assert agent != None, f"Agent {agent} is None"
+        assert agent.pos != None, f"Agent {agent} has None position"
+
         self.space.place_agent(agent, agent.pos)
+
         self.schedule.add(agent)
         self.n_agents_existed += 1
+        
         return agent
     
     def create_agents(self, agent_type, n, **kwargs):
