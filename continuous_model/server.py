@@ -91,9 +91,16 @@ bee_number_plot = ChartModule([{"Label": "n_agents_existed", "Color": "black"},
 
 
 
+prop_bee_plot = ChartModule([{"Label": "prop_resting", "Color": bee_colors[Bee.State.RESTING]},
+                            {"Label": "prop_returning", "Color": bee_colors[Bee.State.RETURNING]},
+                             {"Label": "prop_exploring", "Color": bee_colors[Bee.State.EXPLORING]},
+                             {"Label": "prop_carrying", "Color": bee_colors[Bee.State.CARRYING]},
+                             {"Label": "prop_dancing", "Color": bee_colors[Bee.State.DANCING]},
+                             {"Label": "prop_following", "Color": bee_colors[Bee.State.FOLLOWING]}])
+
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,
-    visualization_elements=[forager_canvas,bee_number_plot],
+    visualization_elements=[forager_canvas,bee_number_plot, prop_bee_plot],
     name="Forager Bee Model",
     model_params=model_params,
 )

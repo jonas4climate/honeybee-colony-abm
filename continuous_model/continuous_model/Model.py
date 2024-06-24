@@ -48,14 +48,28 @@ class ForagerModel(Model):
 
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
         # TODO: Add method with % of each type of bee among all LIVING bees
+
         self.datacollector = DataCollector(
             model_reporters={'n_agents_existed': lambda mod: mod.n_agents_existed,
-                             'weather_event': get_weather},             # Collect metrics from literature at every step
+                             'weather_event': get_weather,
+                             'prop_resting': lambda mod: mod.bees_proportion()["resting"],
+                             'prop_returning': lambda mod: mod.bees_proportion()["returning"],
+                             'prop_exploring': lambda mod: mod.bees_proportion()["exploring"],
+                             'prop_carrying': lambda mod: mod.bees_proportion()["carrying"],
+                             'prop_dancing': lambda mod: mod.bees_proportion()["dancing"],
+                             'prop_following': lambda mod: mod.bees_proportion()["following"],
+
+                             },             # Collect metrics from literature at every step
             agent_reporters={}              # As well as bee agent information
         )
-
         self.make_agents(n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations)
 
+    def bees_proportion(self):
+        all_bees = self.get_agents_of_type(Bee)
+        if all_bees:
+            return {state.value: len([a for a in all_bees if a.state == state]) / len(all_bees) for state in Bee.State}
+        else:
+            return {state.value: 0 for state in Bee.State}
     def create_agent(self, agent_type, **kwargs):
         agent = agent_type(self.n_agents_existed, self, **kwargs)
         self.agents.append(agent)
