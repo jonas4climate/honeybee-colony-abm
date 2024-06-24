@@ -18,8 +18,6 @@ from .Resource import Resource
 from .Weather import Weather
 
 class ForagerModel(Model):
-    P_STORM = 1/10 #1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
-    STORM_DURATION = 10 #60*60*24   # 1 day (in seconds) | Duration of a storm
 
     # Class properties
     storm_time_passed = 0       # Time duration of storm thus far
@@ -30,8 +28,16 @@ class ForagerModel(Model):
     space: ContinuousSpace      # continous space container from mesa package
     agents: List[Agent]         # current list of agents
 
+    p_storm: float              # probabilitiy of a storm occuring in a day
+    storm_duration: float       # duration of the storm
+
+    # Class constants
+    P_STORM_DEFAULT = 1/10                    #1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
+    STORM_DURATION_DEFAULT = 10               #60*60*24   # 1 day (in seconds) | Duration of a storm
+
     # Class methods
-    def __init__(self, SIZE, n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations, dt=1):
+    def __init__(self, SIZE, n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations, dt=1,
+                p_storm=P_STORM_DEFAULT, storm_duration=STORM_DURATION_DEFAULT):
         super().__init__()
 
         self.size = SIZE
@@ -41,6 +47,10 @@ class ForagerModel(Model):
         self.space = ContinuousSpace(SIZE, SIZE, True)
         self.schedule = RandomActivation(self)
         self.agents = []
+
+        # Weather parameters
+        self.p_storm = p_storm
+        self.storm_duration = storm_duration
 
         # Method to report weather events in scale with number of agents for easy plotting in same graph
         def get_weather(model):
@@ -96,10 +106,10 @@ class ForagerModel(Model):
         # Keep storming until storm duration passed
         if self.weather == Weather.STORM:
             self.storm_time_passed += self.dt
-            if self.storm_time_passed >= self.STORM_DURATION:
+            if self.storm_time_passed >= self.storm_duration:
                 self.weather = Weather.NORMAL
                 self.storm_time_passed = 0
 
         # Start storming
-        if np.random.random() < self.P_STORM:
+        if np.random.random() < self.p_storm:
             self.weather = Weather.STORM

@@ -9,7 +9,6 @@ from continuous_model.Bee import Bee
 from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
-
 bee_colors = {
     Bee.State.RESTING : "#fc0303", # red
     Bee.State.RETURNING: "#3bf55a", # green
@@ -57,15 +56,22 @@ model_params = {
     "n_bees_per_hive": [20, 50],
     "n_resources": 5,
     "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
-    # "height": 100
-    # "speed": mesa.visualization.Slider(
-    #     name="Speed of Boids",
-    #     value=5,
-    #     min_value=1,
-    #     max_value=20,
-    #     step=1,
-    #     description="How fast should the Boids move",
-    # ),
+    "p_storm": mesa.visualization.Slider(
+        name="Storm probability",
+        value=ForagerModel.P_STORM_DEFAULT,
+        min_value=0.0,
+        max_value=1.0,
+        step=0.01,
+        description="What is the probability of a storm occuring in a single day",
+    ),
+    "storm_duration": mesa.visualization.Slider(
+        name="Storm duration",
+        value=ForagerModel.STORM_DURATION_DEFAULT,
+        min_value=1,
+        max_value=50,
+        step=1,
+        description="How long will the storm event last",
+    ),
     # "vision": mesa.visualization.Slider(
     #     name="Vision of Bird (radius)",
     #     value=10,
