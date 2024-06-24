@@ -256,23 +256,33 @@ class Bee(Agent):
     def manage_death(self):
         self.fed -= Bee.STARVATION_SPEED*self.model.dt
         if self.fed <= 0: # Death by starvation
+            # TODO: Mesa provides functionality to do that more efficiently
             self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
+            self.model.agents.remove(self)
             self.remove()
+            # self.model.kill_agents.append(self)
             return
         
         self.age += self.model.dt
         if self.age >= Bee.MAX_AGE: # Death by age
+            # TODO: Mesa provides functionality to do that more efficiently
             self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
+            self.model.agents.remove(self)
             self.remove()
+            # self.model.kill_agents.append(self)
             return
 
         if self.model.weather == Weather.STORM and np.random.random() < Bee.P_DEATH_BY_STORM*self.model.dt: # Death by storm
+            # TODO: Mesa provides functionality to do that more efficiently
             self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
+            self.model.agents.remove(self)
             self.remove()
+            # self.model.kill_agents.append(self)
+
             return

@@ -38,9 +38,13 @@ class Resource(Agent):
     def step(self):
         # 1. Depletion, if quantity reaches 0
         if not self.persistent and self.quantity <= 0:
+            # TODO: Mesa provides functionality to do that more efficiently
+            self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
+            self.model.agents.remove(self)
             self.remove()
+            # self.model.kill_agents.append(self)
 
     def get_type(self):
         # 1. First method called by bees to extract the resource

@@ -105,7 +105,6 @@ class ForagerModel(Model):
             
         # TODO: Add interaction of agents (?)
         self.datacollector.collect(self)    # Record step variables in the DataCollector
-        # TODO: self.schedule.step()
 
     def manage_weather_events(self):
         # Keep storming until storm duration passed
