@@ -38,7 +38,9 @@ class Resource(Agent):
     def step(self):
         # 1. Depletion, if quantity reaches 0
         if not self.persistent and self.quantity <= 0:
+            self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
+            self.remove()
 
     def get_type(self):
         # 1. First method called by bees to extract the resource

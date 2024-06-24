@@ -26,6 +26,7 @@ class ForagerModel(Model):
     weather = Weather.NORMAL    # weather object
     
     space: ContinuousSpace      # continous space container from mesa package
+    schedule: RandomActivation  # Scheduler from Mesa's time module
     agents: List[Agent]         # current list of agents
 
     p_storm: float              # probabilitiy of a storm occuring in a day
@@ -76,7 +77,7 @@ class ForagerModel(Model):
 
         self.schedule.add(agent)
         self.n_agents_existed += 1
-        
+
         return agent
     
     def create_agents(self, agent_type, n, **kwargs):
@@ -99,9 +100,7 @@ class ForagerModel(Model):
             self.create_agent(Resource, location=resource_locations[i])
 
     def step(self):
-        for agent in self.agents:
-            agent.step()
-
+        self.schedule.step()
         self.manage_weather_events()
             
         # TODO: Add interaction of agents (?)
