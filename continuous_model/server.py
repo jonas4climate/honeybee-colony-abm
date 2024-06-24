@@ -9,7 +9,6 @@ from continuous_model.Bee import Bee
 from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
-
 bee_colors = {
     Bee.State.RESTING : "#fc0303", # red
     Bee.State.RETURNING: "#3bf55a", # green
@@ -21,15 +20,6 @@ bee_colors = {
 
 
 def bee_draw(agent):
-    # if not agent.neighbors:  # Only for the first Frame
-    #     neighbors = len(agent.model.space.get_neighbors(agent.pos, agent.vision, False))
-    # else:
-    #     neighbors = len(agent.neighbors)
-
-    # if neighbors <= 1:
-    #     return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "Red"}
-    # elif neighbors >= 2:
-    #     return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "Green"}
     if isinstance(agent, Bee):
         return {"Shape": "circle", "r": 2, "Filled": "true", "Color": bee_colors[agent.state]}
     elif isinstance(agent, Hive):
@@ -43,53 +33,34 @@ forager_canvas = SimpleCanvas(
 )
 
 model_params = {
-    # "n_bees": mesa.visualization.Slider(
-    #     name="Number of bees",
-    #     value=100,
-    #     min_value=10,
-    #     max_value=200,
-    #     step=5,
-    #     description="Choose how many agents to include in the model",
-    # ),
     "SIZE": 500,
     "n_hives": 2,
     "hive_locations": [(100,100), (200,250)],
     "n_bees_per_hive": [20, 50],
     "n_resources": 5,
     "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
-    # "height": 100
-    # "speed": mesa.visualization.Slider(
-    #     name="Speed of Boids",
-    #     value=5,
-    #     min_value=1,
-    #     max_value=20,
-    #     step=1,
-    #     description="How fast should the Boids move",
-    # ),
-    # "vision": mesa.visualization.Slider(
-    #     name="Vision of Bird (radius)",
-    #     value=10,
-    #     min_value=1,
-    #     max_value=50,
-    #     step=1,
-    #     description="How far around should each Boid look for its neighbors",
-    # ),
-    # "separation": mesa.visualization.Slider(
-    #     name="Minimum Separation",
-    #     value=2,
-    #     min_value=1,
-    #     max_value=20,
-    #     step=1,
-    #     description="What is the minimum distance each Boid will attempt to keep from any other",
-    # ),
+    "p_storm": mesa.visualization.Slider(
+        name="Storm probability",
+        value=ForagerModel.P_STORM_DEFAULT,
+        min_value=0.0,
+        max_value=1.0,
+        step=0.01,
+        description="What is the probability of a storm occuring in a single day",
+    ),
+    "storm_duration": mesa.visualization.Slider(
+        name="Storm duration",
+        value=ForagerModel.STORM_DURATION_DEFAULT,
+        min_value=1,
+        max_value=50,
+        step=1,
+        description="How long will the storm event last",
+    )
 }
 
 
 # Evolving plot of number of bees, read from model_reporters
 bee_number_plot = ChartModule([{"Label": "n_agents_existed", "Color": "black"},
                                {"Label":"weather_event","Color":"red"}])
-
-
 
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,

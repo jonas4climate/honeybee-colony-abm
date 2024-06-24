@@ -1,3 +1,3 @@
 from server import server
 
-server.launch(open_browser=True)
+server.launch(open_browser=False)

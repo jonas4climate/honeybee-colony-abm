@@ -57,12 +57,11 @@ class Bee(Agent):
 
         self.hive = hive
 
+        self.pos = location
         if location == -1:
             self.pos = hive.pos
-        else:
-            self.pos = location
-    
-        self.model.space.place_agent(self, self.pos)
+
+        assert self.pos != None, "Bee agent {self} initialized with None position"
 
         self.state = state
         self.wiggle = wiggle
@@ -117,10 +116,12 @@ class Bee(Agent):
 
         # Metropolis algorithm
         if attraction_new > attraction_current or np.random.random() < (attraction_new / attraction_current):
+            assert newpos != None, "New position for Bee agent {self} is equal to None"
             self.model.space.move_agent(self, newpos)
         else:
             # Retry so we ensure the bee moves and doesn't stay still
-            self.move_random_exploration()
+            # self.move_random_exploration()
+            pass
 
     def is_close_to_hive(self):
         return self.is_close_to(self.hive, self.hive.radius)
@@ -135,7 +136,10 @@ class Bee(Agent):
         self.move_towards(self.hive)
 
     def distance_to_agent(self, agent):
-        return sqrt((self.pos[0] - agent.pos[0])**2 + (self.pos[1] - agent.pos[1])**2)
+        if (self.pos == None or agent.pos == None):
+            pass
+
+        return np.hypot(self.pos[0] - agent.pos[0], self.pos[1] - agent.pos[1])
 
     def move_towards(self, destiny_agent):
         """
@@ -146,14 +150,21 @@ class Bee(Agent):
         dy = destiny_agent.pos[1] - self.pos[1]
         
         distance = (dx**2 + dy**2)**0.5
-        move_distance = Bee.SPEED*self.model.dt
+        move_distance = Bee.SPEED * self.model.dt
         if distance > move_distance:
             angle = atan2(dy, dx)
             new_x = self.pos[0] + move_distance * cos(angle)
             new_y = self.pos[1] + move_distance * sin(angle)
-            self.model.space.move_agent(self, (new_x, new_y))
+
+            newpos = (new_x, new_y)
+            assert newpos != None, "New position for Bee agent {self} is equal to None"
+
+            self.model.space.move_agent(self, newpos)
         else:
-            self.model.space.move_agent(self, (destiny_agent.pos[0], destiny_agent.pos[1]))
+            newpos = (destiny_agent.pos[0], destiny_agent.pos[1])
+            assert newpos != None, "New position for Bee agent {self} is equal to None"
+
+            self.model.space.move_agent(self, newpos)
 
     def step_by_caste(self):
 
@@ -196,7 +207,7 @@ class Bee(Agent):
                         return
                 
                 # Try gather resources
-                resources_in_fov = [resource for resource in self.model.agents if resource != self and self.distance_to_agent(resource) <= self.fov and isinstance(resource, Resource)]
+                resources_in_fov = [resource for resource in self.model.get_agents_of_type(Resource) if self.distance_to_agent(resource) <= self.fov]
                 for resource in resources_in_fov:
                     if self.is_close_to_resource(resource):
                         self.wiggle_destiny = resource
@@ -245,22 +256,34 @@ class Bee(Agent):
     def manage_death(self):
         self.fed -= Bee.STARVATION_SPEED*self.model.dt
         if self.fed <= 0: # Death by starvation
+            # TODO: Mesa provides functionality to do that more efficiently
             self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
+            self.model.agents.remove(self)
+            self.remove()
+            # self.model.kill_agents.append(self)
             return
         
         self.age += self.model.dt
         if self.age >= Bee.MAX_AGE: # Death by age
+            # TODO: Mesa provides functionality to do that more efficiently
             self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
+            self.model.agents.remove(self)
+            self.remove()
+            # self.model.kill_agents.append(self)
             return
 
         if self.model.weather == Weather.STORM and np.random.random() < Bee.P_DEATH_BY_STORM*self.model.dt: # Death by storm
             # TODO: Ensure bee is outside the hive
-            
+            # TODO: Mesa provides functionality to do that more efficiently
             self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
+            self.model.agents.remove(self)
+            self.remove()
+            # self.model.kill_agents.append(self)
+
             return

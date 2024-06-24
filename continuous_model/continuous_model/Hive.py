@@ -5,43 +5,6 @@ import numpy as np
 
 from .Bee import Bee
 
-
-def feed_bees(self):
-    # Get all young ones as well as foragers around beehive
-    ## Right now this entails bees around beehive up to 1.5*radius
-    bees_in_hive = [other_agent for other_agent in self.model.agents if other_agent != self and ((other_agent.pos[0] - self.pos[0])**2 + (other_agent.pos[1] - self.pos[1])**2)**0.5 <= (self.radius*1.5) and isinstance(other_agent, Bee)]
-
-    for bee in bees_in_hive:
-        # Feed it, recall maximum health and that there should be resources
-        ## TODO: Prioritize hunger ones! Turning water and pollen into bee health
-        ## TODO: Use two resources
-        if bee.fed <= 1 and self.nectar > 0.01:
-            bee.fed += 0.01
-            self.nectar -= 0.01
-
-def mature_bees(self):
-    # This entails maturing young bees to foragers with some probability based on resources, weather etc...
-    for young_bee in range(self.young_bees):
-        mature = True if np.random.random() < self.p_new_forager else False
-        if mature:
-            new_forager = Bee(self, self.model, self.model.hive, fov=0.5, age=4, fed=1, state="resting", wiggle=False)
-            self.grid.place_agent(new_forager, (0, 0))
-            self.young_bees -= 1
-    
-
-def update_p_forager(self):
-    ## TODO: Modify probability with resrouces
-    self.p_new_forager = self.p_new_forager
-    
-
-def create_bees(self):
-    ## TODO: Update probability with resources, weather...
-    p_new_young_bee = 0.1
-    new_young = True if np.random.random() < p_new_young_bee else False
-    if new_young:
-        self.young_bees += 1
-
-
 class Hive(Agent):
     
     # Class properties
@@ -74,19 +37,48 @@ class Hive(Agent):
         self.young_bees = young_bees
         self.p_new_forager = 0.0                    # TODO: If it's a function of reosurces, then this should be a class method
 
+    def feed_bees(self):
+        # Get all young ones as well as foragers around beehive
+        bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if bee.hive == self and bee.distance_to_agent(self) <= self.radius]
+
+        for bee in bees_in_hive:
+            # Feed it, recall maximum health and that there should be resources
+            ## TODO: Prioritize hunger ones! Turning water and pollen into bee health
+            ## TODO: Use two resources
+            if bee.fed <= 1 and self.nectar > 0.01:
+                bee.fed += 0.01
+                self.nectar -= 0.01
+
+    def mature_bees(self):
+        # This entails maturing young bees to foragers with some probability based on resources, weather etc...
+        for _ in range(self.young_bees):
+            if np.random.random() < self.p_new_forager:
+                # self.model.create_agent(Bee, hive=self)
+                self.young_bees -= 1
+
+    def update_p_forager(self):
+        ## TODO: Modify probability with resrouces
+        self.p_new_forager = self.p_new_forager
+
+    def create_bees(self):
+        ## TODO: Update probability with resources, weather...
+        p_new_young_bee = 0.1
+        new_young = True if np.random.random() < p_new_young_bee else False
+        if new_young:
+            self.young_bees += 1
 
     def step(self):
         # 1. Feed bees
-        feed_bees(self)
+        self.feed_bees()
 
         # 2. Mature bees
         # Use p_new_forager to instantiate bees
-        mature_bees(self)
+        self.mature_bees()
 
 
         # Then, update p_new_forager based on young, water, and pollen, and weather!!
-        update_p_forager(self)
+        self.update_p_forager()
 
         # 3. Create young bees
         # Based on resources and weather
-        create_bees(self)
+        self.create_bees()
