@@ -74,8 +74,9 @@ class Bee(Agent):
         self.load = 0
     
     def step(self):
-        self.step_by_caste()                      # Manage action based on caste
-        self.manage_death()                       # Manage death
+        self.update_properties()  # Manage properties (age and fed)
+        self.step_by_caste() # Manage action based on caste
+        self.manage_death()  # Manage death
     
     def resource_attraction(self, pos):        
         attraction = 0.0
@@ -128,6 +129,10 @@ class Bee(Agent):
             # Retry so we ensure the bee moves and doesn't stay still
             # self.move_random_exploration()
             pass
+    
+    @property
+    def is_outside(self):
+        return not self.is_close_to_hive()
 
     def is_close_to_hive(self):
         return self.is_close_to(self.hive, self.hive.radius)
@@ -258,38 +263,32 @@ class Bee(Agent):
             else:
                 self.move_towards(self.wiggle_destiny)
             return
-  
+
+    def update_properties(self):
+        """Updates the properties of the bee."""
+        self.fed = max(self.fed - Bee.STARVATION_SPEED*self.model.dt, 0)  # ensure fed is not negative
+        self.age += self.model.dt        
+
     def manage_death(self):
-        self.fed -= Bee.STARVATION_SPEED*self.model.dt
-        if self.fed <= 0: # Death by starvation
-            # TODO: Mesa provides functionality to do that more efficiently
-            self.model.n_agents_existed -= 1
-            self.model.space.remove_agent(self)
-            self.model.schedule.remove(self)
-            self.model.agents.remove(self)
-            self.remove()
-            # self.model.kill_agents.append(self)
-            return
+        """Handles tiny bee deaths."""
+        if self.fed == 0:  # Death by starvation
+            print("Bee died by starvation")
+            return self._remove_agent()
         
-        self.age += self.model.dt
-        if self.age >= Bee.MAX_AGE: # Death by age
-            # TODO: Mesa provides functionality to do that more efficiently
-            self.model.n_agents_existed -= 1
-            self.model.space.remove_agent(self)
-            self.model.schedule.remove(self)
-            self.model.agents.remove(self)
-            self.remove()
-            # self.model.kill_agents.append(self)
-            return
+        if self.age >= Bee.MAX_AGE:  # Death by age
+            print("Bee died by age")
+            return self._remove_agent()
 
-        if self.model.weather == Weather.STORM and np.random.random() < Bee.P_DEATH_BY_STORM*self.model.dt: # Death by storm
-            # TODO: Ensure bee is outside the hive
-            # TODO: Mesa provides functionality to do that more efficiently
-            self.model.n_agents_existed -= 1
-            self.model.space.remove_agent(self)
-            self.model.schedule.remove(self)
-            self.model.agents.remove(self)
-            self.remove()
-            # self.model.kill_agents.append(self)
-
-            return
+        if self.model.weather == Weather.STORM and np.random.random() < Bee.P_DEATH_BY_STORM * self.model.dt:  # Death by storm
+            if self.is_outside:
+                print("Bee died by storm")
+                return self._remove_agent()
+            
+    def _remove_agent(self):
+        """Helper for removing agents."""
+        # TODO: Mesa provides functionality to do that more efficiently
+        self.model.n_agents_existed -= 1
+        self.model.space.remove_agent(self)
+        self.model.schedule.remove(self)
+        self.model.agents.remove(self)
+        self.remove()
