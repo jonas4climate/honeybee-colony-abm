@@ -77,12 +77,18 @@ class Bee(Agent):
         self.step_by_caste()                      # Manage action based on caste
         self.manage_death()                       # Manage death
     
-    def resource_attraction(self, pos):
-        # TODO: Make it a vectorized operation
+    def resource_attraction(self, pos):        
         attraction = 0.0
-        for resource in self.model.get_agents_of_type(Resource):
-            # TODO: Change the covariance value to a reasonable number
-            attraction += multivariate_normal.pdf(list(pos), list(resource.pos), cov=self.model.size)
+        
+        resource_positions = np.array([resource.pos for resource in self.model.get_agents_of_type(Resource)])
+        pos_array = np.array(pos)  # ensure typing (not sure if necessary tho)
+        cov_matrix = self.model.size  # TODO: calibrate better
+        pdf_values = multivariate_normal.pdf(resource_positions, mean=pos_array, cov=cov_matrix)
+        attraction = np.sum(pdf_values)
+
+        # for resource in self.model.get_agents_of_type(Resource):
+        #    attraction += multivariate_normal.pdf(list(pos), list(resource.pos), cov=self.model.size)
+        
         return attraction
 
     def move_random_exploration(self):
