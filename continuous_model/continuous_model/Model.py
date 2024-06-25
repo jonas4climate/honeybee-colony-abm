@@ -69,6 +69,7 @@ class ForagerModel(Model):
                              'prop_carrying': lambda mod: mod.bees_proportion()["carrying"],
                              'prop_dancing': lambda mod: mod.bees_proportion()["dancing"],
                              'prop_following': lambda mod: mod.bees_proportion()["following"],
+                             # 'resource_quantity': lambda mod: mod.resource_quantity()
 
                              },             # Collect metrics from literature at every step
             agent_reporters={}              # As well as bee agent information
@@ -81,6 +82,12 @@ class ForagerModel(Model):
             return {state.value: len([a for a in all_bees if a.state == state]) / len(all_bees) for state in Bee.State}
         else:
             return {state.value: 0 for state in Bee.State}
+
+    def resource_quantity(self):
+        all_resources = self.get_agents_of_type(Resource)
+        if all_resources:
+            return sum([_.quantity for _ in all_resources])
+
     def create_agent(self, agent_type, **kwargs):
         agent = agent_type(self.n_agents_existed, self, **kwargs)
         self.agents.append(agent)
