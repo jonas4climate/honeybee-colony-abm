@@ -1,39 +1,34 @@
 from __future__ import annotations
-
-from mesa import Agent, Model
-
 from enum import Enum
 from typing import Tuple
 
+from mesa import Agent, Model
+
+from .config import ResourceConfig
+
+
+class ResourceType(Enum):
+    NECTAR = "nectar"
+    WATER = "water"
+    POLLEN = "pollen"
+
+
 class Resource(Agent):
-
-    # Type of resource
-    class Type(Enum):
-        NECTAR = "nectar"
-        WATER = "water"
-        POLLEN = "pollen"
-
-    # Class properties
-    # id: int                         # unique identifier, required in mesa package
-    model: Model                    # model the agent belongs to
-
-    pos: Tuple[int, int]       # agent's current position, x and y coordinate
-    type: Resource.Type             # type of the resource
-
-    quantity: float                 # (in kg) how much of the resource is left
-    radius: float                   # (in m) effective radius of the resource
-    persistent: bool                # whether the resource persists forever
-
-    # Class methods
-    def __init__(self, model, location, type=Type.NECTAR, quantity=0.1, radius=50.0, persistent=False):
-        super().__init__(model.next_id() , model)
-        
-        self.pos = location
-        self.type = type
-
-        self.quantity = quantity
-        self.radius = radius
-        self.persistent = persistent
+    def __init__(
+            self, 
+            model: 'Model', 
+            location: Tuple[int, int], 
+            resource_type: ResourceType = ResourceType.NECTAR, 
+            quantity: float = ResourceConfig.DEFAULT_QUANTITY, 
+            radius: float = ResourceConfig.DEFAULT_RADIUS,
+            persistent: bool = ResourceConfig.DEFAULT_PERSISTENT
+        ):
+        super().__init__(model.next_id(), model)
+        self.pos = location  # agent's current position, x and y coordinate
+        self.type = resource_type  # type of the resource
+        self.quantity = quantity  # (in kg) how much of the resource is left
+        self.radius = radius  # (in m) effective radius of the resource
+        self.persistent = persistent  # whether the resource persists forever
         
     def step(self):
         # 1. Depletion, if quantity reaches 0

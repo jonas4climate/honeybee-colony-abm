@@ -27,3 +27,8 @@ class ModelConfig:
     P_STORM_DEFAULT = 1/10  #1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
     STORM_DURATION_DEFAULT = 10  #60*60*24   # 1 day (in seconds) | Duration of a storm
     N_BEES = 100
+
+class ResourceConfig:
+    DEFAULT_QUANTITY = 0.1
+    DEFAULT_RADIUS = 50.0
+    DEFAULT_PERSISTENT = False
