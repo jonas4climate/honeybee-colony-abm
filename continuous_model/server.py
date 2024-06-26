@@ -5,7 +5,7 @@ from SimpleContinuousModule import SimpleCanvas
 from mesa.visualization.modules import ChartModule
 
 from continuous_model.Bee import Bee, BeeState
-from continuous_model.config import HiveConfig
+from continuous_model.config import HiveConfig, ModelConfig
 from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
@@ -34,7 +34,7 @@ forager_canvas = SimpleCanvas(
 )
 
 model_params = {
-    "SIZE": 500,
+    "size": 500,
     "n_hives": 2,
     "hive_locations": [(100,100), (200,250)],
     "n_bees_per_hive": [20, 50],
@@ -42,7 +42,7 @@ model_params = {
     "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
     "p_storm": mesa.visualization.Slider(
         name="Storm probability",
-        value=ForagerModel.P_STORM_DEFAULT,
+        value=ModelConfig.P_STORM_DEFAULT,
         min_value=0.0,
         max_value=1.0,
         step=0.01,
@@ -50,7 +50,7 @@ model_params = {
     ),
     "storm_duration": mesa.visualization.Slider(
         name="Storm duration",
-        value=ForagerModel.STORM_DURATION_DEFAULT,
+        value=ModelConfig.STORM_DURATION_DEFAULT,
         min_value=1,
         max_value=50,
         step=1,

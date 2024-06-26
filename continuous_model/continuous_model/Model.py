@@ -10,72 +10,67 @@ from mesa.datacollection import DataCollector
 from mesa.time import RandomActivation
 
 import numpy as np
-from typing import List
+from typing import List, Tuple
 
 from .Bee import Bee, BeeState
+from .config import ModelConfig
 from .Hive import Hive
 from .Resource import Resource
 from .Weather import Weather
 from .CustomScheduler import CustomScheduler
 
 class ForagerModel(Model):
-
-    # Class properties
-    storm_time_passed = 0       # Time duration of storm thus far
-    size: int                   # side length of the square-shaped continuous space
-    n_agents_existed: int       # counter for all the agents that were added to the model
-    weather = Weather.NORMAL    # weather object
-    
-    space: ContinuousSpace      # continous space container from mesa package
-    schedule: CustomScheduler  # Scheduler from Mesa's time module
-    agents: List[Agent]         # current list of agents
-
-    p_storm: float              # probabilitiy of a storm occuring in a day
-    storm_duration: float       # duration of the storm
-
-    # Class constants
-    P_STORM_DEFAULT = 1/10                    #1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
-    STORM_DURATION_DEFAULT = 10               #60*60*24   # 1 day (in seconds) | Duration of a storm
-
-    # Class methods
-    def __init__(self, SIZE, n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations, dt=10_000,
-                p_storm=P_STORM_DEFAULT, storm_duration=STORM_DURATION_DEFAULT):
+    def __init__(
+        self, 
+        size: int, 
+        n_hives: int, 
+        hive_locations: List[Tuple[int, int]],
+        n_bees_per_hive: int, 
+        n_resources: int, 
+        resource_locations: List[Tuple[int, int]],
+        dt: int = 10_000, 
+        p_storm: float = ModelConfig.P_STORM_DEFAULT, 
+        storm_duration: float = ModelConfig.STORM_DURATION_DEFAULT
+    ):
         super().__init__()
 
-        self.size = SIZE
-        self.n_agents_existed = 0
-        self.dt = dt                    # Time step in seconds
+        self.size = size  # side length of the square-shaped continuous space
+        self.n_agents_existed = 0  # counter for all the agents that were added to the model
+        self.dt = dt  # Time step in seconds
 
-        self.space = ContinuousSpace(SIZE, SIZE, True)
-        self.schedule = RandomActivation(self)
-        self.agents = []
+        self.space = ContinuousSpace(size, size, True)  # continous space container from mesa package
+        self.schedule = RandomActivation(self)  # Scheduler from Mesa's time module
+        self.agents: List[Agent] = []  # current list of agents
 
         # Weather parameters
-        self.p_storm = p_storm
-        self.storm_duration = storm_duration
+        self.weather = Weather.NORMAL  # weather object
+        self.p_storm = p_storm  # probabilitiy of a storm occuring in a day
+        self.storm_duration = storm_duration  # duration of the storm
+        self.storm_time_passed = 0  # Time duration of storm thus far
 
-        # Method to report weather events in scale with number of agents for easy plotting in same graph
+        self.setup_datacollector()
+        self.make_agents(n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations)
+
+    def setup_datacollector(self):
+        # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
+        # TODO: Add method with % of each type of bee among all LIVING bees
         def get_weather(model):
             return model.n_agents_existed if model.weather == Weather.STORM else 0
 
-        # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
-        # TODO: Add method with % of each type of bee among all LIVING bees
-
         self.datacollector = DataCollector(
-            model_reporters={'n_agents_existed': lambda mod: mod.n_agents_existed,
-                             'weather_event': get_weather,
-                             'prop_resting': lambda mod: mod.bees_proportion()["resting"],
-                             'prop_returning': lambda mod: mod.bees_proportion()["returning"],
-                             'prop_exploring': lambda mod: mod.bees_proportion()["exploring"],
-                             'prop_carrying': lambda mod: mod.bees_proportion()["carrying"],
-                             'prop_dancing': lambda mod: mod.bees_proportion()["dancing"],
-                             'prop_following': lambda mod: mod.bees_proportion()["following"],
-                             'nectar_in_hives': lambda mod: mod.nectar_in_hives(),
-
-                             },             # Collect metrics from literature at every step
-            agent_reporters={}              # As well as bee agent information
+            model_reporters={
+                'n_agents_existed': lambda mod: mod.n_agents_existed,
+                'weather_event': get_weather,
+                'prop_resting': lambda mod: mod.bees_proportion()["resting"],
+                'prop_returning': lambda mod: mod.bees_proportion()["returning"],
+                'prop_exploring': lambda mod: mod.bees_proportion()["exploring"],
+                'prop_carrying': lambda mod: mod.bees_proportion()["carrying"],
+                'prop_dancing': lambda mod: mod.bees_proportion()["dancing"],
+                'prop_following': lambda mod: mod.bees_proportion()["following"],
+                'nectar_in_hives': lambda mod: mod.nectar_in_hives()
+            },
+            agent_reporters={}
         )
-        self.make_agents(n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations)
 
     def bees_proportion(self):
         all_bees = self.get_agents_of_type(Bee)
