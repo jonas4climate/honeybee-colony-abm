@@ -9,7 +9,7 @@ class BeeConfig:
     P_FOLLOW_WIGGLE_DANCE = 1       # 100% (probability) TODO: calibrate further
     P_ABORT_EXPLORING = 1/(60*60)   # on average within 1 hour (probability) TODO: calibrate further
     P_ABORT_FOLLOWING = 1/(60*60)   # on average within 1 hour (probability) TODO: calibrate further
-    STORM_ABORT_FACTOR = 10         # 10 times more likely to abort during storm TODO: calibrate further
+    STORM_ABORT_FACTOR = 100        # 1000 times more likely to abort during storm TODO: calibrate further
     CARRYING_CAPACITY = 0.001       # 1g (in kg) TODO: calibrate further
     GATHERING_RATE = 0.0001         # 0.1g/s (kg/s) TODO: calibrate further
 

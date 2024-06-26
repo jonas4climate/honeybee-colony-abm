@@ -61,21 +61,27 @@ class ForagerModel(Model):
         def get_weather(model):
             return model.n_agents_existed if model.weather == Weather.STORM else 0
 
+        model_reporters = {
+            'n_agents_existed': lambda mod: mod.n_agents_existed,
+            'Bee count 🐝': lambda mod: mod.schedule.get_bee_count(),
+            'Storm ⛈️': get_weather,
+            'resting 💤': lambda mod: mod.bees_proportion()["resting"],
+            'returning 🔙': lambda mod: mod.bees_proportion()["returning"],
+            'exploring 🗺️': lambda mod: mod.bees_proportion()["exploring"],
+            'carrying 🎒': lambda mod: mod.bees_proportion()["carrying"],
+            'dancing 🪩': lambda mod: mod.bees_proportion()["dancing"],
+            'following 🎯': lambda mod: mod.bees_proportion()["following"],
+        }
+
+        # Dynamically add nectar in hives
+        for i in range(ModelConfig.N_HIVES):
+            model_reporters[f'Hive ({i+1}) stock 🍯'] = lambda mod: mod.nectar_in_hives()[i]
+
+        agent_reporters = {}
+
         self.datacollector = DataCollector(
-            model_reporters={
-                'n_agents_existed': lambda mod: mod.n_agents_existed,
-                'n_bees': lambda mod: mod.schedule.get_bee_count(),
-                'weather_event': get_weather,
-                'prop_resting': lambda mod: mod.bees_proportion()["resting"],
-                'prop_returning': lambda mod: mod.bees_proportion()["returning"],
-                'prop_exploring': lambda mod: mod.bees_proportion()["exploring"],
-                'prop_carrying': lambda mod: mod.bees_proportion()["carrying"],
-                'prop_dancing': lambda mod: mod.bees_proportion()["dancing"],
-                'prop_following': lambda mod: mod.bees_proportion()["following"],
-                'hive_1': lambda mod: mod.nectar_in_hives()[0],
-                'hive_2': lambda mod: mod.nectar_in_hives()[1]
-            },
-            agent_reporters={}
+            model_reporters=model_reporters,
+            agent_reporters=agent_reporters
         )
 
     def bees_proportion(self):
@@ -144,7 +150,7 @@ class ForagerModel(Model):
                 self.storm_time_passed = 0
 
         # Start storming
-        if np.random.random() < self.p_storm:
+        if np.random.random() < self.p_storm*self.dt:
             self.weather = Weather.STORM
 
     @staticmethod

@@ -55,7 +55,7 @@ model_params = {
         step=1,
         description="How long will the storm event last",
     ),
-    "n_resources": mesa.visualization.Slider("Number of resources",
+    "n_resources": mesa.visualization.Slider("Number of flower patches",
                                              value = ModelConfig.RESOURCE_QUANTITY,
                                              min_value=0,
                                              max_value=10,
@@ -65,24 +65,31 @@ model_params = {
                                         min_value=0,
                                         max_value=10,
                                         step = 1),
+    "dt": mesa.visualization.Slider("Time step",
+                                      value = ModelConfig.DT,
+                                      min_value=1,
+                                      max_value=60,
+                                      step = 1),
 }
 
 
 # Evolving plot of number of bees, read from model_reporters
-bee_number_plot = ChartModule([{"Label": "n_bees", "Color": "black"},
-                               {"Label": "weather_event", "Color": "red"}])
+bee_number_plot = ChartModule([{"Label": "Bee count 🐝", "Color": "black"},
+                               {"Label": "Storm ⛈️", "Color": "red"}])
 
 
 
-prop_bee_plot = ChartModule([{"Label": "prop_resting", "Color": bee_colors[BeeState.RESTING]},
-                             {"Label": "prop_returning", "Color": bee_colors[BeeState.RETURNING]},
-                             {"Label": "prop_exploring", "Color": bee_colors[BeeState.EXPLORING]},
-                             {"Label": "prop_carrying", "Color": bee_colors[BeeState.CARRYING]},
-                             {"Label": "prop_dancing", "Color": bee_colors[BeeState.DANCING]},
-                             {"Label": "prop_following", "Color": bee_colors[BeeState.FOLLOWING]}])
+prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": bee_colors[BeeState.RESTING]},
+                             {"Label": "returning 🔙", "Color": bee_colors[BeeState.RETURNING]},
+                             {"Label": "exploring 🗺️", "Color": bee_colors[BeeState.EXPLORING]},
+                             {"Label": "carrying 🎒", "Color": bee_colors[BeeState.CARRYING]},
+                             {"Label": "dancing 🪩", "Color": bee_colors[BeeState.DANCING]},
+                             {"Label": "following 🎯", "Color": bee_colors[BeeState.FOLLOWING]}])
 
-nectar_plot = ChartModule([{"Label": "hive_1", "Color": "blue"},
-                           {"Label": "hive_2", "Color": "green"}])
+# 10 distinct colors excluding white
+hive_colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ff8000", "#ff0080", "#80ff00", "#0080ff"]
+
+nectar_plot = ChartModule([{"Label": f"Hive ({i+1}) stock 🍯", "Color": hive_colors[i]} for i in range(ModelConfig.N_HIVES)])
 
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,

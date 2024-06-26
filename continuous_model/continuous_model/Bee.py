@@ -106,7 +106,7 @@ class Bee(Agent):
         if attraction_new > attraction_current or np.random.random() < (
             attraction_new / attraction_current
         ):
-            assert newpos != None, "New position for Bee agent {self} is equal to None"
+            assert newpos != None, f"New position for Bee agent {self} is equal to None"
             self.model.space.move_agent(self, newpos)
         else:
             # Retry so we ensure the bee moves and doesn't stay still
