@@ -14,7 +14,7 @@ class Resource(Agent):
         POLLEN = "pollen"
 
     # Class properties
-    id: int                         # unique identifier, required in mesa package
+    # id: int                         # unique identifier, required in mesa package
     model: Model                    # model the agent belongs to
 
     pos: Tuple[int, int]       # agent's current position, x and y coordinate
@@ -25,8 +25,8 @@ class Resource(Agent):
     persistent: bool                # whether the resource persists forever
 
     # Class methods
-    def __init__(self, id, model, location, type=Type.NECTAR, quantity=0.1, radius=50.0, persistent=True):
-        super().__init__(id, model)
+    def __init__(self, model, location, type=Type.NECTAR, quantity=0.1, radius=50.0, persistent=True):
+        super().__init__(model.next_id() , model)
         
         self.pos = location
         self.type = type
@@ -42,7 +42,7 @@ class Resource(Agent):
             self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
-            self.model.agents.remove(self)
+            # self.model.agents.remove(self) # All agents maintained in scheduler
             self.remove()
             # self.model.kill_agents.append(self)
 

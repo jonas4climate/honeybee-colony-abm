@@ -25,7 +25,7 @@ class BeeState(Enum):
 class Bee(Agent):
     def __init__(
         self,
-        id: int,  # unique identifier, required in mesa package
+        # id: int,  # unique identifier, required in mesa package
         model: "Model",  # model the agent belongs to
         hive,  # the Hive the Bee agent belongs to
         location: Optional[Tuple[float, float]] = None, # agent's current position
@@ -35,7 +35,7 @@ class Bee(Agent):
         state: BeeState = BeeState.RESTING,  # Bee's current activity
         wiggle: bool = False,  # whether the Bee agent is currently wiggle dancing
     ):
-        super().__init__(id, model)
+        super().__init__(model.next_id() , model)
         self.hive = hive
         self.pos = location if location is not None else hive.pos
         assert self.pos is not None, f"Bee agent {self} initialized with None position"

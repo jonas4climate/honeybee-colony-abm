@@ -23,6 +23,6 @@ class HiveConfig:
     DEFAULT_FEED_RATE: float = 0.1
 
 class ModelConfig:
-    DT = 10_000  # Time step in seconds
+    DT = 1  # Time step in seconds
     P_STORM_DEFAULT = 1/10  #1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
     STORM_DURATION_DEFAULT = 10  #60*60*24   # 1 day (in seconds) | Duration of a storm

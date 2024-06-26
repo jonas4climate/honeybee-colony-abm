@@ -9,7 +9,7 @@ from .config import HiveConfig
 class Hive(Agent):
     def __init__(
         self, 
-        id: int,  # unique identifier, required in mesa package
+        # id: int,  # unique identifier, required in mesa package
         model: 'Model',  # model the agent belongs to
         location: Tuple[int, int],  # agent's current position, x and y coordinate
         radius: float = HiveConfig.DEFAULT_RADIUS,  # effective radius of the hive, within that radius bees are considered "inside the hive"
@@ -18,7 +18,7 @@ class Hive(Agent):
         pollen: float = HiveConfig.DEFAULT_POLLEN,  # Current amount of stored pollen
         young_bees: int = HiveConfig.DEFAULT_YOUNG_BEES,  # Number of non-forager bees (about to become foragers
     ):
-        super().__init__(id, model)
+        super().__init__(model.next_id(), model)
 
         self.pos = location
         self.radius = radius
@@ -71,9 +71,10 @@ class Hive(Agent):
         bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if
                         bee.hive == self]
         # Kill the bees inside hive
-        for bee in bees_in_hive:
-            bee._remove_agent()
         if self.nectar <= self.feed_rate:
+            # Kill all bees since food ran out
+            for bee in bees_in_hive:
+                bee._remove_agent()
             print("Hive died due to lack of nectar")
             self.model.schedule.remove(self)
             self.model.space.remove_agent(self)
@@ -95,4 +96,4 @@ class Hive(Agent):
         self.create_bees()
 
         # 4. If nectar goes below 0, kill the hive
-        # self.kill_hive()
+        self.kill_hive()

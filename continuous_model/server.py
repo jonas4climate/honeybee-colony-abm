@@ -37,7 +37,7 @@ model_params = {
     "size": 500,
     "n_hives": 2,
     "hive_locations": [(100,100), (200,250)],
-    "n_bees_per_hive": [20, 50],
+    "n_bees_per_hive": [30, 30],
     "n_resources": 5,
     "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
     "p_storm": mesa.visualization.Slider(
@@ -60,8 +60,8 @@ model_params = {
 
 
 # Evolving plot of number of bees, read from model_reporters
-bee_number_plot = ChartModule([{"Label": "n_agents_existed", "Color": "black"},
-                               {"Label":"weather_event","Color":"red"}])
+bee_number_plot = ChartModule([{"Label": "n_bees", "Color": "black"},
+                               {"Label": "weather_event", "Color": "red"}])
 
 
 
@@ -72,7 +72,8 @@ prop_bee_plot = ChartModule([{"Label": "prop_resting", "Color": bee_colors[BeeSt
                              {"Label": "prop_dancing", "Color": bee_colors[BeeState.DANCING]},
                              {"Label": "prop_following", "Color": bee_colors[BeeState.FOLLOWING]}])
 
-nectar_plot = ChartModule([{"Label": "nectar_in_hives", "Color": "blue"}])
+nectar_plot = ChartModule([{"Label": "hive_1", "Color": "blue"},
+                           {"Label": "hive_2", "Color": "green"}])
 
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,

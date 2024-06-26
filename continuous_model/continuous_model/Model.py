@@ -39,8 +39,9 @@ class ForagerModel(Model):
         self.dt = dt  # Time step in seconds
 
         self.space = ContinuousSpace(size, size, True)  # continous space container from mesa package
-        self.schedule = RandomActivation(self)  # Scheduler from Mesa's time module
-        self.agents: List[Agent] = []  # current list of agents
+        self.schedule = CustomScheduler(self)  # Scheduler from Mesa's time module
+        # Agents now stored in the custom scheduler
+        # self.agents: List[Agent] = []  # current list of agents
 
         # Weather parameters
         self.weather = Weather.NORMAL  # weather object
@@ -60,6 +61,7 @@ class ForagerModel(Model):
         self.datacollector = DataCollector(
             model_reporters={
                 'n_agents_existed': lambda mod: mod.n_agents_existed,
+                'n_bees': lambda mod: mod.schedule.get_bee_count(),
                 'weather_event': get_weather,
                 'prop_resting': lambda mod: mod.bees_proportion()["resting"],
                 'prop_returning': lambda mod: mod.bees_proportion()["returning"],
@@ -67,7 +69,8 @@ class ForagerModel(Model):
                 'prop_carrying': lambda mod: mod.bees_proportion()["carrying"],
                 'prop_dancing': lambda mod: mod.bees_proportion()["dancing"],
                 'prop_following': lambda mod: mod.bees_proportion()["following"],
-                'nectar_in_hives': lambda mod: mod.nectar_in_hives()
+                'hive_1': lambda mod: mod.nectar_in_hives()[0],
+                'hive_2': lambda mod: mod.nectar_in_hives()[1]
             },
             agent_reporters={}
         )
@@ -82,11 +85,11 @@ class ForagerModel(Model):
     def nectar_in_hives(self):
         all_hives = self.get_agents_of_type(Hive)
         if all_hives:
-            return sum([i.nectar for i in all_hives])
+            return [i.nectar for i in all_hives]
 
     def create_agent(self, agent_type, **kwargs):
-        agent = agent_type(self.n_agents_existed, self, **kwargs)
-        self.agents.append(agent)
+        agent = agent_type(self, **kwargs)
+        # self.agents.append(agent)
 
         assert agent != None, f"Agent {agent} is None"
         assert agent.pos != None, f"Agent {agent} has None position"
