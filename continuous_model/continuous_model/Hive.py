@@ -26,7 +26,7 @@ class Hive(Agent):
     # Class methods
     def __init__(self, id, model, location, radius=10.0, nectar=0.5, water=0.5, pollen=0.5, young_bees=0):
         super().__init__(id, model)
-        self.id = id
+
         self.pos = location
         self.radius = radius
         
@@ -36,6 +36,8 @@ class Hive(Agent):
 
         self.young_bees = young_bees
         self.p_new_forager = 0.0                    # TODO: If it's a function of reosurces, then this should be a class method
+
+        self.hive_health = 1
 
     def feed_bees(self):
         # Get all young ones as well as foragers around beehive
@@ -49,6 +51,7 @@ class Hive(Agent):
             if bee.fed <= 1 and self.nectar > 0.01:
                 bee.fed += 0.01
                 self.nectar -= 0.01
+        healthy_bees = [bee for bee in bees_in_hive if bee.fed >= 0.5]
 
     def mature_bees(self):
         # This entails maturing young bees to foragers with some probability based on resources, weather etc...
