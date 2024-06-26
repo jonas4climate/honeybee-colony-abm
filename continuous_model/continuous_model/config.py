@@ -29,3 +29,8 @@ class ModelConfig:
     N_BEES = 100
     N_HIVES = 2
     RESOURCE_QUANTITY = 3  # 0.1 resources per m^2
+
+class ResourceConfig:
+    DEFAULT_QUANTITY = 0.1
+    DEFAULT_RADIUS = 50.0
+    DEFAULT_PERSISTENT = False
