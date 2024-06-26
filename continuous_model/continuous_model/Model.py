@@ -18,15 +18,17 @@ from .Hive import Hive
 from .Resource import Resource
 from .Weather import Weather
 from .CustomScheduler import CustomScheduler
+from random import shuffle
 
 class ForagerModel(Model):
     def __init__(
         self, 
         size: int, 
-        n_hives: int, 
-        hive_locations: List[Tuple[int, int]],
-        n_resources: int,
-        resource_locations: List[Tuple[int, int]],
+        n_hives: int = ModelConfig.N_HIVES,
+        # hive_locations: List[Tuple[int, int]],
+        # n_resources: int,
+        # resource_locations: List[Tuple[int, int]],
+        n_resources: int = ModelConfig.RESOURCE_QUANTITY,
         n_bees_per_hive: int = ModelConfig.N_BEES,
         dt: int = ModelConfig.DT,
         p_storm: float = ModelConfig.P_STORM_DEFAULT, 
@@ -50,7 +52,8 @@ class ForagerModel(Model):
         self.storm_time_passed = 0  # Time duration of storm thus far
 
         self.setup_datacollector()
-        self.make_agents(n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations)
+        hive_locations, resource_locations = self.init_space(size, size, n_resources, n_hives)
+        self.make_agents(hive_locations, n_bees_per_hive, resource_locations)
 
     def setup_datacollector(self):
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
@@ -105,19 +108,19 @@ class ForagerModel(Model):
         agents = [self.create_agent(agent_type, **kwargs) for _ in range(n)]
         return agents
     
-    def make_agents(self, n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations):
-        assert len(hive_locations) == n_hives
-        assert len(n_bees_per_hive) == n_hives
-        assert len(resource_locations) == n_resources
+    def make_agents(self, hive_locations, n_bees_per_hive, resource_locations):
+        # assert len(hive_locations) == n_hives
+        # assert len(resource_locations) == n_resources
         
         # Create Hives with their corresponding Bee agents
-        for i in range(n_hives):
+        for i in range(len(hive_locations)):
             current_hive = self.create_agent(Hive, location=hive_locations[i])
-            for _ in range(n_bees_per_hive[i]):
+            print(n_bees_per_hive)
+            for _ in range(n_bees_per_hive):
                 self.create_agent(Bee, hive=current_hive)
         
         # Create Resources
-        for i in range(n_resources):
+        for i in range(len(resource_locations)):
             self.create_agent(Resource, location=resource_locations[i])
 
     def step(self):
@@ -138,3 +141,19 @@ class ForagerModel(Model):
         # Start storming
         if np.random.random() < self.p_storm:
             self.weather = Weather.STORM
+
+    @staticmethod
+    def init_space(width, height, n_resources, n_hives=2):
+        """Initialize the space with resources and hives."""
+        positions = [(x, y) for x in range(0, width, 10) for y in range(0, height, 10)]
+
+        shuffle(positions)
+
+        resource_location = positions[0:n_resources]
+        if n_hives != 1:
+            i_hives = n_resources + n_hives
+            hive_location = positions[n_resources:i_hives]
+        else:
+            hive_location = positions[n_resources + 1]
+        return hive_location, resource_location
+

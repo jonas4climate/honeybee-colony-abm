@@ -19,7 +19,7 @@ bee_colors = {
 }
 
 
-def bee_draw(agent):
+def agent_potrayal(agent):
     if isinstance(agent, Bee):
         return {"Shape": "circle", "r": 2, "Filled": "true", "Color": bee_colors[agent.state]}
     elif isinstance(agent, Hive):
@@ -29,16 +29,16 @@ def bee_draw(agent):
 
 
 forager_canvas = SimpleCanvas(
-    portrayal_method=bee_draw, canvas_height=500, canvas_width=500
+    portrayal_method=agent_potrayal, canvas_height=500, canvas_width=500
 )
 
 model_params = {
     "size": 500,
     "n_hives": 2,
-    "hive_locations": [(100,100), (200,250)],
-    "n_bees_per_hive": [ModelConfig.N_BEES, ModelConfig.N_BEES],
-    "n_resources": 5,
-    "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
+    # "hive_locations": [(100,100), (200,250)],
+    "n_bees_per_hive": ModelConfig.N_BEES,
+    # "n_resources": 5,
+    # "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
     "p_storm": mesa.visualization.Slider(
         name="Storm probability",
         value=ModelConfig.P_STORM_DEFAULT,
@@ -54,7 +54,17 @@ model_params = {
         max_value=50,
         step=1,
         description="How long will the storm event last",
-    )
+    ),
+    "n_resources": mesa.visualization.Slider("Number of resources",
+                                             value = ModelConfig.RESOURCE_QUANTITY,
+                                             min_value=0,
+                                             max_value=10,
+                                             step = 1),
+    "n_hives": mesa.visualization.Slider("Number of hives",
+                                        value = ModelConfig.N_HIVES,
+                                        min_value=0,
+                                        max_value=10,
+                                        step = 1),
 }
 
 

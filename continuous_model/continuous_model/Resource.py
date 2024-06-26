@@ -59,3 +59,4 @@ class Resource(Agent):
         else:
             self.quantity -= bee_carrying_capacity
             return bee_carrying_capacity
+
