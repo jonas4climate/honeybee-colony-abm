@@ -268,6 +268,7 @@ class Bee(Agent):
             if self.is_close_to_resource(resource):
                 self.wiggle_destiny = resource
                 self.state = BeeState.CARRYING
+                resource.extraction(BeeConfig.CARRYING_CAPACITY)
                 return
 
     def update_properties(self):

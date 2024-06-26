@@ -130,6 +130,11 @@ class ForagerModel(Model):
         # TODO: Add interaction of agents (?)
         self.datacollector.collect(self)    # Record step variables in the DataCollector
 
+    def kill_agent(self, agent):
+        self.schedule.remove(agent)
+        self.space.remove_agent(agent)
+        self.n_agents_existed -= 1
+
     def manage_weather_events(self):
         # Keep storming until storm duration passed
         if self.weather == Weather.STORM:

@@ -32,8 +32,9 @@ class Resource(Agent):
         
     def step(self):
         # 1. Depletion, if quantity reaches 0
-        # self.radius = self.quantity / ResourceConfig.DEFAULT_QUANTITY * ResourceConfig.DEFAULT_RADIUS
-        self.radius -= 1
+        self.radius = self.quantity / ResourceConfig.DEFAULT_QUANTITY * ResourceConfig.DEFAULT_RADIUS
+        # self.radius -= 1
+        print(self.quantity, self.radius)
         if not self.persistent and self.quantity <= 0:
             # TODO: Mesa provides functionality to do that more efficiently
             self.model.n_agents_existed -= 1
@@ -51,8 +52,6 @@ class Resource(Agent):
         # 2. Second method called by bees to extract the resource            
         if self.persistent == True:
             return bee_carrying_capacity
-        elif self.quantity <= bee_carrying_capacity:
-            return self.quantity
         else:
             self.quantity -= bee_carrying_capacity
             return bee_carrying_capacity
