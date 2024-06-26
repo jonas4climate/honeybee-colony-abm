@@ -62,6 +62,7 @@ class Hive(Agent):
         p_new_young_bee = 0.1
         new_young = True if np.random.random() < p_new_young_bee else False
         if new_young:
+            self.model.create_agent(Bee, hive=self)
             self.young_bees += 1
             self.model.n_agents_existed += 1
 
