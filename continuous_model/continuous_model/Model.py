@@ -12,7 +12,7 @@ from mesa.time import RandomActivation
 import numpy as np
 from typing import List
 
-from .Bee import Bee
+from .Bee import Bee, BeeState
 from .Hive import Hive
 from .Resource import Resource
 from .Weather import Weather
@@ -79,9 +79,9 @@ class ForagerModel(Model):
     def bees_proportion(self):
         all_bees = self.get_agents_of_type(Bee)
         if all_bees:
-            return {state.value: len([a for a in all_bees if a.state == state]) / len(all_bees) for state in Bee.State}
+            return {state.value: len([a for a in all_bees if a.state == state]) / len(all_bees) for state in BeeState}
         else:
-            return {state.value: 0 for state in Bee.State}
+            return {state.value: 0 for state in BeeState}
 
     def nectar_in_hives(self):
         all_hives = self.get_agents_of_type(Hive)

@@ -4,18 +4,18 @@ from continuous_model.Model import ForagerModel
 from SimpleContinuousModule import SimpleCanvas
 from mesa.visualization.modules import ChartModule
 
-
-from continuous_model.Bee import Bee
+from continuous_model.Bee import Bee, BeeState
 from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
+
 bee_colors = {
-    Bee.State.RESTING : "#fc0303", # red
-    Bee.State.RETURNING: "#3bf55a", # green
-    Bee.State.EXPLORING : "#0af5f1", # blue
-    Bee.State.CARRYING : "#59a2c2", # light blue
-    Bee.State.DANCING : "#ff52df", # pink
-    Bee.State.FOLLOWING : "#0a54f5" # dark blue
+    BeeState.RESTING : "#fc0303", # red
+    BeeState.RETURNING: "#3bf55a", # green
+    BeeState.EXPLORING : "#0af5f1", # blue
+    BeeState.CARRYING : "#59a2c2", # light blue
+    BeeState.DANCING : "#ff52df", # pink
+    BeeState.FOLLOWING : "#0a54f5" # dark blue
 }
 
 
@@ -64,12 +64,12 @@ bee_number_plot = ChartModule([{"Label": "n_agents_existed", "Color": "black"},
 
 
 
-prop_bee_plot = ChartModule([{"Label": "prop_resting", "Color": bee_colors[Bee.State.RESTING]},
-                             {"Label": "prop_returning", "Color": bee_colors[Bee.State.RETURNING]},
-                             {"Label": "prop_exploring", "Color": bee_colors[Bee.State.EXPLORING]},
-                             {"Label": "prop_carrying", "Color": bee_colors[Bee.State.CARRYING]},
-                             {"Label": "prop_dancing", "Color": bee_colors[Bee.State.DANCING]},
-                             {"Label": "prop_following", "Color": bee_colors[Bee.State.FOLLOWING]}])
+prop_bee_plot = ChartModule([{"Label": "prop_resting", "Color": bee_colors[BeeState.RESTING]},
+                             {"Label": "prop_returning", "Color": bee_colors[BeeState.RETURNING]},
+                             {"Label": "prop_exploring", "Color": bee_colors[BeeState.EXPLORING]},
+                             {"Label": "prop_carrying", "Color": bee_colors[BeeState.CARRYING]},
+                             {"Label": "prop_dancing", "Color": bee_colors[BeeState.DANCING]},
+                             {"Label": "prop_following", "Color": bee_colors[BeeState.FOLLOWING]}])
 
 nectar_plot = ChartModule([{"Label": "nectar_in_hives", "Color": "blue"}])
 
