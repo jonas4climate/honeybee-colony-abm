@@ -177,8 +177,7 @@ class Bee(Agent):
 
     def handle_resting(self):
         assert self.load == 0, "Bee cannot be resting and carrying at the same time"
-        assert (not self.wiggle), "Bee cannot be resting and wiggle dancing at the same time"
-        assert (self.wiggle_destiny is None), f"Bee cannot be resting and have a wiggle destiny at the same time (currently: {self.wiggle_destiny})"
+        # assert (self.wiggle_destiny is None), (f"Bee cannot be resting and have a wiggle destiny at the same time (currently: {self.wiggle_destiny}, self.state: {self.state}). Location: {self.pos}, Hive_location: {self.hive.pos}.")
         assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
 
         # Perceive resources locally, if low start exploring

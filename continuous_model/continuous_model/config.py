@@ -4,7 +4,7 @@ class BeeConfig:
     MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in s)
     P_DEATH_BY_STORM = 1/(60*60)    # on average within 1 hour (probability) TODO: calibrate further
     SPEED = 5                       # 5 (in m/s) 
-    PERCEIVE_AS_LOW_FOOD = 2        # 2 (in kg) TODO: calibrate further
+    PERCEIVE_AS_LOW_FOOD = 10        # 2 (in kg) TODO: calibrate further
     DANCING_TIME = 60               # 1 minute (in s) TODO: calibrate further
     P_FOLLOW_WIGGLE_DANCE = 1       # 100% (probability) TODO: calibrate further
     P_ABORT_EXPLORING = 1/(60*60)   # on average within 1 hour (probability) TODO: calibrate further
@@ -16,13 +16,14 @@ class BeeConfig:
 class HiveConfig:
     RADIUS = 20  # for drawing in Javascript server visualization
     DEFAULT_RADIUS = 10.0
-    DEFAULT_NECTAR = 4
+    DEFAULT_NECTAR = 10
     DEFAULT_WATER = 0.5
     DEFAULT_POLLEN = 0.5
     DEFAULT_YOUNG_BEES = 0
-    DEFAULT_FEED_RATE: float = 0.1
+    DEFAULT_FEED_RATE: float = 0.05
 
 class ModelConfig:
-    DT = 1  # Time step in seconds
+    DT = 100  # Time step in seconds
     P_STORM_DEFAULT = 1/10  #1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
     STORM_DURATION_DEFAULT = 10  #60*60*24   # 1 day (in seconds) | Duration of a storm
+    N_BEES = 100

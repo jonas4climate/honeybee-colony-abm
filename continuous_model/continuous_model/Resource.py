@@ -25,7 +25,7 @@ class Resource(Agent):
     persistent: bool                # whether the resource persists forever
 
     # Class methods
-    def __init__(self, model, location, type=Type.NECTAR, quantity=0.1, radius=50.0, persistent=True):
+    def __init__(self, model, location, type=Type.NECTAR, quantity=0.1, radius=50.0, persistent=False):
         super().__init__(model.next_id() , model)
         
         self.pos = location
