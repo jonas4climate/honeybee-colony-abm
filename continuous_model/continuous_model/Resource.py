@@ -32,6 +32,8 @@ class Resource(Agent):
         
     def step(self):
         # 1. Depletion, if quantity reaches 0
+        # self.radius = self.quantity / ResourceConfig.DEFAULT_QUANTITY * ResourceConfig.DEFAULT_RADIUS
+        self.radius -= 1
         if not self.persistent and self.quantity <= 0:
             # TODO: Mesa provides functionality to do that more efficiently
             self.model.n_agents_existed -= 1
