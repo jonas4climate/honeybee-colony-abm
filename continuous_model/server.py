@@ -9,7 +9,6 @@ from continuous_model.config import HiveConfig, ModelConfig
 from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
-
 bee_colors = {
     BeeState.RESTING : "#fc0303", # red
     BeeState.RETURNING: "#3bf55a", # green
@@ -37,7 +36,7 @@ model_params = {
     "size": 500,
     "n_hives": 2,
     "hive_locations": [(100,100), (200,250)],
-    "n_bees_per_hive": [30, 30],
+    "n_bees_per_hive": [ModelConfig.N_BEES, ModelConfig.N_BEES],
     "n_resources": 5,
     "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
     "p_storm": mesa.visualization.Slider(
