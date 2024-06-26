@@ -37,7 +37,7 @@ class ForagerModel(Model):
     STORM_DURATION_DEFAULT = 10               #60*60*24   # 1 day (in seconds) | Duration of a storm
 
     # Class methods
-    def __init__(self, SIZE, n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations, dt=1,
+    def __init__(self, SIZE, n_hives, hive_locations, n_bees_per_hive, n_resources, resource_locations, dt=10_000,
                 p_storm=P_STORM_DEFAULT, storm_duration=STORM_DURATION_DEFAULT):
         super().__init__()
 
@@ -87,7 +87,6 @@ class ForagerModel(Model):
         all_hives = self.get_agents_of_type(Hive)
         if all_hives:
             return sum([i.nectar for i in all_hives])
-
 
     def create_agent(self, agent_type, **kwargs):
         agent = agent_type(self.n_agents_existed, self, **kwargs)
