@@ -43,15 +43,15 @@ class Hive(Agent):
         # Get all young ones as well as foragers around beehive
         bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if bee.hive == self and bee.distance_to_agent(self) <= self.radius]
         # Sort them by hunger
-        sorted_bees = sorted([bee for bee in bees_in_hive if bee.fed < 1], key=lambda x: x.fed)
-        for bee in sorted_bees:
+        # sorted_bees = sorted([bee for bee in bees_in_hive if bee.fed <= 1], key=lambda x: x.fed)
+        for bee in bees_in_hive:
             # Feed it, recall maximum health and that there should be resources
             ## TODO: Prioritize hunger ones! Turning water and pollen into bee health
             ## TODO: Use two resources
             if bee.fed <= 1 and self.nectar > 0.01:
                 bee.fed += 0.01
                 self.nectar -= 0.01
-        healthy_bees = [bee for bee in bees_in_hive if bee.fed >= 0.5]
+        # healthy_bees = [bee for bee in bees_in_hive if bee.fed >= 0.5]
 
     def mature_bees(self):
         # This entails maturing young bees to foragers with some probability based on resources, weather etc...
