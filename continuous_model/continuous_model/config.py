@@ -20,4 +20,4 @@ class HiveConfig:
     DEFAULT_WATER = 0.5
     DEFAULT_POLLEN = 0.5
     DEFAULT_YOUNG_BEES = 0
-    DEFAULT_FEED_RATE: float = 0.1
+    DEFAULT_FEED_RATE: float = 0.01

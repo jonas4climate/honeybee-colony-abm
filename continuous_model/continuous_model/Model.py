@@ -16,6 +16,7 @@ from .Bee import Bee, BeeState
 from .Hive import Hive
 from .Resource import Resource
 from .Weather import Weather
+from .CustomScheduler import CustomScheduler
 
 class ForagerModel(Model):
 
@@ -26,7 +27,7 @@ class ForagerModel(Model):
     weather = Weather.NORMAL    # weather object
     
     space: ContinuousSpace      # continous space container from mesa package
-    schedule: RandomActivation  # Scheduler from Mesa's time module
+    schedule: CustomScheduler  # Scheduler from Mesa's time module
     agents: List[Agent]         # current list of agents
 
     p_storm: float              # probabilitiy of a storm occuring in a day
