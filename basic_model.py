@@ -69,7 +69,7 @@ class Bee(Agent):
     
     def try_collect_resources(self):
         x, y = self.location
-        neighbors = self.model.space.get_neighbors(self.location, moore=True, include_center=True, radius=self.interaction_range)
+        neighbors = self.model.space.get_neighbors(self.location, include_center=True, radius=self.interaction_range)
         resource_neighbors = [n for n in neighbors if isinstance(n, Resource)]
         # Make decision which resource to collect
         return

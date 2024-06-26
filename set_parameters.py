@@ -1,0 +1,3 @@
+# WIDTH = 100
+# HEIGHT = 100
+SIZE = 100
