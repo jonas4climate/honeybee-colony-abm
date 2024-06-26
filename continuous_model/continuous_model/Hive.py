@@ -16,10 +16,10 @@ class Hive(Agent):
         nectar: float = HiveConfig.DEFAULT_NECTAR,  # Current amount of stored nectar
         water: float = HiveConfig.DEFAULT_WATER,  # Current amount of stored water
         pollen: float = HiveConfig.DEFAULT_POLLEN,  # Current amount of stored pollen
-        young_bees: int = HiveConfig.DEFAULT_YOUNG_BEES  # Number of non-forager bees (about to become foragers
+        young_bees: int = HiveConfig.DEFAULT_YOUNG_BEES,  # Number of non-forager bees (about to become foragers
     ):
         super().__init__(id, model)
-        
+
         self.pos = location
         self.radius = radius
 
@@ -31,19 +31,20 @@ class Hive(Agent):
         self.p_new_forager = 0.0  # TODO: If it's a function of resources, then this should be a class method
 
         self.hive_health = 1
+        self.feed_rate = HiveConfig.DEFAULT_FEED_RATE
 
     def feed_bees(self):
         # Get all young ones as well as foragers around beehive
         bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if bee.hive == self and bee.distance_to_agent(self) <= self.radius]
         # Sort them by hunger
-        # sorted_bees = sorted([bee for bee in bees_in_hive if bee.fed <= 1], key=lambda x: x.fed)
-        for bee in bees_in_hive:
+        sorted_bees = sorted([bee for bee in bees_in_hive if bee.fed <= 1], key=lambda x: x.fed)
+        for bee in sorted_bees:
             # Feed it, recall maximum health and that there should be resources
             ## TODO: Prioritize hunger ones! Turning water and pollen into bee health
             ## TODO: Use two resources
-            if bee.fed <= 1 and self.nectar > 0.01:
-                bee.fed += 0.01
-                self.nectar -= 0.01
+            if bee.fed <= 1 and self.nectar > self.feed_rate:
+                bee.fed += self.feed_rate
+                self.nectar -= self.feed_rate
         # healthy_bees = [bee for bee in bees_in_hive if bee.fed >= 0.5]
 
     def mature_bees(self):
@@ -65,6 +66,17 @@ class Hive(Agent):
             self.young_bees += 1
             self.model.n_agents_existed += 1
 
+    def kill_hive(self):
+        bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if
+                        bee.hive == self]
+        # Kill the bees inside hive
+        for bee in bees_in_hive:
+            bee._remove_agent()
+        if self.nectar <= self.feed_rate:
+            print("Hive died due to lack of nectar")
+            self.model.schedule.remove(self)
+            self.model.space.remove_agent(self)
+            self.model.n_agents_existed -= 1
     def step(self):
         # 1. Feed bees
         self.feed_bees()
@@ -80,3 +92,6 @@ class Hive(Agent):
         # 3. Create young bees
         # Based on resources and weather
         self.create_bees()
+
+        # 4. If nectar goes below 0, kill the hive
+        # self.kill_hive()
