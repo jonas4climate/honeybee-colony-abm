@@ -28,7 +28,7 @@ class ForagerModel(Model):
         n_bees_per_hive: int, 
         n_resources: int, 
         resource_locations: List[Tuple[int, int]],
-        dt: int = 10_000, 
+        dt: int = ModelConfig.DT, 
         p_storm: float = ModelConfig.P_STORM_DEFAULT, 
         storm_duration: float = ModelConfig.STORM_DURATION_DEFAULT
     ):
