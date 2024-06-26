@@ -12,3 +12,11 @@ class BeeConfig:
     STORM_ABORT_FACTOR = 10         # 10 times more likely to abort during storm TODO: calibrate further
     CARRYING_CAPACITY = 0.001       # 1g (in kg) TODO: calibrate further
     GATHERING_RATE = 0.0001         # 0.1g/s (kg/s) TODO: calibrate further
+
+class HiveConfig:
+    RADIUS = 20  # for drawing in Javascript server visualization
+    DEFAULT_RADIUS = 10.0
+    DEFAULT_NECTAR = 0.5
+    DEFAULT_WATER = 0.5
+    DEFAULT_POLLEN = 0.5
+    DEFAULT_YOUNG_BEES = 0

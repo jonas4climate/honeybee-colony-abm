@@ -5,6 +5,7 @@ from SimpleContinuousModule import SimpleCanvas
 from mesa.visualization.modules import ChartModule
 
 from continuous_model.Bee import Bee, BeeState
+from continuous_model.config import HiveConfig
 from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
@@ -23,7 +24,7 @@ def bee_draw(agent):
     if isinstance(agent, Bee):
         return {"Shape": "circle", "r": 2, "Filled": "true", "Color": bee_colors[agent.state]}
     elif isinstance(agent, Hive):
-        return {"Shape": "circle", "r": Hive.RADIUS, "Filled": "true", "Color": "#82817c"}
+        return {"Shape": "circle", "r": HiveConfig.RADIUS, "Filled": "true", "Color": "#82817c"}
     elif isinstance(agent, Resource):
         return {"Shape": "circle", "r": agent.radius, "Filled": "true", "Color": "#77dae640"}
 
