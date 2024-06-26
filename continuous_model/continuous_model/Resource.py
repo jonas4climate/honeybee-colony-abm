@@ -1,6 +1,7 @@
 from __future__ import annotations
 from enum import Enum
 from typing import Tuple
+import math
 
 from mesa import Agent, Model
 
@@ -32,15 +33,19 @@ class Resource(Agent):
         
     def step(self):
         # 1. Depletion, if quantity reaches 0
-        self.radius = self.quantity / ResourceConfig.DEFAULT_QUANTITY * ResourceConfig.DEFAULT_RADIUS
-        # self.radius -= 1
-        print(self.quantity, self.radius)
+        # self.radius = self.quantity / ResourceConfig.DEFAULT_QUANTITY * ResourceConfig.DEFAULT_RADIUS
+        if self.quantity <= 0:
+            self.quantity = 0
+            self.radius = 0
+        else:
+            self.radius = math.sqrt(self.quantity / ResourceConfig.DEFAULT_QUANTITY) * ResourceConfig.DEFAULT_RADIUS
+            
         if not self.persistent and self.quantity <= 0:
             # TODO: Mesa provides functionality to do that more efficiently
             self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
-            # self.model.agents.remove(self) # All agents maintained in scheduler
+            self.model.agents.remove(self) # All agents maintained in scheduler
             self.remove()
             # self.model.kill_agents.append(self)
 

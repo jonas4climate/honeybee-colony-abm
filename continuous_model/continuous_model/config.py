@@ -2,9 +2,9 @@ class BeeConfig:
     FIELD_OF_VIEW = 20              # 20 (in m) TODO: calibrate further using real data
     STARVATION_SPEED = 1/(60*60*24) # within 1 day (in rate/s)
     MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in s)
-    P_DEATH_BY_STORM = 1/(60*60)    # on average within 1 hour (probability) TODO: calibrate further
+    P_DEATH_BY_STORM = 1/(60)       # on average within 1 hour (probability) TODO: calibrate further
     SPEED = 5                       # 5 (in m/s) 
-    PERCEIVE_AS_LOW_FOOD = 10        # 2 (in kg) TODO: calibrate further
+    PERCEIVE_AS_LOW_FOOD = 10       # 10 (in kg) TODO: calibrate further
     DANCING_TIME = 60               # 1 minute (in s) TODO: calibrate further
     P_FOLLOW_WIGGLE_DANCE = 1       # 100% (probability) TODO: calibrate further
     P_ABORT_EXPLORING = 1/(60*60)   # on average within 1 hour (probability) TODO: calibrate further
@@ -20,17 +20,18 @@ class HiveConfig:
     DEFAULT_WATER = 0.5
     DEFAULT_POLLEN = 0.5
     DEFAULT_YOUNG_BEES = 0
-    DEFAULT_FEED_RATE: float = 0.05
+    DEFAULT_FEED_RATE: float = 1/60  # within 1 minute (in rate/s)
 
 class ModelConfig:
+    SIZE = 500 # 500m x 500m
     DT = 10  # Time step in seconds
-    P_STORM_DEFAULT = 1/10  #1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
+    P_STORM_DEFAULT = 0  #1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
     STORM_DURATION_DEFAULT = 10  #60*60*24   # 1 day (in seconds) | Duration of a storm
     N_BEES = 100
     N_HIVES = 2
-    RESOURCE_QUANTITY = 3  # 0.1 resources per m^2
+    N_RESOURCE_CITES = 3  # 0.1 resources per m^2
 
 class ResourceConfig:
-    DEFAULT_QUANTITY = 0.1
-    DEFAULT_RADIUS = 50.0
+    DEFAULT_QUANTITY = 0.1 # in kg
+    DEFAULT_RADIUS = 50.0 # in m
     DEFAULT_PERSISTENT = False

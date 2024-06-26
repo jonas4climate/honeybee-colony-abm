@@ -10,7 +10,7 @@ class Hive(Agent):
     def __init__(
         self, 
         # id: int,  # unique identifier, required in mesa package
-        model: 'Model',  # model the agent belongs to
+        model: Model,  # model the agent belongs to
         location: Tuple[int, int],  # agent's current position, x and y coordinate
         radius: float = HiveConfig.DEFAULT_RADIUS,  # effective radius of the hive, within that radius bees are considered "inside the hive"
         nectar: float = HiveConfig.DEFAULT_NECTAR,  # Current amount of stored nectar
@@ -35,16 +35,17 @@ class Hive(Agent):
 
     def feed_bees(self):
         # Get all young ones as well as foragers around beehive
-        bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if bee.hive == self and bee.distance_to_agent(self) <= self.radius]
-        # Sort them by hunger
-        sorted_bees = sorted([bee for bee in bees_in_hive if bee.fed <= 1], key=lambda x: x.fed)
-        for bee in sorted_bees:
-            # Feed it, recall maximum health and that there should be resources
-            ## TODO: Prioritize hunger ones! Turning water and pollen into bee health
+        agents_in_hive = self.model.space.get_neighbors(self.pos, self.radius, include_center=True)
+        bees_to_feed_in_hive = [agent for agent in agents_in_hive if type(agent) is Bee and agent.hive == self and agent.fed <= 1]
+        # NOTE: skipped sorting, this is only relevant at a very short time point but requires lots of compute every iteration
+        # sorted_bees = sorted([bee for bee in bees_to_feed_in_hive if bee.fed <= 1], key=lambda x: x.fed)
+        feed_speed = self.feed_rate*self.model.dt
+        for bee in bees_to_feed_in_hive:
+            ## TODO: Prioritize hungery ones
             ## TODO: Use two resources
-            if bee.fed <= 1 and self.nectar > self.feed_rate:
-                bee.fed += self.feed_rate
-                self.nectar -= self.feed_rate
+            if bee.fed <= 1 and self.nectar > feed_speed:
+                bee.fed += feed_speed
+                self.nectar -= feed_speed
         # healthy_bees = [bee for bee in bees_in_hive if bee.fed >= 0.5]
 
     def mature_bees(self):
@@ -67,18 +68,20 @@ class Hive(Agent):
             self.young_bees += 1
             self.model.n_agents_existed += 1
 
-    def kill_hive(self):
-        bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if
-                        bee.hive == self]
-        # Kill the bees inside hive
-        if self.nectar <= self.feed_rate:
-            # Kill all bees since food ran out
-            for bee in bees_in_hive:
-                bee._remove_agent()
-            print("Hive died due to lack of nectar")
-            self.model.schedule.remove(self)
-            self.model.space.remove_agent(self)
-            self.model.n_agents_existed -= 1
+    # def kill_hive(self):
+    #     bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if
+    #                     bee.hive == self]
+    #     # Kill the bees inside hive
+    #     if self.nectar <= self.feed_rate:
+    #         # Kill all bees since food ran out
+    #         for bee in bees_in_hive:
+    #             bee._remove_agent()
+    #         print("Hive died due to lack of nectar")
+    #         self.model.schedule.remove(self)
+    #         self.model.space.remove_agent(self)
+    #         self.model.n_agents_existed -= 1
+
+
     def step(self):
         # 1. Feed bees
         self.feed_bees()
@@ -96,4 +99,4 @@ class Hive(Agent):
         self.create_bees()
 
         # 4. If nectar goes below 0, kill the hive
-        self.kill_hive()
+        # self.kill_hive()

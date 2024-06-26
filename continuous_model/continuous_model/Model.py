@@ -28,7 +28,7 @@ class ForagerModel(Model):
         # hive_locations: List[Tuple[int, int]],
         # n_resources: int,
         # resource_locations: List[Tuple[int, int]],
-        n_resources: int = ModelConfig.RESOURCE_QUANTITY,
+        n_resources: int = ModelConfig.N_RESOURCE_CITES,
         n_bees_per_hive: int = ModelConfig.N_BEES,
         dt: int = ModelConfig.DT,
         p_storm: float = ModelConfig.P_STORM_DEFAULT, 
@@ -59,7 +59,7 @@ class ForagerModel(Model):
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
         # TODO: Add method with % of each type of bee among all LIVING bees
         def get_weather(model):
-            return model.n_agents_existed if model.weather == Weather.STORM else 0
+            return model.schedule.get_bee_count() if model.weather == Weather.STORM else 0
 
         model_reporters = {
             'n_agents_existed': lambda mod: mod.n_agents_existed,
@@ -95,6 +95,8 @@ class ForagerModel(Model):
         all_hives = self.get_agents_of_type(Hive)
         if all_hives:
             return [i.nectar for i in all_hives]
+        else:
+            raise Exception("No hives in the model")
 
     def create_agent(self, agent_type, **kwargs):
         agent = agent_type(self, **kwargs)

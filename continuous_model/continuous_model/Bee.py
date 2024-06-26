@@ -131,9 +131,8 @@ class Bee(Agent):
 
     def distance_to_agent(self, agent):
         if self.pos == None or agent.pos == None:
-            pass
-
-        return np.hypot(self.pos[0] - agent.pos[0], self.pos[1] - agent.pos[1])
+            raise ValueError(f"Position of agent {self} or {agent} is None")
+        return self.model.space.get_distance(self.pos, agent.pos)
 
     def move_towards(self, destiny_agent):
         """
@@ -151,12 +150,12 @@ class Bee(Agent):
             new_y = self.pos[1] + move_distance * sin(angle)
 
             newpos = (new_x, new_y)
-            assert newpos != None, "New position for Bee agent {self} is equal to None"
+            assert newpos != None, f"New position for Bee agent {self} is equal to None"
 
             self.model.space.move_agent(self, newpos)
         else:
             newpos = (destiny_agent.pos[0], destiny_agent.pos[1])
-            assert newpos != None, "New position for Bee agent {self} is equal to None"
+            assert newpos != None, f"New position for Bee agent {self} is equal to None"
 
             self.model.space.move_agent(self, newpos)
 
@@ -229,8 +228,8 @@ class Bee(Agent):
             self.state = BeeState.RESTING
 
     def handle_following(self):
-        # Carry resource if arrived
-        if self.is_close_to_resource(self.wiggle_destiny):
+        # Check safely if close to resource (could have disappeared), carry resource if arrived
+        if self.wiggle_destiny and self.is_close_to_resource(self.wiggle_destiny):
             self.state = BeeState.CARRYING
             # wiggle_destiny is already set to resource location
 
@@ -241,14 +240,16 @@ class Bee(Agent):
             self.move_towards(self.wiggle_destiny)
 
     def try_follow_wiggle_dance(self):
+        agents_in_fov = self.model.space.get_neighbors(
+            self.pos, self.fov, include_center=True
+        )
         wiggling_bees_in_fov = np.array(
             [
-                other_agent
-                for other_agent in self.model.agents
-                if other_agent != self
-                and isinstance(other_agent, Bee)
-                and other_agent.wiggle
-                and self.distance_to_agent(other_agent) <= self.fov
+                agent
+                for agent in agents_in_fov
+                if agent != self
+                and isinstance(agent, Bee)
+                and agent.wiggle
             ]
         )
         np.random.shuffle(wiggling_bees_in_fov)

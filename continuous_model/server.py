@@ -33,7 +33,7 @@ forager_canvas = SimpleCanvas(
 )
 
 model_params = {
-    "size": 500,
+    "size": ModelConfig.SIZE,
     "n_hives": 2,
     # "hive_locations": [(100,100), (200,250)],
     "n_bees_per_hive": ModelConfig.N_BEES,
@@ -43,8 +43,8 @@ model_params = {
         name="Storm probability",
         value=ModelConfig.P_STORM_DEFAULT,
         min_value=0.0,
-        max_value=1.0,
-        step=0.01,
+        max_value=0.1,
+        step=0.001,
         description="What is the probability of a storm occuring in a single day",
     ),
     "storm_duration": mesa.visualization.Slider(
@@ -56,7 +56,7 @@ model_params = {
         description="How long will the storm event last",
     ),
     "n_resources": mesa.visualization.Slider("Number of flower patches",
-                                             value = ModelConfig.RESOURCE_QUANTITY,
+                                             value = ModelConfig.N_RESOURCE_CITES,
                                              min_value=0,
                                              max_value=10,
                                              step = 1),
