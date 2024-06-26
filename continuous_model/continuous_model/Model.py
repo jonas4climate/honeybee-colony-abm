@@ -69,7 +69,7 @@ class ForagerModel(Model):
                              'prop_carrying': lambda mod: mod.bees_proportion()["carrying"],
                              'prop_dancing': lambda mod: mod.bees_proportion()["dancing"],
                              'prop_following': lambda mod: mod.bees_proportion()["following"],
-                             # 'resource_quantity': lambda mod: mod.resource_quantity()
+                             'resource_quantity': lambda mod: mod.resource_quantity()
 
                              },             # Collect metrics from literature at every step
             agent_reporters={}              # As well as bee agent information

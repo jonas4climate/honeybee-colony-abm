@@ -71,7 +71,7 @@ prop_bee_plot = ChartModule([{"Label": "prop_resting", "Color": bee_colors[Bee.S
                              {"Label": "prop_dancing", "Color": bee_colors[Bee.State.DANCING]},
                              {"Label": "prop_following", "Color": bee_colors[Bee.State.FOLLOWING]}])
 
-# resource_plot = ChartModule([{"Label": "resource_quantity", "Color": "blue"}])
+resource_plot = ChartModule([{"Label": "resource_quantity", "Color": "blue"}])
 
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,
