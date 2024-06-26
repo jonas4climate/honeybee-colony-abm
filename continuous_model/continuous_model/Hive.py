@@ -2,7 +2,7 @@ from mesa import Agent, Model
 
 from typing import Tuple
 import numpy as np
-
+from mesa.datacollection import DataCollector
 from .Bee import Bee
 
 class Hive(Agent):
@@ -26,7 +26,7 @@ class Hive(Agent):
     # Class methods
     def __init__(self, id, model, location, radius=10.0, nectar=0.5, water=0.5, pollen=0.5, young_bees=0):
         super().__init__(id, model)
-
+        self.id = id
         self.pos = location
         self.radius = radius
         
@@ -40,8 +40,9 @@ class Hive(Agent):
     def feed_bees(self):
         # Get all young ones as well as foragers around beehive
         bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if bee.hive == self and bee.distance_to_agent(self) <= self.radius]
-
-        for bee in bees_in_hive:
+        # Sort them by hunger
+        sorted_bees = sorted([bee for bee in bees_in_hive if bee.fed < 1], key=lambda x: x.fed)
+        for bee in sorted_bees:
             # Feed it, recall maximum health and that there should be resources
             ## TODO: Prioritize hunger ones! Turning water and pollen into bee health
             ## TODO: Use two resources
@@ -66,6 +67,7 @@ class Hive(Agent):
         new_young = True if np.random.random() < p_new_young_bee else False
         if new_young:
             self.young_bees += 1
+            self.model.n_agents_existed += 1
 
     def step(self):
         # 1. Feed bees
