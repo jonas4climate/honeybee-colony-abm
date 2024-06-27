@@ -39,7 +39,7 @@ class Resource(Agent):
             self.radius = 0
         else:
             self.radius = math.sqrt(self.quantity / ResourceConfig.DEFAULT_QUANTITY) * ResourceConfig.DEFAULT_RADIUS
-            
+
         if not self.persistent and self.quantity <= 0:
             # TODO: Mesa provides functionality to do that more efficiently
             self.model.n_agents_existed -= 1
@@ -47,6 +47,8 @@ class Resource(Agent):
             self.model.schedule.remove(self)
             self.model.agents.remove(self) # All agents maintained in scheduler
             self.remove()
+
+            # TODO: Manage the fact that bees are trying to go to a removed resource
             # self.model.kill_agents.append(self)
 
     def get_type(self):

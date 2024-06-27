@@ -46,6 +46,7 @@ class Hive(Agent):
             if bee.fed <= 1 and self.nectar > feed_speed:
                 bee.fed += feed_speed
                 self.nectar -= feed_speed
+                print(feed_speed)
         # healthy_bees = [bee for bee in bees_in_hive if bee.fed >= 0.5]
 
     def mature_bees(self):
@@ -61,7 +62,8 @@ class Hive(Agent):
 
     def create_bees(self):
         ## TODO: Update probability with resources, weather...
-        p_new_young_bee = 0.1
+        # TODO: make this a inflow constant perhaps
+        p_new_young_bee = 0.1*self.model.dt
         new_young = True if np.random.random() < p_new_young_bee else False
         if new_young:
             self.model.create_agent(Bee, hive=self)

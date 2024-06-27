@@ -71,6 +71,7 @@ class ForagerModel(Model):
             'carrying 🎒': lambda mod: mod.bees_proportion()["carrying"],
             'dancing 🪩': lambda mod: mod.bees_proportion()["dancing"],
             'following 🎯': lambda mod: mod.bees_proportion()["following"],
+            'Average feed level of bees 🐝': lambda mod: mod.average_bee_fed(),
         }
 
         # Dynamically add nectar in hives
@@ -97,6 +98,13 @@ class ForagerModel(Model):
             return [i.nectar for i in all_hives]
         else:
             raise Exception("No hives in the model")
+        
+    def average_bee_fed(self):
+        all_bees = self.get_agents_of_type(Bee)
+        if all_bees:
+            return np.mean([i.fed for i in all_bees])
+        else:
+            return 0
 
     def create_agent(self, agent_type, **kwargs):
         agent = agent_type(self, **kwargs)
@@ -123,7 +131,6 @@ class ForagerModel(Model):
         # Create Hives with their corresponding Bee agents
         for i in range(len(hive_locations)):
             current_hive = self.create_agent(Hive, location=hive_locations[i])
-            print(n_bees_per_hive)
             for _ in range(n_bees_per_hive):
                 self.create_agent(Bee, hive=current_hive)
         
@@ -156,7 +163,7 @@ class ForagerModel(Model):
             self.weather = Weather.STORM
 
     @staticmethod
-    def init_space(width, height, n_resources, n_hives=2):
+    def init_space(width, height, n_resources, n_hives):
         """Initialize the space with resources and hives."""
         positions = [(x, y) for x in range(0, width, 10) for y in range(0, height, 10)]
 
@@ -167,6 +174,6 @@ class ForagerModel(Model):
             i_hives = n_resources + n_hives
             hive_location = positions[n_resources:i_hives]
         else:
-            hive_location = positions[n_resources + 1]
+            hive_location = [positions[n_resources + 1]]
         return hive_location, resource_location
 

@@ -234,7 +234,10 @@ class Bee(Agent):
             # wiggle_destiny is already set to resource location
 
         # TODO: instead have it be scale based on distance to resource (i.e. expected time taken to get there)
-        if np.random.random() < BeeConfig.P_ABORT_FOLLOWING * self.model.dt:
+        p_abort_following = BeeConfig.P_ABORT_FOLLOWING * self.model.dt
+        if self.model.weather == Weather.STORM:
+            p_abort_following *= BeeConfig.STORM_ABORT_FACTOR
+        if np.random.random() < p_abort_following:
             self.state = BeeState.EXPLORING
         else:
             self.move_towards(self.wiggle_destiny)
