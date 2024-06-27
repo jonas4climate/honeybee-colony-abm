@@ -110,7 +110,7 @@ class Bee(Agent):
             self.model.space.move_agent(self, newpos)
         else:
             # Retry so we ensure the bee moves and doesn't stay still
-            # self.move_random_exploration()
+            self.move_random_exploration()
             pass
 
     @property
@@ -131,7 +131,8 @@ class Bee(Agent):
 
     def distance_to_agent(self, agent):
         if self.pos == None or agent.pos == None:
-            raise ValueError(f"Position of agent {self} or {agent} is None")
+            return np.inf
+            # raise ValueError(f"Position of agent {self} or {agent} is None")
         return self.model.space.get_distance(self.pos, agent.pos)
 
     def move_towards(self, destiny_agent):

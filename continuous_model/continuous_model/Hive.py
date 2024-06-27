@@ -34,6 +34,7 @@ class Hive(Agent):
         self.feed_rate = HiveConfig.DEFAULT_FEED_RATE
 
     def feed_bees(self):
+        print(f'start feed: {self.nectar}')
         # Get all young ones as well as foragers around beehive
         agents_in_hive = self.model.space.get_neighbors(self.pos, self.radius, include_center=True)
         bees_to_feed_in_hive = [agent for agent in agents_in_hive if type(agent) is Bee and agent.hive == self and agent.fed <= 1]
@@ -41,13 +42,14 @@ class Hive(Agent):
         # sorted_bees = sorted([bee for bee in bees_to_feed_in_hive if bee.fed <= 1], key=lambda x: x.fed)
         feed_speed = self.feed_rate*self.model.dt
         for bee in bees_to_feed_in_hive:
+            print(f'feed {bee.unique_id} by {feed_speed}')
             ## TODO: Prioritize hungery ones
             ## TODO: Use two resources
             if bee.fed <= 1 and self.nectar > feed_speed:
                 bee.fed += feed_speed
                 self.nectar -= feed_speed
-                print(feed_speed)
         # healthy_bees = [bee for bee in bees_in_hive if bee.fed >= 0.5]
+        print(f'end feed: {self.nectar}')
 
     def mature_bees(self):
         # This entails maturing young bees to foragers with some probability based on resources, weather etc...
@@ -85,6 +87,7 @@ class Hive(Agent):
 
 
     def step(self):
+        print(f'start step: {self.nectar}')
         # 1. Feed bees
         self.feed_bees()
 
@@ -99,6 +102,7 @@ class Hive(Agent):
         # 3. Create young bees
         # Based on resources and weather
         self.create_bees()
+        print(f'end step: {self.nectar}')
 
         # 4. If nectar goes below 0, kill the hive
         # self.kill_hive()

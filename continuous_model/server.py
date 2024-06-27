@@ -51,7 +51,7 @@ model_params = {
         name="Storm duration",
         value=ModelConfig.STORM_DURATION_DEFAULT,
         min_value=1,
-        max_value=50,
+        max_value=1000,
         step=1,
         description="How long will the storm event last",
     ),

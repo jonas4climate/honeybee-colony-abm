@@ -107,6 +107,7 @@ class ForagerModel(Model):
             return 0
 
     def create_agent(self, agent_type, **kwargs):
+        # TODO: fix, we are getting warnings about an agent being placed twice / having a position already
         agent = agent_type(self, **kwargs)
         # self.agents.append(agent)
 
