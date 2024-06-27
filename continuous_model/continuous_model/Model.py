@@ -167,6 +167,6 @@ class ForagerModel(Model):
             i_hives = n_resources + n_hives
             hive_location = positions[n_resources:i_hives]
         else:
-            hive_location = positions[n_resources + 1]
+            hive_location = [positions[n_resources + 1]]
         return hive_location, resource_location
 
