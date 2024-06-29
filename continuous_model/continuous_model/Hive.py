@@ -14,8 +14,6 @@ class Hive(Agent):
         location: Tuple[int, int],  # agent's current position, x and y coordinate
         radius: float = HiveConfig.DEFAULT_RADIUS,  # effective radius of the hive, within that radius bees are considered "inside the hive"
         nectar: float = HiveConfig.DEFAULT_NECTAR,  # Current amount of stored nectar
-        water: float = HiveConfig.DEFAULT_WATER,  # Current amount of stored water
-        pollen: float = HiveConfig.DEFAULT_POLLEN,  # Current amount of stored pollen
         young_bees: int = HiveConfig.DEFAULT_YOUNG_BEES,  # Number of non-forager bees (about to become foragers
     ):
         super().__init__(model.next_id(), model)
@@ -23,9 +21,8 @@ class Hive(Agent):
         self.pos = location
         self.radius = radius
 
+        assert 0.0 <= nectar and nectar <= 1.0, "Nectar quantity should be normalized."
         self.nectar = nectar
-        self.water = water
-        self.pollen = pollen
         
         self.young_bees = young_bees
         self.p_new_forager = 0.0  # TODO: If it's a function of resources, then this should be a class method

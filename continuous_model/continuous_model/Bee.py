@@ -7,7 +7,7 @@ from math import atan2, cos, sin
 import numpy as np
 from scipy.stats import multivariate_normal, beta
 
-from .config import BeeConfig
+from .config import BeeConfig, HiveConfig
 from .Resource import Resource
 from .Weather import Weather
 
@@ -75,8 +75,9 @@ class Bee(Agent):
         return attraction
     
     def inspect_hive(self):
-        a = BeeConfig.PERCEPTION * (self.hive.nectar + np.finfo(np.float32).eps)
-        b = BeeConfig.PERCEPTION * (1 - self.hive.nectar - np.finfo(np.float32).eps)
+        mu = self.hive.nectar / HiveConfig.MAX_NECTAR_CAPACITY
+        a = BeeConfig.PERCEPTION * (mu + np.finfo(np.float32).eps)
+        b = BeeConfig.PERCEPTION * (1 - mu - np.finfo(np.float32).eps)
 
         self.perceived_nectar = beta.rvs(a, b)
 
@@ -220,12 +221,13 @@ class Bee(Agent):
 
     def handle_carrying(self):
         # Instantly gather resources
+        # TODO: If we don't vary the load, this variable can be deleted
         if self.load == 0:
             self.load = BeeConfig.CARRYING_CAPACITY
 
         # Fly back and deposit, then start dancing
         if self.is_close_to_hive():
-            self.hive.nectar += self.load
+            self.hive.nectar = min(self.hive.nectar + self.load, HiveConfig.MAX_NECTAR_CAPACITY)
             self.load = 0
             self.wiggle = True
             self.state = BeeState.DANCING

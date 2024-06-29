@@ -3,6 +3,8 @@ class BeeConfig:
     PERCEPTION =  10                # TODO: back up with beta probability theory
     # Probability to inspect hive resources at each step
     P_INSPECTION = 0.01
+
+    CARRYING_CAPACITY = 30e-3       # [grams] = 30[mg]. Quantity given in "Wisdom of the Hive" book. TODO: Adjust to actual number of Bee agents we use (1 agent = multiple bees)
     
     FIELD_OF_VIEW = 20              # 20 (in m) TODO: calibrate further using real data
     STARVATION_SPEED = 1/(60*60*24) # 1/(60*60*24) # within 1 day (in rate/s)
@@ -15,11 +17,13 @@ class BeeConfig:
     P_ABORT_EXPLORING = 1/(60*60)   # on average within 1 hour (probability) TODO: calibrate further
     P_ABORT_FOLLOWING = 1/(60*60)   # on average within 1 hour (probability) TODO: calibrate further
     STORM_ABORT_FACTOR = 1000       # 1000 times more likely to abort during storm TODO: calibrate further
-    CARRYING_CAPACITY = 0.001       # 1g (in kg) TODO: calibrate further
     GATHERING_RATE = 0.0001         # 0.1g/s (kg/s) TODO: calibrate further
 
 class HiveConfig:
     RADIUS = 20  # for drawing in Javascript server visualization
+
+    MAX_NECTAR_CAPACITY = 20e3      # [grams] = 20[kg]. Quantity approximately needed to survive winter, given in "Wisdom of the Hive" book.
+
     DEFAULT_RADIUS = 10.0
     DEFAULT_NECTAR = 0.0
     DEFAULT_WATER = 0.5
