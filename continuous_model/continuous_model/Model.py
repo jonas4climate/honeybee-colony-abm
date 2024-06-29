@@ -28,7 +28,7 @@ class ForagerModel(Model):
         # hive_locations: List[Tuple[int, int]],
         # n_resources: int,
         # resource_locations: List[Tuple[int, int]],
-        n_resources: int = ModelConfig.N_RESOURCE_CITES,
+        n_resources: int = ModelConfig.N_RESOURCE_SITES,
         n_bees_per_hive: int = ModelConfig.N_BEES,
         dt: int = ModelConfig.DT,
         p_storm: float = ModelConfig.P_STORM_DEFAULT, 

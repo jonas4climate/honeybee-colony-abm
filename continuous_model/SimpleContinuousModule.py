@@ -1,10 +1,11 @@
 import mesa
+from continuous_model.config import ModelConfig
 
 
 class SimpleCanvas(mesa.visualization.VisualizationElement):
     local_includes = ["./simple_continuous_canvas.js"]
 
-    def __init__(self, portrayal_method=None, canvas_height=500, canvas_width=500):
+    def __init__(self, portrayal_method=None, canvas_height=ModelConfig.SIZE, canvas_width=ModelConfig.SIZE):
         """
         Instantiate a new SimpleCanvas
         """

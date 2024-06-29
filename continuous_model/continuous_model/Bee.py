@@ -198,9 +198,19 @@ class Bee(Agent):
         assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
 
         if np.random.random() < BeeConfig.P_INSPECTION:
+            # Inspect hive resources with fixed probability
             self.inspect_hive()
+        elif np.random.random() < BeeConfig.P_COMMUNICATION:
+            # If not inspecting, communicate the information with random nearby bee
+            nearby_bees = self.model.space.get_neighbors(self.pos, self.fov)
+            nearby_bees = list(filter(lambda agent : isinstance(agent, Bee), nearby_bees))
 
-        # Perceive resources locally, if low start exploring
+            if len(nearby_bees) > 0:
+                # Pick a random neighboring bee and share the nectar perception
+                random_neighbor = nearby_bees[np.random.randint(0, len(nearby_bees))]       # np.random.choice() is the way to go but can be slow
+                random_neighbor.perceived_nectar = self.perceived_nectar
+
+        # Start exploring based on exponential distribution
         if np.random.random() < expon.pdf(self.perceived_nectar, scale=BeeConfig.EXPLORING_INCENTIVE):
             self.state = BeeState.EXPLORING
 

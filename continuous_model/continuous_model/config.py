@@ -3,6 +3,8 @@ class BeeConfig:
     PERCEPTION =  10                # TODO: back up with beta probability theory
     # Probability to inspect hive resources at each step
     P_INSPECTION = 0.01
+    # Probability to communicate perception of hive resources with nearby bees
+    P_COMMUNICATION = 0.2
 
     # Inverse of lambda parameter in exponential distribution going into exploration state
     EXPLORING_INCENTIVE = 0.5
@@ -39,13 +41,13 @@ class HiveConfig:
     DEFAULT_FEED_RATE: float = 1/60  # within 1 minute (in rate/s)
 
 class ModelConfig:
-    SIZE = 500 # 500m x 500m
+    SIZE = 2000
     DT = 10  # Time step in seconds
     P_STORM_DEFAULT = 0  #1/(60*24*24*10)   # On average every 10 days (in seconds) | Probability of a storm
     STORM_DURATION_DEFAULT = 10  #60*60*24   # 1 day (in seconds) | Duration of a storm
-    N_BEES = 100
+    N_BEES = 300
     N_HIVES = 1
-    N_RESOURCE_CITES = 3  # 0.1 resources per m^2
+    N_RESOURCE_SITES = 3  # 0.1 resources per m^2
 
 class ResourceConfig:
     DEFAULT_QUANTITY = 0.1 # in kg
