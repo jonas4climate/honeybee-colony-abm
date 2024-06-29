@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 from mesa import Agent, Model
 from math import atan2, cos, sin
 import numpy as np
-from scipy.stats import multivariate_normal, beta
+from scipy.stats import multivariate_normal, beta, expon
 
 from .config import BeeConfig, HiveConfig
 from .Resource import Resource
@@ -25,7 +25,7 @@ class Bee(Agent):
     def __init__(
         self,
         # id: int,  # unique identifier, required in mesa package
-        model: "Model",  # model the agent belongs to
+        model: Model,  # model the agent belongs to
         hive,  # the Hive the Bee agent belongs to
         location: Optional[Tuple[float, float]] = None, # agent's current position
         fov: float = BeeConfig.FIELD_OF_VIEW,  # radius around the agent in which it can perceive the environment
@@ -76,8 +76,14 @@ class Bee(Agent):
     
     def inspect_hive(self):
         mu = self.hive.nectar / HiveConfig.MAX_NECTAR_CAPACITY
-        a = BeeConfig.PERCEPTION * (mu + np.finfo(np.float32).eps)
-        b = BeeConfig.PERCEPTION * (1 - mu - np.finfo(np.float32).eps)
+        a = BeeConfig.PERCEPTION * (mu)
+        b = BeeConfig.PERCEPTION * (1 - mu)
+
+        if np.isclose(a, 0):
+            a += np.finfo(np.float32).eps
+
+        if np.isclose(b, 0):
+            b += np.finfo(np.float32).eps
 
         self.perceived_nectar = beta.rvs(a, b)
 
@@ -195,7 +201,7 @@ class Bee(Agent):
             self.inspect_hive()
 
         # Perceive resources locally, if low start exploring
-        if self.is_close_to_hive() and (self.perceived_nectar < BeeConfig.PERCEIVE_AS_LOW_FOOD):
+        if np.random.random() < expon.pdf(self.perceived_nectar, scale=BeeConfig.EXPLORING_INCENTIVE):
             self.state = BeeState.EXPLORING
 
     def handle_returning(self):
@@ -227,7 +233,7 @@ class Bee(Agent):
 
         # Fly back and deposit, then start dancing
         if self.is_close_to_hive():
-            self.hive.nectar = min(self.hive.nectar + self.load, HiveConfig.MAX_NECTAR_CAPACITY)
+            self.hive.nectar = min(self.hive.nectar + BeeConfig.BEES_IN_SWARM * self.load, HiveConfig.MAX_NECTAR_CAPACITY)
             self.load = 0
             self.wiggle = True
             self.state = BeeState.DANCING

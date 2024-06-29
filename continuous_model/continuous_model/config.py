@@ -4,7 +4,14 @@ class BeeConfig:
     # Probability to inspect hive resources at each step
     P_INSPECTION = 0.01
 
-    CARRYING_CAPACITY = 30e-3       # [grams] = 30[mg]. Quantity given in "Wisdom of the Hive" book. TODO: Adjust to actual number of Bee agents we use (1 agent = multiple bees)
+    # Inverse of lambda parameter in exponential distribution going into exploration state
+    EXPLORING_INCENTIVE = 0.5
+
+    # Number of bees represented by a single Bee agent
+    BEES_IN_SWARM = 100
+    
+    # Quantity given in "Wisdom of the Hive" book
+    CARRYING_CAPACITY = 30e-3       # [grams] = 30[mg] TODO: Adjust to actual number of Bee agents we use (1 agent = multiple bees)
     
     FIELD_OF_VIEW = 20              # 20 (in m) TODO: calibrate further using real data
     STARVATION_SPEED = 1/(60*60*24) # 1/(60*60*24) # within 1 day (in rate/s)
