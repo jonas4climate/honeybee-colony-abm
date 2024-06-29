@@ -21,7 +21,7 @@ class BeeConfig:
 class HiveConfig:
     RADIUS = 20  # for drawing in Javascript server visualization
     DEFAULT_RADIUS = 10.0
-    DEFAULT_NECTAR = 10
+    DEFAULT_NECTAR = 0.0
     DEFAULT_WATER = 0.5
     DEFAULT_POLLEN = 0.5
     DEFAULT_YOUNG_BEES = 0

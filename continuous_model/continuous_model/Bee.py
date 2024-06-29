@@ -8,7 +8,6 @@ import numpy as np
 from scipy.stats import multivariate_normal, beta
 
 from .config import BeeConfig
-# from .Hive import Hive
 from .Resource import Resource
 from .Weather import Weather
 
@@ -76,8 +75,8 @@ class Bee(Agent):
         return attraction
     
     def inspect_hive(self):
-        a = BeeConfig.PERCEPTION * self.hive.nectar
-        b = BeeConfig.PERCEPTION * (1 - self.hive.nectar)
+        a = BeeConfig.PERCEPTION * (self.hive.nectar + np.finfo(np.float32).eps)
+        b = BeeConfig.PERCEPTION * (1 - self.hive.nectar - np.finfo(np.float32).eps)
 
         self.perceived_nectar = beta.rvs(a, b)
 
@@ -191,7 +190,7 @@ class Bee(Agent):
         # assert (self.wiggle_destiny is None), (f"Bee cannot be resting and have a wiggle destiny at the same time (currently: {self.wiggle_destiny}, self.state: {self.state}). Location: {self.pos}, Hive_location: {self.hive.pos}.")
         assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
 
-        if np.random().random() < BeeConfig.P_INSPECTION:
+        if np.random.random() < BeeConfig.P_INSPECTION:
             self.inspect_hive()
 
         # Perceive resources locally, if low start exploring
