@@ -2,7 +2,7 @@ class BeeConfig:
     # Perception (no. of samples parameter) for generating alpha, beta (Beta distribution) in hive inspection
     PERCEPTION =  10                # TODO: back up with beta probability theory
     # Probability to inspect hive resources at each step
-    P_INSPECTION = 0.01
+    P_INSPECTION = 0.1
     # Probability to communicate perception of hive resources with nearby bees
     P_COMMUNICATION = 0.2
 

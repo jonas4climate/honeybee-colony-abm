@@ -211,7 +211,10 @@ class Bee(Agent):
                 random_neighbor.perceived_nectar = self.perceived_nectar
 
         # Start exploring based on exponential distribution
-        if np.random.random() < expon.pdf(self.perceived_nectar, scale=BeeConfig.EXPLORING_INCENTIVE):
+        # TODO: Normalize nectar capacity and perceived nectar to one unit
+        if np.random.random() < expon.pdf(self.perceived_nectar * HiveConfig.MAX_NECTAR_CAPACITY / 1000, scale=BeeConfig.EXPLORING_INCENTIVE):
+            print(expon.pdf(self.perceived_nectar * HiveConfig.MAX_NECTAR_CAPACITY / 1000, scale=BeeConfig.EXPLORING_INCENTIVE))
+
             self.state = BeeState.EXPLORING
 
     def handle_returning(self):

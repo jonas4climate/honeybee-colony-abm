@@ -72,6 +72,7 @@ class ForagerModel(Model):
             'dancing 🪩': lambda mod: mod.bees_proportion()["dancing"],
             'following 🎯': lambda mod: mod.bees_proportion()["following"],
             'Average feed level of bees 🐝': lambda mod: mod.average_bee_fed(),
+            'Mean perceived nectar level': lambda mod: mod.mean_perceived_nectar(),
         }
 
         # Dynamically add nectar in hives
@@ -103,6 +104,13 @@ class ForagerModel(Model):
         all_bees = self.get_agents_of_type(Bee)
         if all_bees:
             return np.mean([i.fed for i in all_bees])
+        else:
+            return 0
+    
+    def mean_perceived_nectar(self):
+        all_bees = self.get_agents_of_type(Bee)
+        if all_bees:
+            return np.mean([b.perceived_nectar for b in all_bees])
         else:
             return 0
 

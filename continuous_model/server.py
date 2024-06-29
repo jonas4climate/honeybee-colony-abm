@@ -86,7 +86,9 @@ prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": bee_colors[BeeSt
                              {"Label": "dancing 🪩", "Color": bee_colors[BeeState.DANCING]},
                              {"Label": "following 🎯", "Color": bee_colors[BeeState.FOLLOWING]}])
 
-bee_fed_plot = ChartModule([{"Label": "Average feed level of bees 🐝", "Color": "black"}])
+# bee_fed_plot = ChartModule([{"Label": "Average feed level of bees 🐝", "Color": "black"}])
+
+bee_perceived_nectar_plot = ChartModule([{"Label": "Mean perceived nectar level", "Color": "black"}])
 
 # 10 distinct colors excluding white
 hive_colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ff8000", "#ff0080", "#80ff00", "#0080ff"]
@@ -96,7 +98,7 @@ nectar_plot = ChartModule([{"Label": f"Hive ({i+1}) stock 🍯", "Color": hive_c
 
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,
-    visualization_elements=[forager_canvas, bee_number_plot, prop_bee_plot, bee_fed_plot, nectar_plot],
+    visualization_elements=[forager_canvas, bee_number_plot, prop_bee_plot, bee_perceived_nectar_plot, nectar_plot],
     name="Forager Bee Model",
     model_params=model_params,
 )
