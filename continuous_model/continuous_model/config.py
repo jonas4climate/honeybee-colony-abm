@@ -1,4 +1,9 @@
 class BeeConfig:
+    # Perception (no. of samples parameter) for generating alpha, beta (Beta distribution) in hive inspection
+    PERCEPTION =  10                # TODO: back up with beta probability theory
+    # Probability to inspect hive resources at each step
+    P_INSPECTION = 0.01
+    
     FIELD_OF_VIEW = 20              # 20 (in m) TODO: calibrate further using real data
     STARVATION_SPEED = 1/(60*60*24) # 1/(60*60*24) # within 1 day (in rate/s)
     MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in s)

@@ -3,9 +3,9 @@ from enum import Enum
 from typing import Optional, Tuple
 
 from mesa import Agent, Model
-from math import atan2, cos, sin, sqrt
+from math import atan2, cos, sin
 import numpy as np
-from scipy.stats import multivariate_normal
+from scipy.stats import multivariate_normal, beta
 
 from .config import BeeConfig
 # from .Hive import Hive
@@ -50,6 +50,8 @@ class Bee(Agent):
         self.fed = fed
         self.load = 0.0  # agent amount of resources its carrying
 
+        self.perceived_nectar = self.inspect_hive()
+
     def step(self):
         self.update_properties()  # Manage properties (age and fed)
         self.step_by_caste()  # Manage action based on caste
@@ -72,6 +74,15 @@ class Bee(Agent):
         #    attraction += multivariate_normal.pdf(list(pos), list(resource.pos), cov=self.model.size)
 
         return attraction
+    
+    def inspect_hive(self):
+        a = BeeConfig.PERCEPTION * self.hive.nectar
+        b = BeeConfig.PERCEPTION * (1 - self.hive.nectar)
+
+        self.perceived_nectar = beta.rvs(a, b)
+
+        return self.perceived_nectar
+
 
     def move_random_exploration(self):
         """
@@ -180,8 +191,11 @@ class Bee(Agent):
         # assert (self.wiggle_destiny is None), (f"Bee cannot be resting and have a wiggle destiny at the same time (currently: {self.wiggle_destiny}, self.state: {self.state}). Location: {self.pos}, Hive_location: {self.hive.pos}.")
         assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
 
+        if np.random().random() < BeeConfig.P_INSPECTION:
+            self.inspect_hive()
+
         # Perceive resources locally, if low start exploring
-        if self.is_close_to_hive() and (self.hive.nectar < BeeConfig.PERCEIVE_AS_LOW_FOOD):
+        if self.is_close_to_hive() and (self.perceived_nectar < BeeConfig.PERCEIVE_AS_LOW_FOOD):
             self.state = BeeState.EXPLORING
 
     def handle_returning(self):
