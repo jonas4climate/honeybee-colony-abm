@@ -48,7 +48,7 @@ class ModelConfig:
 class ResourceConfig:
     DEFAULT_QUANTITY = 0.1 # (in kg) = 100g per site
     DEFAULT_RADIUS = 200.0 # (in m) = 200m
-    NECTAR_PRODUCTION_RATE = 2e-7 * np.pi * DEFAULT_RADIUS**2 / (60*60*24) # (in kg/s) | stems from this formula for flower nectar production: growth = 0.2 mg / (m^2 * day) from paper (https://besjournals.onlinelibrary.wiley.com/doi/10.1111/1365-2745.13598)
+    NECTAR_PRODUCTION_RATE = 0 # 2e-7 * np.pi * DEFAULT_RADIUS**2 / (60*60*24) # (in kg/s) | stems from this formula for flower nectar production: growth = 0.2 mg / (m^2 * day) from paper (https://besjournals.onlinelibrary.wiley.com/doi/10.1111/1365-2745.13598)
     DEFAULT_PERSISTENT = False
 
 class VisualConfig:
