@@ -168,6 +168,11 @@ class Bee(Agent):
         """
         Moves deterministically in straight line towards a target location
         """
+        if destiny_agent.pos == None:
+            # NOTE: not smooth, if we don't know where we are going because the agent disappeared (e.g. resource used up), we just go back to exploring
+            self.wiggle_destiny = None
+            self.state = BeeState.EXPLORING
+            return
         # TODO: Add stochasticity to dx and dy with weather :)
         dx = destiny_agent.pos[0] - self.pos[0]
         dy = destiny_agent.pos[1] - self.pos[1]

@@ -1,3 +1,5 @@
+import numpy as np
+
 class BeeConfig:
     # Perception (no. of samples parameter) for generating alpha, beta (Beta distribution) in hive inspection
     PERCEPTION =  10                # TODO: back up with beta probability theory
@@ -16,9 +18,8 @@ class BeeConfig:
     FIELD_OF_VIEW = 10              # 20 (in m) TODO: calibrate further using real data
     STARVATION_SPEED = 1/(60*60*24) # 1/(60*60*24) # within 1 day (in rate/s)
     MAX_AGE = (60*60*24*7*6)        # within 6 weeks (in s)
-    P_DEATH_BY_STORM = 1/(60)       # on average within 1 minute (probability) TODO: calibrate further
+    P_DEATH_BY_STORM = 1/(60*10)    # on average within 10 minute (probability) TODO: calibrate further
     SPEED = 5                       # 5 (in m/s) 
-    PERCEIVE_AS_LOW_FOOD = 10       # 10 (in kg) TODO: calibrate further
     DANCING_TIME = 60               # 1 minute (in s) TODO: calibrate further
     P_FOLLOW_WIGGLE_DANCE = 1       # 100% (probability) TODO: calibrate further
     P_ABORT_EXPLORING = 1/(60*60)   # on average within 1 hour (probability) TODO: calibrate further
@@ -37,7 +38,7 @@ class HiveConfig:
 
 class ModelConfig:
     SIZE = 10_000   # (in m) = 10km x 10km
-    DT = 10         # (in s) = 1 minute
+    DT = 20         # (in s) = 1 minute
     P_STORM_DEFAULT = 1/(60*24*24*10)  # (probability / s) = on average every 10 days
     STORM_DURATION_DEFAULT = 60*60*24   # (in s) = 1 day
     N_BEES = 1_000 # (count)
@@ -47,6 +48,7 @@ class ModelConfig:
 class ResourceConfig:
     DEFAULT_QUANTITY = 0.1 # (in kg) = 100g per site
     DEFAULT_RADIUS = 200.0 # (in m) = 200m
+    NECTAR_PRODUCTION_RATE = 2e-7 * np.pi * DEFAULT_RADIUS**2 / (60*60*24) # (in kg/s) | stems from this formula for flower nectar production: growth = 0.2 mg / (m^2 * day) from paper (https://besjournals.onlinelibrary.wiley.com/doi/10.1111/1365-2745.13598)
     DEFAULT_PERSISTENT = False
 
 class VisualConfig:
