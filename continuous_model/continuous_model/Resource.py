@@ -39,11 +39,14 @@ class Resource(Agent):
 
         if not self.persistent and self.quantity <= 0:
             # TODO: Mesa provides functionality to do that more efficiently
+            self.pos = None
             self.model.n_agents_existed -= 1
             self.model.space.remove_agent(self)
             self.model.schedule.remove(self)
             self.model.agents.remove(self) # All agents maintained in scheduler
             self.remove()
+
+
 
     def extraction(self,bee_carrying_capacity):         
         if self.persistent == True:

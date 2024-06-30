@@ -5,7 +5,7 @@ from SimpleContinuousModule import SimpleCanvas
 from mesa.visualization.modules import ChartModule
 
 from continuous_model.Bee import Bee, BeeState
-from continuous_model.config import HiveConfig, ModelConfig
+from continuous_model.config import HiveConfig, ModelConfig, VisualConfig
 from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
@@ -18,18 +18,17 @@ bee_colors = {
     BeeState.FOLLOWING : "#0a54f5" # dark blue
 }
 
-
 def agent_potrayal(agent):
     if isinstance(agent, Bee):
-        return {"Shape": "circle", "r": 2, "Filled": "true", "Color": bee_colors[agent.state]}
+        return {"Shape": "circle", "r": VisualConfig.BEE_RADIUS, "Filled": "true", "Color": bee_colors[agent.state]}
     elif isinstance(agent, Hive):
-        return {"Shape": "circle", "r": HiveConfig.RADIUS, "Filled": "true", "Color": "#82817c"}
+        return {"Shape": "circle", "r": VisualConfig.HIVE_RADIUS, "Filled": "true", "Color": "#82817c"}
     elif isinstance(agent, Resource):
-        return {"Shape": "circle", "r": agent.radius, "Filled": "true", "Color": "#77dae640"}
+        return {"Shape": "circle", "r": agent.radius*(VisualConfig.RENDER_SIZE/ModelConfig.SIZE), "Filled": "true", "Color": "#d1bcf9"}
 
 
 forager_canvas = SimpleCanvas(
-    portrayal_method=agent_potrayal, canvas_height=500, canvas_width=500
+    portrayal_method=agent_potrayal, canvas_height=VisualConfig.RENDER_SIZE, canvas_width=VisualConfig.RENDER_SIZE
 )
 
 model_params = {

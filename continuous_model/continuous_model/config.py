@@ -27,10 +27,7 @@ class BeeConfig:
     GATHERING_RATE = 0.0001         # 0.1g/s (kg/s) TODO: calibrate further
 
 class HiveConfig:
-    RADIUS = 20  # for drawing in Javascript server visualization
-
     MAX_NECTAR_CAPACITY = 20e3      # [grams] = 20[kg]. Quantity approximately needed to survive winter, given in "Wisdom of the Hive" book.
-
     DEFAULT_RADIUS = 0.5 # (in m) = 10m
     DEFAULT_NECTAR = 0.0 # (in kg) = 0g
     DEFAULT_WATER = 0.5 # TODO: not used
@@ -49,5 +46,10 @@ class ModelConfig:
 
 class ResourceConfig:
     DEFAULT_QUANTITY = 0.1 # (in kg) = 100g per site
-    DEFAULT_RADIUS = 50.0 # (in m) = 50m
-    DEFAULT_PERSISTENT = True
+    DEFAULT_RADIUS = 200.0 # (in m) = 200m
+    DEFAULT_PERSISTENT = False
+
+class VisualConfig:
+    RENDER_SIZE = 600
+    HIVE_RADIUS = 0.03*RENDER_SIZE
+    BEE_RADIUS = 0.002*RENDER_SIZE

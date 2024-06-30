@@ -142,6 +142,9 @@ class Bee(Agent):
     @property
     def is_outside(self):
         return not self.is_close_to_hive()
+    
+    def is_resource_in_sight(self, resource):
+        return self.is_close_to(resource, resource.radius+self.fov)
 
     def is_close_to_hive(self):
         return self.is_close_to(self.hive, self.hive.radius)
@@ -307,16 +310,13 @@ class Bee(Agent):
                 return
 
     def try_gather_resources(self):
-        resources_in_fov = [
-            resource
-            for resource in self.model.get_agents_of_type(Resource)
-            if self.distance_to_agent(resource) <= self.fov
-        ]
-        for resource in resources_in_fov:
-            if self.is_close_to_resource(resource):
-                self.wiggle_destiny = resource
+        resources = self.model.get_agents_of_type(Resource)
+
+        for res in resources:
+            if self.is_close_to_resource(res):
+                self.wiggle_destiny = res
                 self.state = BeeState.CARRYING
-                resource.extraction(BeeConfig.CARRYING_CAPACITY)
+                res.extraction(BeeConfig.CARRYING_CAPACITY)
                 return
 
     def update_properties(self):
