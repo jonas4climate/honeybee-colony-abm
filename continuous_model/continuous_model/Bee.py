@@ -282,11 +282,11 @@ class Bee(Agent):
     def manage_death(self):
         """Handles tiny bee deaths."""
         if self.fed == 0:  # Death by starvation
-            print("Bee died by starvation")
+            # print("Bee died by starvation")
             return self._remove_agent()
 
         if self.age >= BeeConfig.MAX_AGE:  # Death by age
-            print("Bee died by age")
+            # print("Bee died by age")
             return self._remove_agent()
 
         if (
@@ -294,7 +294,7 @@ class Bee(Agent):
             and np.random.random() < BeeConfig.P_DEATH_BY_STORM * self.model.dt
         ):  # Death by storm
             if self.is_outside:
-                print("Bee died by storm")
+                # print("Bee died by storm")
                 return self._remove_agent()
 
     def _remove_agent(self):

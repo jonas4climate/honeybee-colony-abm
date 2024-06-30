@@ -23,7 +23,6 @@ from random import shuffle
 class ForagerModel(Model):
     def __init__(
         self, 
-        size: int, 
         n_hives: int = ModelConfig.N_HIVES,
         # hive_locations: List[Tuple[int, int]],
         # n_resources: int,
@@ -35,12 +34,12 @@ class ForagerModel(Model):
         storm_duration: float = ModelConfig.STORM_DURATION_DEFAULT
     ):
         super().__init__()
-
-        self.size = size  # side length of the square-shaped continuous space
+        # self.size = 100
+        self.size = ModelConfig.SIZE  # side length of the square-shaped continuous space
         self.n_agents_existed = 0  # counter for all the agents that were added to the model
         self.dt = dt  # Time step in seconds
 
-        self.space = ContinuousSpace(size, size, True)  # continous space container from mesa package
+        self.space = ContinuousSpace(self.size, self.size, True)  # continous space container from mesa package
         self.schedule = CustomScheduler(self)  # Scheduler from Mesa's time module
         # Agents now stored in the custom scheduler
         # self.agents: List[Agent] = []  # current list of agents
@@ -52,7 +51,7 @@ class ForagerModel(Model):
         self.storm_time_passed = 0  # Time duration of storm thus far
 
         self.setup_datacollector()
-        hive_locations, resource_locations = self.init_space(size, size, n_resources, n_hives)
+        hive_locations, resource_locations = self.init_space(self.size, self.size, n_resources, n_hives)
         self.make_agents(hive_locations, n_bees_per_hive, resource_locations)
 
     def setup_datacollector(self):
@@ -123,7 +122,7 @@ class ForagerModel(Model):
         # Create Hives with their corresponding Bee agents
         for i in range(len(hive_locations)):
             current_hive = self.create_agent(Hive, location=hive_locations[i])
-            print(n_bees_per_hive)
+            # print(n_bees_per_hive)
             for _ in range(n_bees_per_hive):
                 self.create_agent(Bee, hive=current_hive)
         
@@ -158,7 +157,7 @@ class ForagerModel(Model):
     @staticmethod
     def init_space(width, height, n_resources, n_hives=2):
         """Initialize the space with resources and hives."""
-        positions = [(x, y) for x in range(0, width, 10) for y in range(0, height, 10)]
+        positions = [(x, y) for x in range(0, int(width), 10) for y in range(0, int(height), 10)]
 
         shuffle(positions)
 

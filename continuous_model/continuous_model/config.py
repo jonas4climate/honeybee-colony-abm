@@ -34,4 +34,4 @@ class ModelConfig:
 class ResourceConfig:
     DEFAULT_QUANTITY = 0.1 # in kg
     DEFAULT_RADIUS = 50.0 # in m
-    DEFAULT_PERSISTENT = False
+    DEFAULT_PERSISTENT = True
