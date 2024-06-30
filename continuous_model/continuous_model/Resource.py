@@ -10,9 +10,6 @@ from .config import ResourceConfig
 
 class ResourceType(Enum):
     NECTAR = "nectar"
-    WATER = "water"
-    POLLEN = "pollen"
-
 
 class Resource(Agent):
     def __init__(
@@ -48,18 +45,12 @@ class Resource(Agent):
             self.model.agents.remove(self) # All agents maintained in scheduler
             self.remove()
 
-            # TODO: Manage the fact that bees are trying to go to a removed resource
-            # self.model.kill_agents.append(self)
-
-    def get_type(self):
-        # 1. First method called by bees to extract the resource
-        return self.type
-
-    def extraction(self,bee_carrying_capacity):
-        # 2. Second method called by bees to extract the resource            
+    def extraction(self,bee_carrying_capacity):         
         if self.persistent == True:
             return bee_carrying_capacity
         else:
             self.quantity -= bee_carrying_capacity
-            return bee_carrying_capacity
+        return bee_carrying_capacity
 
+            # TODO: Manage the fact that bees are trying to go to a removed resource
+            # self.model.kill_agents.append(self)

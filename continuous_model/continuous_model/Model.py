@@ -40,10 +40,8 @@ class ForagerModel(Model):
         self.n_agents_existed = 0  # counter for all the agents that were added to the model
         self.dt = dt  # Time step in seconds
 
-        self.space = ContinuousSpace(size, size, True)  # continous space container from mesa package
+        self.space = ContinuousSpace(size, size, False)  # continous space container from mesa package
         self.schedule = CustomScheduler(self)  # Scheduler from Mesa's time module
-        # Agents now stored in the custom scheduler
-        # self.agents: List[Agent] = []  # current list of agents
 
         # Weather parameters
         self.weather = Weather.NORMAL  # weather object
@@ -183,6 +181,7 @@ class ForagerModel(Model):
             i_hives = n_resources + n_hives
             hive_location = positions[n_resources:i_hives]
         else:
-            hive_location = [positions[n_resources + 1]]
+            # for 1 hive, place at center
+            hive_location = [[width/2, height/2]]
         return hive_location, resource_location
 

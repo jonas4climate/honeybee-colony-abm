@@ -56,23 +56,38 @@ class Bee(Agent):
         self.step_by_caste()  # Manage action based on caste
         self.manage_death()  # Manage death
 
-    def resource_attraction(self, pos):
-        attraction = 0.0
+    def scent_strength_at_pos(self, pos, epsilon=1e-12):
+        resources = self.model.get_agents_of_type(Resource)
+        res_positions = [res.pos for res in resources]
+        res_quantities = [res.quantity for res in resources]
 
-        resource_positions = np.array(
-            [resource.pos for resource in self.model.get_agents_of_type(Resource)]
-        )
-        pos_array = np.array(pos)  # ensure typing (not sure if necessary tho)
-        cov_matrix = self.model.size  # TODO: calibrate better
-        pdf_values = multivariate_normal.pdf(
-            resource_positions, mean=pos_array, cov=cov_matrix
-        )
-        attraction = np.sum(pdf_values)
+        scent_intrigue = 0
+        for res_pos, res_quant in zip(res_positions, res_quantities):
+            res_distance = self.model.space.get_distance(pos, res_pos)
+            dist_squared = res_distance**2 + epsilon # scent (diffusion) inversely proportional to distance squared (2D space)
+            intensity = res_quant
+            scent = intensity / dist_squared 
+            scent_intrigue += scent
 
-        # for resource in self.model.get_agents_of_type(Resource):
-        #    attraction += multivariate_normal.pdf(list(pos), list(resource.pos), cov=self.model.size)
+        return scent_intrigue
 
-        return attraction
+    # def resource_attraction(self, pos):
+    #     attraction = 0.0
+
+    #     resource_positions = np.array(
+    #         [resource.pos for resource in self.model.get_agents_of_type(Resource)]
+    #     )
+    #     pos_array = np.array(pos)  # ensure typing (not sure if necessary tho)
+    #     cov_matrix = self.model.size  # TODO: calibrate better
+    #     pdf_values = multivariate_normal.pdf(
+    #         resource_positions, mean=pos_array, cov=cov_matrix
+    #     )
+    #     attraction = np.sum(pdf_values)
+
+    #     # for resource in self.model.get_agents_of_type(Resource):
+    #     #    attraction += multivariate_normal.pdf(list(pos), list(resource.pos), cov=self.model.size)
+
+    #     return attraction
     
     def inspect_hive(self):
         mu = self.hive.nectar / HiveConfig.MAX_NECTAR_CAPACITY
@@ -102,32 +117,26 @@ class Bee(Agent):
 
         # Calculate the new position, taking the boundaries into account
         newx = self.pos[0] + dx
-        newx = max(-newx, min(self.model.size, newx))
-
+        newx = max(0, min(newx, self.model.size-1e-12))
         newy = self.pos[1] + dy
-        newy = max(-newy, min(self.model.size, newy))
-
+        newy = max(0, min(newy, self.model.size-1e-12))
         newpos = (newx, newy)
 
         # Calculate resource attraction bias
-        # TODO: Use bee STATE to incorporate different biases in random walk!
-        # TODO: Positive bias towards the resources
-        attraction_current = self.resource_attraction(self.pos)
-        attraction_new = self.resource_attraction(newpos)
-
+        attraction_current = self.scent_strength_at_pos(self.pos)
+        attraction_new = self.scent_strength_at_pos(newpos)
+        ratio = attraction_new / (attraction_current * (1 + BeeConfig.SCENT_SCALE))
+        
         # TODO: Negative bias away from the hive
         # dist_to_hive = np.hypot(newpos[0] - self.hive.pos[0], newpos[1] - self.hive.pos[1])
         # if dist_to_hive < BeeConfig.HIVE_MOVE_AWAY_TH:
+        # print(attraction_new / attraction_current)
 
         # Metropolis algorithm
-        if attraction_new > attraction_current or np.random.random() < (
-            attraction_new / attraction_current
-        ):
+        if attraction_new > attraction_current or np.random.random() < ratio:
             assert newpos != None, f"New position for Bee agent {self} is equal to None"
             self.model.space.move_agent(self, newpos)
         else:
-            # Retry so we ensure the bee moves and doesn't stay still
-            self.move_random_exploration()
             pass
 
     @property
@@ -197,13 +206,13 @@ class Bee(Agent):
         # assert (self.wiggle_destiny is None), (f"Bee cannot be resting and have a wiggle destiny at the same time (currently: {self.wiggle_destiny}, self.state: {self.state}). Location: {self.pos}, Hive_location: {self.hive.pos}.")
         assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
 
-        if np.random.random() < BeeConfig.P_INSPECTION:
+        if np.random.random() < BeeConfig.P_NECTAR_INSPECTION*self.model.dt:
             # Inspect hive resources with fixed probability
             self.inspect_hive()
-        elif np.random.random() < BeeConfig.P_COMMUNICATION:
+        elif np.random.random() < BeeConfig.P_NECTAR_COMMUNICATION*self.model.dt:
             # If not inspecting, communicate the information with random nearby bee
             nearby_bees = self.model.space.get_neighbors(self.pos, self.fov)
-            nearby_bees = list(filter(lambda agent : isinstance(agent, Bee), nearby_bees))
+            nearby_bees = [bee for bee in nearby_bees if isinstance(bee, Bee) and bee != self]
 
             if len(nearby_bees) > 0:
                 # Pick a random neighboring bee and share the nectar perception
@@ -213,7 +222,7 @@ class Bee(Agent):
         # Start exploring based on exponential distribution
         # TODO: Normalize nectar capacity and perceived nectar to one unit
         if np.random.random() < expon.pdf(self.perceived_nectar * HiveConfig.MAX_NECTAR_CAPACITY / 1000, scale=BeeConfig.EXPLORING_INCENTIVE):
-            print(expon.pdf(self.perceived_nectar * HiveConfig.MAX_NECTAR_CAPACITY / 1000, scale=BeeConfig.EXPLORING_INCENTIVE))
+            # print(expon.pdf(self.perceived_nectar * HiveConfig.MAX_NECTAR_CAPACITY / 1000, scale=BeeConfig.EXPLORING_INCENTIVE))
 
             self.state = BeeState.EXPLORING
 
