@@ -29,7 +29,6 @@ class BeeSwarm(Agent):
         hive,  # the Hive the Bee agent belongs to
         location: Optional[Tuple[float, float]] = None, # agent's current position
         fov: float = BeeSwarmConfig.FIELD_OF_VIEW,  # radius around the agent in which it can perceive the environment
-        age: float = 0,  # agent's current age (which has influence on their activity)
         fed: float = BeeSwarmConfig.FEED_STORAGE,
         state: BeeState = BeeState.RESTING,  # Bee's current activity
         wiggle: bool = False,  # whether the Bee agent is currently wiggle dancing
@@ -44,7 +43,6 @@ class BeeSwarm(Agent):
         self.wiggle_destiny: Optional[Tuple[float, float]] = None
         self.dancing_time = 0
 
-        self.age = age
         self.fov = fov
         self.fed = fed
         self.load = 0.0  # agent amount of resources its carrying
@@ -322,16 +320,11 @@ class BeeSwarm(Agent):
         self.fed = max(
             self.fed - BeeSwarmConfig.STARVATION_SPEED * self.model.dt, 0
         )  # ensure fed is not negative
-        self.age += self.model.dt
 
     def manage_death(self):
         """Handles tiny bee deaths."""
         if self.fed == 0:  # Death by starvation
             print("Bee died by starvation")
-            return self._remove_agent()
-
-        if self.age >= BeeSwarmConfig.MAX_AGE:  # Death by age
-            print("Bee died by age")
             return self._remove_agent()
 
         if (

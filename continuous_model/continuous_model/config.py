@@ -7,17 +7,17 @@ WEEK = DAY*7
 MONTH = WEEK*4
 class BeeSwarmConfig:
     # TODO: back up with beta probability theory
-    PERCEPTION =  10   # Perception (no. of samples parameter) for generating alpha, beta (Beta distribution) in hive inspection
-    P_NECTAR_INSPECTION = 0.01 # (probability / s) | probability to assess hive nectar level
-    P_NECTAR_COMMUNICATION = 0.02 # (probability / s) | probability to communicate hive nectar level to other bees
-    EXPLORING_INCENTIVE = 0.5 # Inverse of lambda parameter in exponential distribution going into exploration state
+    PERCEPTION =  10                # Perception (no. of samples parameter) for generating alpha, beta (Beta distribution) in hive inspection
+    P_NECTAR_INSPECTION = 0.01      # (probability / s) | probability to assess hive nectar level
+    P_NECTAR_COMMUNICATION = 0.02   # (probability / s) | probability to communicate hive nectar level to other bees
+    EXPLORING_INCENTIVE = 0.5       # Inverse of lambda parameter in exponential distribution going into exploration state
 
     BEE_SWARM_SIZE = 100                            # (count) | Number of bees represented by a single BeeSwarm agent
     CARRYING_CAPACITY = 30e-6 * BEE_SWARM_SIZE      # (in kg) = 30mg per bee | Amount of resources a bee swarm can carry
     SCENT_SCALE = 0.5                               # (scale) = 50% more focused on following scent
     FIELD_OF_VIEW = 10                              # (in m) TODO: calibrate further using real data
     STARVATION_SPEED = 1/DAY                        # (in rate/s)
-    MAX_AGE = 6*WEEK                                # (in s) = within 6 weeks
+    
     P_DEATH_BY_STORM = 1/(10*MINUTE)                # (probability / s) = on average within 10 minute TODO: calibrate further
     SPEED = 3.5                                     # (in m/s) = 12.6km/h
     DANCING_TIME = MINUTE                           # (in s) TODO: calibrate further
