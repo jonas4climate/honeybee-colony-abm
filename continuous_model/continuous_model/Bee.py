@@ -27,21 +27,19 @@ class BeeSwarm(Agent):
         # id: int,  # unique identifier, required in mesa package
         model: Model,  # model the agent belongs to
         hive,  # the Hive the Bee agent belongs to
-        location: Optional[Tuple[float, float]] = None, # agent's current position
         fov: float = BeeSwarmConfig.FIELD_OF_VIEW,  # radius around the agent in which it can perceive the environment
-        fed: float = BeeSwarmConfig.FEED_STORAGE,
-        state: BeeState = BeeState.RESTING,  # Bee's current activity
-        wiggle: bool = False,  # whether the Bee agent is currently wiggle dancing
+        fed: float = BeeSwarmConfig.FEED_STORAGE
     ):
         super().__init__(model.next_id() , model)
         self.hive = hive
-        self.pos = location if location is not None else hive.pos
-        assert self.pos is not None, f"Bee agent {self} initialized with None position"
 
-        self.state = state
-        self.wiggle = wiggle
+        # Bees at birth are always located in the center of the hive and begin with resting state
+        self.pos = hive.pos
+        assert self.pos is not None, f"Bee agent {self} initialized with None position"
+        self.state: BeeState = BeeState.RESTING
+
+        self.wiggle = False
         self.wiggle_destiny: Optional[Tuple[float, float]] = None
-        self.dancing_time = 0
 
         self.fov = fov
         self.fed = fed
@@ -252,13 +250,9 @@ class BeeSwarm(Agent):
             self.move_towards_hive()
 
     def handle_dancing(self):
-        self.dancing_time += self.model.dt
-        # Rest if done dancing
-        if self.dancing_time >= BeeSwarmConfig.DANCING_TIME:
-            self.dancing_time = 0
-            self.wiggle_destiny = None
-            self.wiggle = False
-            self.state = BeeState.RESTING
+        self.wiggle_destiny = None
+        self.wiggle = False
+        self.state = BeeState.RESTING
 
     def handle_following(self):
         # Check safely if close to resource (could have disappeared), carry resource if arrived

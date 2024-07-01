@@ -20,7 +20,7 @@ class BeeSwarmConfig:
     
     P_DEATH_BY_STORM = 1/(10*MINUTE)                # (probability / s) = on average within 10 minute TODO: calibrate further
     SPEED = 3.5                                     # (in m/s) = 12.6km/h
-    DANCING_TIME = MINUTE                           # (in s) TODO: calibrate further
+    
     P_FOLLOW_WIGGLE_DANCE = 1                       # (probability) TODO: calibrate further
     P_ABORT_EXPLORING = 1/HOUR                      # (probability) TODO: calibrate further
     P_ABORT_FOLLOWING = 1/HOUR                      # (probability) TODO: calibrate further
