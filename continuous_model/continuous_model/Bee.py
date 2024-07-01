@@ -27,7 +27,6 @@ class BeeSwarm(Agent):
         # id: int,  # unique identifier, required in mesa package
         model: Model,  # model the agent belongs to
         hive,  # the Hive the Bee agent belongs to
-        fov: float = BeeSwarmConfig.FIELD_OF_VIEW,  # radius around the agent in which it can perceive the environment
         fed: float = BeeSwarmConfig.FEED_STORAGE
     ):
         super().__init__(model.next_id() , model)
@@ -41,7 +40,6 @@ class BeeSwarm(Agent):
         self.wiggle = False
         self.wiggle_destiny: Optional[Tuple[float, float]] = None
 
-        self.fov = fov
         self.fed = fed
         self.load = 0.0  # agent amount of resources its carrying
 
@@ -127,7 +125,7 @@ class BeeSwarm(Agent):
         return not self.is_close_to_hive()
     
     def is_resource_in_sight(self, resource):
-        return self.is_close_to(resource, resource.radius+self.fov)
+        return self.is_close_to(resource, resource.radius + BeeSwarmConfig.FIELD_OF_VIEW)
 
     def is_close_to_hive(self):
         return self.is_close_to(self.hive, self.hive.radius)
@@ -202,7 +200,7 @@ class BeeSwarm(Agent):
             self.inspect_hive()
         elif np.random.random() < BeeSwarmConfig.P_NECTAR_COMMUNICATION*self.model.dt:
             # If not inspecting, communicate the information with random nearby bee
-            nearby_bees = self.model.space.get_neighbors(self.pos, self.fov)
+            nearby_bees = self.model.space.get_neighbors(self.pos, BeeSwarmConfig.FIELD_OF_VIEW)
             nearby_bees = [bee for bee in nearby_bees if isinstance(bee, BeeSwarm) and bee != self]
 
             if len(nearby_bees) > 0:
@@ -271,7 +269,7 @@ class BeeSwarm(Agent):
 
     def try_follow_wiggle_dance(self):
         agents_in_fov = self.model.space.get_neighbors(
-            self.pos, self.fov, include_center=True
+            self.pos, BeeSwarmConfig.FIELD_OF_VIEW, include_center=True
         )
         wiggling_bees_in_fov = np.array(
             [
