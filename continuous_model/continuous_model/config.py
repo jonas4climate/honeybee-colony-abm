@@ -35,6 +35,7 @@ class HiveConfig:
     DEFAULT_POLLEN = 0.5 # TODO: not used
     DEFAULT_YOUNG_BEES = 0 # (count)
     DEFAULT_FEED_RATE: float = 1/60  # (rate / s) = within 1 minute
+    P_NEW_FORAGER: float = 1/(60*60*24*10) # (probability / s) = on average within 10 days
 
 class ModelConfig:
     SIZE = 10_000   # (in m) = 10km x 10km

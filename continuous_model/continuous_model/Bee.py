@@ -56,8 +56,7 @@ class Bee(Agent):
         self.step_by_caste()  # Manage action based on caste
         self.manage_death()  # Manage death
 
-    def scent_strength_at_pos(self, pos, epsilon=1e-12):
-        resources = self.model.get_agents_of_type(Resource)
+    def scent_strength_at_pos(self, pos, resources, epsilon=1e-24):
         res_positions = [res.pos for res in resources]
         res_quantities = [res.quantity for res in resources]
 
@@ -66,7 +65,7 @@ class Bee(Agent):
             res_distance = self.model.space.get_distance(pos, res_pos)
             dist_squared = res_distance**2 + epsilon # scent (diffusion) inversely proportional to distance squared (2D space)
             intensity = res_quant
-            scent = intensity / dist_squared 
+            scent = intensity / dist_squared
             scent_intrigue += scent
 
         return scent_intrigue
@@ -89,10 +88,15 @@ class Bee(Agent):
 
     #     return attraction
     
-    def inspect_hive(self):
+    def inspect_hive(self, epsilon=1e-24):
         mu = self.hive.nectar / HiveConfig.MAX_NECTAR_CAPACITY
+        if mu == 0:
+            mu = epsilon
         a = BeeConfig.PERCEPTION * (mu)
         b = BeeConfig.PERCEPTION * (1 - mu)
+        
+        assert a > 0, f"Alpha parameter in Beta distribution is {a} but must be positive"
+        assert b > 0, f"Beta parameter in Beta distribution is {b} but must be positive"
 
         if np.isclose(a, 0):
             a += np.finfo(np.float32).eps
@@ -123,21 +127,20 @@ class Bee(Agent):
         newpos = (newx, newy)
 
         # Calculate resource attraction bias
-        attraction_current = self.scent_strength_at_pos(self.pos)
-        attraction_new = self.scent_strength_at_pos(newpos)
-        ratio = attraction_new / (attraction_current * (1 + BeeConfig.SCENT_SCALE))
-        
-        # TODO: Negative bias away from the hive
-        # dist_to_hive = np.hypot(newpos[0] - self.hive.pos[0], newpos[1] - self.hive.pos[1])
-        # if dist_to_hive < BeeConfig.HIVE_MOVE_AWAY_TH:
-        # print(attraction_new / attraction_current)
-
-        # Metropolis algorithm
-        if attraction_new > attraction_current or np.random.random() < ratio:
-            assert newpos != None, f"New position for Bee agent {self} is equal to None"
+        resources = self.model.get_agents_of_type(Resource)
+        if len(resources) == 0: # No resources left, just walk randomly
             self.model.space.move_agent(self, newpos)
-        else:
-            pass
+        else: # Biased random walk
+            attraction_current = self.scent_strength_at_pos(self.pos, resources)
+            attraction_new = self.scent_strength_at_pos(newpos, resources)
+            ratio = attraction_new / (attraction_current * (1 + BeeConfig.SCENT_SCALE))
+    
+            # Metropolis algorithm
+            if attraction_new > attraction_current or np.random.random() < ratio:
+                assert newpos != None, f"New position for Bee agent {self} is equal to None"
+                self.model.space.move_agent(self, newpos)
+            else:
+                pass
 
     @property
     def is_outside(self):
@@ -248,12 +251,8 @@ class Bee(Agent):
             self.state = BeeState.RETURNING
         else:
             self.try_follow_wiggle_dance()
-            self.try_gather_resources() if self.state == BeeState.EXPLORING else None
-            (
-                self.move_random_exploration()
-                if self.state == BeeState.EXPLORING
-                else None
-            )
+            self.try_gather_resources()
+            self.move_random_exploration()
 
     def handle_carrying(self):
         # Instantly gather resources
