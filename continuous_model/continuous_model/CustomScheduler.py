@@ -1,5 +1,5 @@
 from mesa.time import RandomActivation
-from .Bee import Bee
+from .Bee import BeeSwarm
 from .Hive import Hive
 from .Resource import Resource
 import random
@@ -7,12 +7,12 @@ class CustomScheduler(RandomActivation):
     def __init__(self, model):
         super().__init__(model)
         self.all_agents = {
-            Bee: {},
+            BeeSwarm: {},
             Hive: {},
             Resource: {}
         }
 
-        self.schedule_order = [Resource, Hive, Bee]
+        self.schedule_order = [Resource, Hive, BeeSwarm]
         # self.agents = {}
     def add(self, agent):
         if agent not in self._agents:
@@ -40,7 +40,7 @@ class CustomScheduler(RandomActivation):
             self.all_agents[agent][agent_key].step()
 
     def get_bee_count(self) -> int:
-        return len(self.all_agents[Bee].values())
+        return len(self.all_agents[BeeSwarm].values())
 
 
 

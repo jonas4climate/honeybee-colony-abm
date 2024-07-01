@@ -3,8 +3,8 @@ from mesa import Agent, Model
 from typing import Tuple
 import numpy as np
 from mesa.datacollection import DataCollector
-from .Bee import Bee
-from .config import HiveConfig, BeeConfig
+from .Bee import BeeSwarm
+from .config import HiveConfig, BeeSwarmConfig
 
 class Hive(Agent):
     def __init__(
@@ -14,7 +14,7 @@ class Hive(Agent):
         location: Tuple[int, int],  # agent's current position, x and y coordinate
         radius: float = HiveConfig.DEFAULT_RADIUS,  # effective radius of the hive, within that radius bees are considered "inside the hive"
         nectar: float = HiveConfig.DEFAULT_NECTAR,  # Current amount of stored nectar
-        young_bees: int = HiveConfig.DEFAULT_YOUNG_BEES,  # Number of non-forager bees (about to become foragers
+        young_bees: int = HiveConfig.INIT_YOUNG_BEES,  # Number of non-forager bees (about to become foragers
         p_new_forager: float = HiveConfig.P_NEW_FORAGER
     ):
         super().__init__(model.next_id(), model)
@@ -28,26 +28,23 @@ class Hive(Agent):
         self.young_bees = young_bees
         self.p_new_forager = p_new_forager
         # NOTE: Simplification - at the moment bees grow up, they use up nectar equivalent to the average growth time * starvation speed
-        self.nectar_for_maturation = BeeConfig.STARVATION_SPEED/p_new_forager
+        self.nectar_for_maturation = BeeSwarmConfig.STARVATION_SPEED/p_new_forager
 
         self.hive_health = 1
-        self.feed_rate = HiveConfig.DEFAULT_FEED_RATE
+        self.feed_rate = HiveConfig.FEED_RATE
 
     def feed_bees(self):
-        feed_speed = self.feed_rate*self.model.dt
-        if self.nectar < feed_speed:
-            return
         # Get all young ones as well as foragers around beehive
         agents_in_hive = self.model.space.get_neighbors(self.pos, self.radius, include_center=True)
-        bees_to_feed_in_hive = [agent for agent in agents_in_hive if type(agent) is Bee and agent.hive == self and agent.fed <= 1]
+        bees_to_feed_in_hive = [agent for agent in agents_in_hive if type(agent) is BeeSwarm and agent.hive == self and agent.fed <= BeeSwarmConfig.FEED_STORAGE]
         # NOTE: skipped sorting, this is only relevant at a very short time point but requires lots of compute every iteration
         # sorted_bees = sorted([bee for bee in bees_to_feed_in_hive if bee.fed <= 1], key=lambda x: x.fed)
         for bee in bees_to_feed_in_hive:
-            if self.nectar < feed_speed:
+            if self.nectar == 0:
                 break
-            elif bee.fed <= 1:
-                bee.fed += feed_speed
-                self.nectar -= feed_speed
+            feed_amount = min(BeeSwarmConfig.FEED_STORAGE - bee.fed, self.nectar)
+            bee.fed += feed_amount
+            self.nectar -= feed_amount
 
     def mature_bees(self):
         p_new_bee = self.p_new_forager*self.model.dt
@@ -66,7 +63,7 @@ class Hive(Agent):
         self.young_bees -= 1
         self.nectar -= self.nectar_for_maturation
         assert self.nectar < 0, "Used up more nectar than possible during maturation of young bee"
-        self.model.create_agent(Bee, hive=self)
+        self.model.create_agent(BeeSwarm, hive=self)
         self.young_bees += 1
         self.model.n_agents_existed += 1
 

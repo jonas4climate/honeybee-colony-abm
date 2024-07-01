@@ -52,12 +52,5 @@ class Resource(Agent):
     def produce_nectar(self):
         self.quantity += self.nectar_production_rate*self.model.dt
 
-    def extraction(self,bee_carrying_capacity):         
-        if self.persistent == True:
-            return bee_carrying_capacity
-        else:
-            self.quantity -= bee_carrying_capacity
-        return bee_carrying_capacity
-
             # TODO: Manage the fact that bees are trying to go to a removed resource
             # self.model.kill_agents.append(self)
