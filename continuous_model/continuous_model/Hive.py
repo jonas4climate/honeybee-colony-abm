@@ -14,8 +14,6 @@ class Hive(Agent):
         location: Tuple[int, int],  # agent's current position, x and y coordinate
         radius: float = HiveConfig.DEFAULT_RADIUS,  # effective radius of the hive, within that radius bees are considered "inside the hive"
         nectar: float = HiveConfig.DEFAULT_NECTAR,  # Current amount of stored nectar
-        water: float = HiveConfig.DEFAULT_WATER,  # Current amount of stored water
-        pollen: float = HiveConfig.DEFAULT_POLLEN,  # Current amount of stored pollen
         young_bees: int = HiveConfig.DEFAULT_YOUNG_BEES,  # Number of non-forager bees (about to become foragers
     ):
         super().__init__(model.next_id(), model)
@@ -23,9 +21,8 @@ class Hive(Agent):
         self.pos = location
         self.radius = radius
 
+        assert 0.0 <= nectar and nectar <= 1.0, "Nectar quantity should be normalized."
         self.nectar = nectar
-        self.water = water
-        self.pollen = pollen
         
         self.young_bees = young_bees
         self.p_new_forager = 0.0  # TODO: If it's a function of resources, then this should be a class method
@@ -41,12 +38,14 @@ class Hive(Agent):
         # sorted_bees = sorted([bee for bee in bees_to_feed_in_hive if bee.fed <= 1], key=lambda x: x.fed)
         feed_speed = self.feed_rate*self.model.dt
         for bee in bees_to_feed_in_hive:
+            # print(f'feed {bee.unique_id} by {feed_speed}')
             ## TODO: Prioritize hungery ones
             ## TODO: Use two resources
             if bee.fed <= 1 and self.nectar > feed_speed:
                 bee.fed += feed_speed
                 self.nectar -= feed_speed
         # healthy_bees = [bee for bee in bees_in_hive if bee.fed >= 0.5]
+        # print(f'end feed: {self.nectar}')
 
     def mature_bees(self):
         # This entails maturing young bees to foragers with some probability based on resources, weather etc...
@@ -61,7 +60,8 @@ class Hive(Agent):
 
     def create_bees(self):
         ## TODO: Update probability with resources, weather...
-        p_new_young_bee = 0.1
+        # TODO: make this a inflow constant perhaps
+        p_new_young_bee = 0.1*self.model.dt
         new_young = True if np.random.random() < p_new_young_bee else False
         if new_young:
             self.model.create_agent(Bee, hive=self)

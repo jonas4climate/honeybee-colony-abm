@@ -28,7 +28,7 @@ class ForagerModel(Model):
         # hive_locations: List[Tuple[int, int]],
         # n_resources: int,
         # resource_locations: List[Tuple[int, int]],
-        n_resources: int = ModelConfig.N_RESOURCE_CITES,
+        n_resources: int = ModelConfig.N_RESOURCE_SITES,
         n_bees_per_hive: int = ModelConfig.N_BEES,
         dt: int = ModelConfig.DT,
         p_storm: float = ModelConfig.P_STORM_DEFAULT, 
@@ -40,10 +40,8 @@ class ForagerModel(Model):
         self.n_agents_existed = 0  # counter for all the agents that were added to the model
         self.dt = dt  # Time step in seconds
 
-        self.space = ContinuousSpace(size, size, True)  # continous space container from mesa package
+        self.space = ContinuousSpace(size, size, False)  # continous space container from mesa package
         self.schedule = CustomScheduler(self)  # Scheduler from Mesa's time module
-        # Agents now stored in the custom scheduler
-        # self.agents: List[Agent] = []  # current list of agents
 
         # Weather parameters
         self.weather = Weather.NORMAL  # weather object
@@ -71,6 +69,8 @@ class ForagerModel(Model):
             'carrying 🎒': lambda mod: mod.bees_proportion()["carrying"],
             'dancing 🪩': lambda mod: mod.bees_proportion()["dancing"],
             'following 🎯': lambda mod: mod.bees_proportion()["following"],
+            'Average feed level of bees 🐝': lambda mod: mod.average_bee_fed(),
+            'Mean perceived nectar level': lambda mod: mod.mean_perceived_nectar(),
         }
 
         # Dynamically add nectar in hives
@@ -97,8 +97,23 @@ class ForagerModel(Model):
             return [i.nectar for i in all_hives]
         else:
             raise Exception("No hives in the model")
+        
+    def average_bee_fed(self):
+        all_bees = self.get_agents_of_type(Bee)
+        if all_bees:
+            return np.mean([i.fed for i in all_bees])
+        else:
+            return 0
+    
+    def mean_perceived_nectar(self):
+        all_bees = self.get_agents_of_type(Bee)
+        if all_bees:
+            return np.mean([b.perceived_nectar for b in all_bees])
+        else:
+            return 0
 
     def create_agent(self, agent_type, **kwargs):
+        # TODO: fix, we are getting warnings about an agent being placed twice / having a position already
         agent = agent_type(self, **kwargs)
         # self.agents.append(agent)
 
@@ -123,7 +138,6 @@ class ForagerModel(Model):
         # Create Hives with their corresponding Bee agents
         for i in range(len(hive_locations)):
             current_hive = self.create_agent(Hive, location=hive_locations[i])
-            print(n_bees_per_hive)
             for _ in range(n_bees_per_hive):
                 self.create_agent(Bee, hive=current_hive)
         
@@ -156,7 +170,7 @@ class ForagerModel(Model):
             self.weather = Weather.STORM
 
     @staticmethod
-    def init_space(width, height, n_resources, n_hives=2):
+    def init_space(width, height, n_resources, n_hives):
         """Initialize the space with resources and hives."""
         positions = [(x, y) for x in range(0, width, 10) for y in range(0, height, 10)]
 
@@ -165,8 +179,10 @@ class ForagerModel(Model):
         resource_location = positions[0:n_resources]
         if n_hives != 1:
             i_hives = n_resources + n_hives
-            hive_location = positions[n_resources:i_hives]
+            hive_location = [positions[n_resources:i_hives]]
         else:
             hive_location = [positions[n_resources + 1]]
+            # for 1 hive, place at center
+            hive_location = [[width/2, height/2]]
         return hive_location, resource_location
 

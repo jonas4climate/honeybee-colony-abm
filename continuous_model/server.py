@@ -5,7 +5,7 @@ from SimpleContinuousModule import SimpleCanvas
 from mesa.visualization.modules import ChartModule
 
 from continuous_model.Bee import Bee, BeeState
-from continuous_model.config import HiveConfig, ModelConfig
+from continuous_model.config import HiveConfig, ModelConfig, VisualConfig
 from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
@@ -18,18 +18,17 @@ bee_colors = {
     BeeState.FOLLOWING : "#0a54f5" # dark blue
 }
 
-
 def agent_potrayal(agent):
     if isinstance(agent, Bee):
-        return {"Shape": "circle", "r": 2, "Filled": "true", "Color": bee_colors[agent.state]}
+        return {"Shape": "circle", "r": VisualConfig.BEE_RADIUS, "Filled": "true", "Color": bee_colors[agent.state]}
     elif isinstance(agent, Hive):
-        return {"Shape": "circle", "r": HiveConfig.RADIUS, "Filled": "true", "Color": "#82817c"}
+        return {"Shape": "circle", "r": VisualConfig.HIVE_RADIUS, "Filled": "true", "Color": "#82817c"}
     elif isinstance(agent, Resource):
-        return {"Shape": "circle", "r": agent.radius, "Filled": "true", "Color": "#77dae640"}
+        return {"Shape": "circle", "r": agent.radius*(VisualConfig.RENDER_SIZE/ModelConfig.SIZE), "Filled": "true", "Color": "#d1bcf9"}
 
 
 forager_canvas = SimpleCanvas(
-    portrayal_method=agent_potrayal, canvas_height=500, canvas_width=500
+    portrayal_method=agent_potrayal, canvas_height=VisualConfig.RENDER_SIZE, canvas_width=VisualConfig.RENDER_SIZE
 )
 
 model_params = {
@@ -51,14 +50,14 @@ model_params = {
         name="Storm duration",
         value=ModelConfig.STORM_DURATION_DEFAULT,
         min_value=1,
-        max_value=50,
+        max_value=1000,
         step=1,
         description="How long will the storm event last",
     ),
     "n_resources": mesa.visualization.Slider("Number of flower patches",
-                                             value = ModelConfig.N_RESOURCE_CITES,
+                                             value = ModelConfig.N_RESOURCE_SITES,
                                              min_value=0,
-                                             max_value=10,
+                                             max_value=50,
                                              step = 1),
     "n_hives": mesa.visualization.Slider("Number of hives",
                                         value = ModelConfig.N_HIVES,
@@ -86,14 +85,19 @@ prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": bee_colors[BeeSt
                              {"Label": "dancing 🪩", "Color": bee_colors[BeeState.DANCING]},
                              {"Label": "following 🎯", "Color": bee_colors[BeeState.FOLLOWING]}])
 
+# bee_fed_plot = ChartModule([{"Label": "Average feed level of bees 🐝", "Color": "black"}])
+
+bee_perceived_nectar_plot = ChartModule([{"Label": "Mean perceived nectar level", "Color": "black"}])
+
 # 10 distinct colors excluding white
 hive_colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ff8000", "#ff0080", "#80ff00", "#0080ff"]
-
-nectar_plot = ChartModule([{"Label": f"Hive ({i+1}) stock 🍯", "Color": hive_colors[i]} for i in range(ModelConfig.N_HIVES)])
+# TODO: find a way to load this dynamically so we can have more hives without recompiling
+# nectar_plot = ChartModule([{"Label": f"Hive ({i+1}) stock 🍯", "Color": hive_colors[i]} for i in range(ModelConfig.N_HIVES)])
+nectar_plot = ChartModule([{"Label": f"Hive ({i+1}) stock 🍯", "Color": hive_colors[i]} for i in range(1)])
 
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,
-    visualization_elements=[forager_canvas,bee_number_plot, prop_bee_plot, nectar_plot], #resource_plot]
+    visualization_elements=[forager_canvas, bee_number_plot, prop_bee_plot, bee_perceived_nectar_plot, nectar_plot],
     name="Forager Bee Model",
     model_params=model_params,
 )
