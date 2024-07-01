@@ -3,8 +3,8 @@ from mesa import Agent, Model
 from typing import Tuple
 import numpy as np
 from mesa.datacollection import DataCollector
-from .Bee import Bee
-from .config import HiveConfig
+from .Bee import BeeSwarm
+from .config import HiveConfig, BeeSwarmConfig
 
 class Hive(Agent):
     def __init__(
@@ -14,7 +14,8 @@ class Hive(Agent):
         location: Tuple[int, int],  # agent's current position, x and y coordinate
         radius: float = HiveConfig.DEFAULT_RADIUS,  # effective radius of the hive, within that radius bees are considered "inside the hive"
         nectar: float = HiveConfig.DEFAULT_NECTAR,  # Current amount of stored nectar
-        young_bees: int = HiveConfig.DEFAULT_YOUNG_BEES,  # Number of non-forager bees (about to become foragers
+        young_bees: int = HiveConfig.INIT_YOUNG_BEES,  # Number of non-forager bees (about to become foragers
+        p_new_forager: float = HiveConfig.P_NEW_FORAGER
     ):
         super().__init__(model.next_id(), model)
 
@@ -25,48 +26,46 @@ class Hive(Agent):
         self.nectar = nectar
         
         self.young_bees = young_bees
-        self.p_new_forager = 0.0  # TODO: If it's a function of resources, then this should be a class method
+        self.p_new_forager = p_new_forager
+        # NOTE: Simplification - at the moment bees grow up, they use up nectar equivalent to the average growth time * starvation speed
+        self.nectar_for_maturation = BeeSwarmConfig.STARVATION_SPEED/p_new_forager
 
         self.hive_health = 1
-        self.feed_rate = HiveConfig.DEFAULT_FEED_RATE
+        self.feed_rate = HiveConfig.FEED_RATE
 
     def feed_bees(self):
         # Get all young ones as well as foragers around beehive
         agents_in_hive = self.model.space.get_neighbors(self.pos, self.radius, include_center=True)
-        bees_to_feed_in_hive = [agent for agent in agents_in_hive if type(agent) is Bee and agent.hive == self and agent.fed <= 1]
+        bees_to_feed_in_hive = [agent for agent in agents_in_hive if type(agent) is BeeSwarm and agent.hive == self and agent.fed <= BeeSwarmConfig.FEED_STORAGE]
         # NOTE: skipped sorting, this is only relevant at a very short time point but requires lots of compute every iteration
         # sorted_bees = sorted([bee for bee in bees_to_feed_in_hive if bee.fed <= 1], key=lambda x: x.fed)
-        feed_speed = self.feed_rate*self.model.dt
         for bee in bees_to_feed_in_hive:
-            # print(f'feed {bee.unique_id} by {feed_speed}')
-            ## TODO: Prioritize hungery ones
-            ## TODO: Use two resources
-            if bee.fed <= 1 and self.nectar > feed_speed:
-                bee.fed += feed_speed
-                self.nectar -= feed_speed
-        # healthy_bees = [bee for bee in bees_in_hive if bee.fed >= 0.5]
-        # print(f'end feed: {self.nectar}')
+            if self.nectar == 0:
+                break
+            feed_amount = min(BeeSwarmConfig.FEED_STORAGE - bee.fed, self.nectar)
+            bee.fed += feed_amount
+            self.nectar -= feed_amount
 
     def mature_bees(self):
-        # This entails maturing young bees to foragers with some probability based on resources, weather etc...
+        p_new_bee = self.p_new_forager*self.model.dt
         for _ in range(self.young_bees):
-            if np.random.random() < self.p_new_forager:
-                # self.model.create_agent(Bee, hive=self)
-                self.young_bees -= 1
+            if self.nectar < self.nectar_for_maturation:
+                return
+            if np.random.random() < p_new_bee:
+                self.create_bee()
 
     def update_p_forager(self):
         ## TODO: Modify probability with resrouces
         self.p_new_forager = self.p_new_forager
 
-    def create_bees(self):
-        ## TODO: Update probability with resources, weather...
-        # TODO: make this a inflow constant perhaps
-        p_new_young_bee = 0.1*self.model.dt
-        new_young = True if np.random.random() < p_new_young_bee else False
-        if new_young:
-            self.model.create_agent(Bee, hive=self)
-            self.young_bees += 1
-            self.model.n_agents_existed += 1
+    def create_bee(self):
+        print('A bee grew up to become a forager')
+        self.young_bees -= 1
+        self.nectar -= self.nectar_for_maturation
+        assert self.nectar < 0, "Used up more nectar than possible during maturation of young bee"
+        self.model.create_agent(BeeSwarm, hive=self)
+        self.young_bees += 1
+        self.model.n_agents_existed += 1
 
     # def kill_hive(self):
     #     bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if
@@ -83,20 +82,6 @@ class Hive(Agent):
 
 
     def step(self):
-        # 1. Feed bees
         self.feed_bees()
-
-        # 2. Mature bees
-        # Use p_new_forager to instantiate bees
         self.mature_bees()
-
-
-        # Then, update p_new_forager based on young, water, and pollen, and weather!!
-        self.update_p_forager()
-
-        # 3. Create young bees
-        # Based on resources and weather
-        self.create_bees()
-
-        # 4. If nectar goes below 0, kill the hive
         # self.kill_hive()

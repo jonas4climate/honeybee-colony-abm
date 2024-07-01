@@ -4,7 +4,7 @@ from continuous_model.Model import ForagerModel
 from SimpleContinuousModule import SimpleCanvas
 from mesa.visualization.modules import ChartModule
 
-from continuous_model.Bee import Bee, BeeState
+from continuous_model.Bee import BeeSwarm, BeeState
 from continuous_model.config import HiveConfig, ModelConfig, VisualConfig
 from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
@@ -19,7 +19,7 @@ bee_colors = {
 }
 
 def agent_potrayal(agent):
-    if isinstance(agent, Bee):
+    if isinstance(agent, BeeSwarm):
         return {"Shape": "circle", "r": VisualConfig.BEE_RADIUS, "Filled": "true", "Color": bee_colors[agent.state]}
     elif isinstance(agent, Hive):
         return {"Shape": "circle", "r": VisualConfig.HIVE_RADIUS, "Filled": "true", "Color": "#82817c"}
@@ -35,7 +35,7 @@ model_params = {
     "size": ModelConfig.SIZE,
     "n_hives": 2,
     # "hive_locations": [(100,100), (200,250)],
-    "n_bees_per_hive": ModelConfig.N_BEES,
+    "n_bees_per_hive": ModelConfig.N_BEESWARMS,
     # "n_resources": 5,
     # "resource_locations": [(300,300), (350, 320), (325, 325), (400, 90), (380, 80)],
     "p_storm": mesa.visualization.Slider(

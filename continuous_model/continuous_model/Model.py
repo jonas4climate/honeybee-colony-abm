@@ -12,7 +12,7 @@ from mesa.time import RandomActivation
 import numpy as np
 from typing import List, Tuple
 
-from .Bee import Bee, BeeState
+from .Bee import BeeSwarm, BeeState
 from .config import ModelConfig
 from .Hive import Hive
 from .Resource import Resource
@@ -29,7 +29,7 @@ class ForagerModel(Model):
         # n_resources: int,
         # resource_locations: List[Tuple[int, int]],
         n_resources: int = ModelConfig.N_RESOURCE_SITES,
-        n_bees_per_hive: int = ModelConfig.N_BEES,
+        n_bees_per_hive: int = ModelConfig.N_BEESWARMS,
         dt: int = ModelConfig.DT,
         p_storm: float = ModelConfig.P_STORM_DEFAULT, 
         storm_duration: float = ModelConfig.STORM_DURATION_DEFAULT
@@ -85,7 +85,7 @@ class ForagerModel(Model):
         )
 
     def bees_proportion(self):
-        all_bees = self.get_agents_of_type(Bee)
+        all_bees = self.get_agents_of_type(BeeSwarm)
         if all_bees:
             return {state.value: len([a for a in all_bees if a.state == state]) / len(all_bees) for state in BeeState}
         else:
@@ -99,14 +99,14 @@ class ForagerModel(Model):
             raise Exception("No hives in the model")
         
     def average_bee_fed(self):
-        all_bees = self.get_agents_of_type(Bee)
+        all_bees = self.get_agents_of_type(BeeSwarm)
         if all_bees:
             return np.mean([i.fed for i in all_bees])
         else:
             return 0
     
     def mean_perceived_nectar(self):
-        all_bees = self.get_agents_of_type(Bee)
+        all_bees = self.get_agents_of_type(BeeSwarm)
         if all_bees:
             return np.mean([b.perceived_nectar for b in all_bees])
         else:
@@ -139,7 +139,7 @@ class ForagerModel(Model):
         for i in range(len(hive_locations)):
             current_hive = self.create_agent(Hive, location=hive_locations[i])
             for _ in range(n_bees_per_hive):
-                self.create_agent(Bee, hive=current_hive)
+                self.create_agent(BeeSwarm, hive=current_hive)
         
         # Create Resources
         for i in range(len(resource_locations)):
