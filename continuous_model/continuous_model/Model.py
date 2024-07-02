@@ -12,6 +12,7 @@ from mesa.time import RandomActivation
 import numpy as np
 from typing import List, Tuple
 
+from .Analytics import bees_proportion, nectar_in_hives, average_bee_fed, mean_perceived_nectar, get_bee_count
 from .Bee import BeeSwarm, BeeState
 from .config import ModelConfig
 from .Hive import Hive
@@ -57,25 +58,25 @@ class ForagerModel(Model):
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
         # TODO: Add method with % of each type of bee among all LIVING bees
         def get_weather(model):
-            return model.schedule.get_bee_count() if model.weather == Weather.STORM else 0
+            return get_bee_count(model.schedule) if model.weather == Weather.STORM else 0
 
         model_reporters = {
             'n_agents_existed': lambda mod: mod.n_agents_existed,
-            'Bee count 🐝': lambda mod: mod.schedule.get_bee_count(),
+            'Bee count 🐝': lambda mod: get_bee_count(mod.schedule),
             'Storm ⛈️': get_weather,
-            'resting 💤': lambda mod: mod.bees_proportion()["resting"],
-            'returning 🔙': lambda mod: mod.bees_proportion()["returning"],
-            'exploring 🗺️': lambda mod: mod.bees_proportion()["exploring"],
-            'carrying 🎒': lambda mod: mod.bees_proportion()["carrying"],
-            'dancing 🪩': lambda mod: mod.bees_proportion()["dancing"],
-            'following 🎯': lambda mod: mod.bees_proportion()["following"],
-            'Average feed level of bees 🐝': lambda mod: mod.average_bee_fed(),
-            'Mean perceived nectar level': lambda mod: mod.mean_perceived_nectar(),
+            'resting 💤': lambda mod: bees_proportion(mod)["resting"],
+            'returning 🔙': lambda mod: bees_proportion(mod)["returning"],
+            'exploring 🗺️': lambda mod: bees_proportion(mod)["exploring"],
+            'carrying 🎒': lambda mod: bees_proportion(mod)["carrying"],
+            'dancing 🪩': lambda mod: bees_proportion(mod)["dancing"],
+            'following 🎯': lambda mod: bees_proportion(mod)["following"],
+            'Average feed level of bees 🐝': lambda mod: average_bee_fed(mod),
+            'Mean perceived nectar level': lambda mod: mean_perceived_nectar(mod),
         }
 
         # Dynamically add nectar in hives
         for i in range(ModelConfig.N_HIVES):
-            model_reporters[f'Hive ({i+1}) stock 🍯'] = lambda mod: mod.nectar_in_hives()[i]
+            model_reporters[f'Hive ({i+1}) stock 🍯'] = lambda mod: nectar_in_hives(mod)[i]
 
         agent_reporters = {}
 
@@ -83,34 +84,6 @@ class ForagerModel(Model):
             model_reporters=model_reporters,
             agent_reporters=agent_reporters
         )
-
-    def bees_proportion(self):
-        all_bees = self.get_agents_of_type(BeeSwarm)
-        if all_bees:
-            return {state.value: len([a for a in all_bees if a.state == state]) / len(all_bees) for state in BeeState}
-        else:
-            return {state.value: 0 for state in BeeState}
-
-    def nectar_in_hives(self):
-        all_hives = self.get_agents_of_type(Hive)
-        if all_hives:
-            return [i.nectar for i in all_hives]
-        else:
-            raise Exception("No hives in the model")
-        
-    def average_bee_fed(self):
-        all_bees = self.get_agents_of_type(BeeSwarm)
-        if all_bees:
-            return np.mean([i.fed for i in all_bees])
-        else:
-            return 0
-    
-    def mean_perceived_nectar(self):
-        all_bees = self.get_agents_of_type(BeeSwarm)
-        if all_bees:
-            return np.mean([b.perceived_nectar for b in all_bees])
-        else:
-            return 0
 
     def create_agent(self, agent_type, **kwargs):
         # TODO: fix, we are getting warnings about an agent being placed twice / having a position already

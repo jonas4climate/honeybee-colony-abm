@@ -38,9 +38,3 @@ class CustomScheduler(RandomActivation):
         # agent_type = type(agent)
         for agent_key in agent_keys:
             self.all_agents[agent][agent_key].step()
-
-    def get_bee_count(self) -> int:
-        return len(self.all_agents[BeeSwarm].values())
-
-
-
