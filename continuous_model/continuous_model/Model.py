@@ -69,7 +69,6 @@ class ForagerModel(Model):
             'carrying 🎒': lambda mod: mod.bees_proportion()["carrying"],
             'dancing 🪩': lambda mod: mod.bees_proportion()["dancing"],
             'following 🎯': lambda mod: mod.bees_proportion()["following"],
-            'Average feed level of bees 🐝': lambda mod: mod.average_bee_fed(),
             'Mean perceived nectar level': lambda mod: mod.mean_perceived_nectar(),
         }
 
@@ -97,13 +96,6 @@ class ForagerModel(Model):
             return [i.nectar for i in all_hives]
         else:
             raise Exception("No hives in the model")
-        
-    def average_bee_fed(self):
-        all_bees = self.get_agents_of_type(BeeSwarm)
-        if all_bees:
-            return np.mean([i.fed for i in all_bees])
-        else:
-            return 0
     
     def mean_perceived_nectar(self):
         all_bees = self.get_agents_of_type(BeeSwarm)
