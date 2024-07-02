@@ -27,8 +27,7 @@ class Hive(Agent):
         
         self.young_bees = young_bees
         self.p_new_forager = p_new_forager
-        # NOTE: Simplification - at the moment bees grow up, they use up nectar equivalent to the average growth time * starvation speed
-        self.nectar_for_maturation = BeeSwarmConfig.STARVATION_SPEED/p_new_forager
+        self.nectar_for_maturation = 0 # NOTE: Assumption that bees need no resources to mature
 
         self.hive_health = 1
         self.feed_rate = HiveConfig.FEED_RATE
@@ -50,7 +49,7 @@ class Hive(Agent):
         p_new_bee = self.p_new_forager*self.model.dt
         for _ in range(self.young_bees):
             if self.nectar < self.nectar_for_maturation:
-                return
+                break
             if np.random.random() < p_new_bee:
                 self.create_bee()
 
@@ -62,7 +61,6 @@ class Hive(Agent):
         print('A bee grew up to become a forager')
         self.young_bees -= 1
         self.nectar -= self.nectar_for_maturation
-        assert self.nectar < 0, "Used up more nectar than possible during maturation of young bee"
         self.model.create_agent(BeeSwarm, hive=self)
         self.young_bees += 1
         self.model.n_agents_existed += 1

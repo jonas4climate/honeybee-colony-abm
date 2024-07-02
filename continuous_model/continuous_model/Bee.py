@@ -327,7 +327,7 @@ class BeeSwarm(Agent):
     def update_properties(self):
         """Updates the properties of the bee."""
         self.fed = max(
-            self.fed - BeeSwarmConfig.STARVATION_SPEED * self.model.dt, 0
+            self.fed - BeeSwarmConfig.FEED_STORAGE * BeeSwarmConfig.STARVATION_SPEED * self.model.dt, 0
         )  # ensure fed is not negative
         self.age += self.model.dt
 

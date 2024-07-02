@@ -14,7 +14,7 @@ class BeeSwarmConfig:
 
     BEE_SWARM_SIZE = 100                            # (count) | Number of bees represented by a single BeeSwarm agent
     CARRYING_CAPACITY = 30e-6 * BEE_SWARM_SIZE      # (in kg) = 30mg per bee | Amount of resources a bee swarm can carry
-    SCENT_SCALE = 0.5                               # (scale) = 50% more focused on following scent
+    SCENT_SCALE = 2.5                               # (scale) = 50% more focused on following scent
     FIELD_OF_VIEW = 10                              # (in m) TODO: calibrate further using real data
     STARVATION_SPEED = 1/DAY                        # (in rate/s)
     MAX_AGE = 6*WEEK                                # (in s) = within 6 weeks
@@ -53,5 +53,5 @@ class ModelConfig:
     STORM_DURATION_DEFAULT = DAY        # (in s)
     N_BEESWARMS = 500                   # (count)
     N_HIVES = 1                         # (count)
-    ABUNDANCE_RATIO = 2                 # (radio) how many times the max hive capacity in resources should be generated?
+    ABUNDANCE_RATIO = 1                 # (radio) how many times the max hive capacity in resources should be generated?
     N_RESOURCE_SITES = int((ABUNDANCE_RATIO*HiveConfig.MAX_NECTAR_CAPACITY)/ResourceConfig.DEFAULT_QUANTITY) # (count)
