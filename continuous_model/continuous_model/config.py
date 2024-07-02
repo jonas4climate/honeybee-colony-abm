@@ -17,21 +17,20 @@ class BeeSwarmConfig:
     SCENT_SCALE = 2.5                               # (scale) = 50% more focused on following scent
     FIELD_OF_VIEW = 10                              # (in m) TODO: calibrate further using real data
     STARVATION_SPEED = 1/DAY                        # (in rate/s)
-    MAX_AGE = 6*WEEK                                # (in s) = within 6 weeks
+    MAX_AGE = np.inf                                # (in s) = not used
     P_DEATH_BY_STORM = 1/(10*MINUTE)                # (probability / s) = on average within 10 minute TODO: calibrate further
     SPEED = 3.5                                     # (in m/s) = 12.6km/h
     DANCING_TIME = MINUTE                           # (in s) TODO: calibrate further
-    P_FOLLOW_WIGGLE_DANCE = 1                       # (probability) TODO: calibrate further
-    P_ABORT_EXPLORING = 1/HOUR                      # (probability) TODO: calibrate further
-    P_ABORT_FOLLOWING = 1/HOUR                      # (probability) TODO: calibrate further
+    P_FOLLOW_WIGGLE_DANCE = 0.5                     # (probability) TODO: calibrate further
+    P_ABORT = 1/HOUR                                # (probability) TODO: calibrate further
     STORM_ABORT_FACTOR = 100                        # (scale) = 100 times more likely to abort during storm TODO: calibrate further
-    FEED_STORAGE = 1e-3 * BEE_SWARM_SIZE            # (in kg) = 1g per bee
+    FEED_STORAGE = 0.01e-3 * BEE_SWARM_SIZE            # (in kg) = 0.01g per bee
 
 class HiveConfig:
     MAX_NECTAR_CAPACITY = 20            # (in kg) | NOTE: Quantity approximately needed to survive winter, given in "Wisdom of the Hive" book.
     DEFAULT_RADIUS = 0.5                # (in m)
     DEFAULT_NECTAR = 0.5                # (in kg)
-    INIT_YOUNG_BEES = 500               # (count)
+    INIT_YOUNG_BEES = 0                 # (count) = not used
     FEED_RATE: float = 1/MINUTE         # (rate/s)
     P_NEW_FORAGER: float = 1/(10*DAY)   # (probability / s) = on average within 10 days
 
@@ -53,5 +52,5 @@ class ModelConfig:
     STORM_DURATION_DEFAULT = DAY        # (in s)
     N_BEESWARMS = 500                   # (count)
     N_HIVES = 1                         # (count)
-    ABUNDANCE_RATIO = 1                 # (radio) how many times the max hive capacity in resources should be generated?
+    ABUNDANCE_RATIO = 0.1                 # (radio) how many times the max hive capacity in resources should be generated?
     N_RESOURCE_SITES = int((ABUNDANCE_RATIO*HiveConfig.MAX_NECTAR_CAPACITY)/ResourceConfig.DEFAULT_QUANTITY) # (count)

@@ -18,6 +18,8 @@ bee_colors = {
     BeeState.FOLLOWING : "#0a54f5" # dark blue
 }
 
+hive_colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ff8000", "#ff0080", "#80ff00", "#0080ff"]
+
 def agent_potrayal(agent):
     if isinstance(agent, BeeSwarm):
         return {"Shape": "circle", "r": VisualConfig.BEE_RADIUS, "Filled": "true", "Color": bee_colors[agent.state]}
@@ -87,17 +89,16 @@ prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": bee_colors[BeeSt
 
 bee_fed_plot = ChartModule([{"Label": "Average feed level of bees 🐝", "Color": "black"}])
 
-bee_perceived_nectar_plot = ChartModule([{"Label": "Mean perceived nectar level", "Color": "black"}])
+nectar_plot = ChartModule([{"Label": "Mean perceived nectar level", "Color": "black"},
+                                         {"Label": f"Hive (1) stock 🍯", "Color": hive_colors[0]}])
 
-# 10 distinct colors excluding white
-hive_colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ff8000", "#ff0080", "#80ff00", "#0080ff"]
 # TODO: find a way to load this dynamically so we can have more hives without recompiling
 # nectar_plot = ChartModule([{"Label": f"Hive ({i+1}) stock 🍯", "Color": hive_colors[i]} for i in range(ModelConfig.N_HIVES)])
-nectar_plot = ChartModule([{"Label": f"Hive ({i+1}) stock 🍯", "Color": hive_colors[i]} for i in range(1)])
+# nectar_plot = ChartModule([{"Label": f"Hive ({i+1}) stock 🍯", "Color": hive_colors[i]} for i in range(1)])
 
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,
-    visualization_elements=[forager_canvas, bee_number_plot, prop_bee_plot, bee_perceived_nectar_plot, nectar_plot, bee_fed_plot],
+    visualization_elements=[forager_canvas, bee_number_plot, prop_bee_plot, nectar_plot, bee_fed_plot],
     name="Forager Bee Model",
     model_params=model_params,
 )

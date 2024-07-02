@@ -50,7 +50,7 @@ class BeeSwarm(Agent):
         self.fed = fed
         self.load = 0.0  # agent amount of resources its carrying
 
-        self.perceived_nectar = self.inspect_hive()
+        self.inspect_hive()
 
     def step(self):
         self.update_properties()  # Manage properties (age and fed)
@@ -72,7 +72,7 @@ class BeeSwarm(Agent):
         return scent_intrigue
     
     def inspect_hive(self):
-        mu = self.hive.nectar
+        mu = self.hive.nectar / HiveConfig.MAX_NECTAR_CAPACITY
         if mu == 0:
             mu = 1e-24
         elif mu == 1:
@@ -90,9 +90,7 @@ class BeeSwarm(Agent):
         if np.isclose(b, 0):
             b += np.finfo(np.float32).eps
 
-        self.perceived_nectar = beta.rvs(a, b)
-
-        return self.perceived_nectar
+        self.perceived_nectar = beta.rvs(a, b) * HiveConfig.MAX_NECTAR_CAPACITY
 
 
     def move_random_exploration(self, epsilon=1e-12):
@@ -220,9 +218,7 @@ class BeeSwarm(Agent):
 
         # Start exploring based on exponential distribution
         # TODO: Normalize nectar capacity and perceived nectar to one unit
-        if random() < expon.sf(self.perceived_nectar, scale=BeeSwarmConfig.EXPLORING_INCENTIVE):
-            # print(expon.pdf(self.perceived_nectar * HiveConfig.MAX_NECTAR_CAPACITY / 1000, scale=BeeConfig.EXPLORING_INCENTIVE))
-
+        if random() < expon.sf(self.perceived_nectar/HiveConfig.MAX_NECTAR_CAPACITY, scale=BeeSwarmConfig.EXPLORING_INCENTIVE):
             self.state = BeeState.EXPLORING
 
     def handle_returning(self):
@@ -232,7 +228,7 @@ class BeeSwarm(Agent):
             self.move_towards_hive()
 
     def handle_exploring(self):
-        p_abort = BeeSwarmConfig.P_ABORT_EXPLORING * self.model.dt
+        p_abort = BeeSwarmConfig.P_ABORT * self.model.dt
         if self.model.weather == Weather.STORM:
             p_abort *= BeeSwarmConfig.STORM_ABORT_FACTOR
         if random() < p_abort:
@@ -250,9 +246,7 @@ class BeeSwarm(Agent):
 
         # Fly back and deposit, then start dancing
         if self.is_close_to_hive():
-            # TODO: This can be more efficient, it shouldn't be recalculated but I CBA to deal with changing config structure
-            normalized_load = BeeSwarmConfig.CARRYING_CAPACITY / HiveConfig.MAX_NECTAR_CAPACITY
-            self.hive.nectar = min(self.hive.nectar + normalized_load, 1.0)
+            self.hive.nectar = min(self.hive.nectar + self.load, HiveConfig.MAX_NECTAR_CAPACITY)
             
             self.load = 0
             self.wiggle = True
@@ -276,7 +270,7 @@ class BeeSwarm(Agent):
             # wiggle_destiny is already set to resource location
 
         # TODO: instead have it be scale based on distance to resource (i.e. expected time taken to get there)
-        p_abort_following = BeeSwarmConfig.P_ABORT_FOLLOWING * self.model.dt
+        p_abort_following = BeeSwarmConfig.P_ABORT * self.model.dt
         if self.model.weather == Weather.STORM:
             p_abort_following *= BeeSwarmConfig.STORM_ABORT_FACTOR
         if random() < p_abort_following:
