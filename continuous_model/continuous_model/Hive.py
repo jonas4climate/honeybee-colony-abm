@@ -30,7 +30,6 @@ class Hive(Agent):
         self.nectar_for_maturation = 0 # NOTE: Assumption that bees need no resources to mature
 
         self.hive_health = 1
-        self.feed_rate = HiveConfig.FEED_RATE
 
     def feed_bees(self):
         # Get all young ones as well as foragers around beehive

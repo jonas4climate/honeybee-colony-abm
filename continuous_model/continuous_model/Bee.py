@@ -335,13 +335,14 @@ class BeeSwarm(Agent):
             print("Bee died by age")
             return self._remove_agent()
 
-        if (
-            self.model.weather == Weather.STORM
-            and random() < BeeSwarmConfig.P_DEATH_BY_STORM * self.model.dt
-        ):  # Death by storm
-            if self.is_outside:
+        if (self.model.weather == Weather.STORM and self.is_outside):  # Death by storm
+            if random() < BeeSwarmConfig.P_DEATH_BY_STORM * self.model.dt:
                 print("Bee died by storm")
                 return self._remove_agent()
+        
+        if (self.is_outside and random() < BeeSwarmConfig.P_DEATH_BY_OUTSIDE_RISK * self.model.dt):
+            print("Bee died by outside risk")
+            return self._remove_agent()
 
     def _remove_agent(self):
         """Helper for removing agents."""

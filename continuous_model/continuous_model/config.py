@@ -5,6 +5,9 @@ HOUR = MINUTE*60
 DAY = HOUR*24
 WEEK = DAY*7
 MONTH = WEEK*4
+
+GRAMM = 1e-3
+MILLIGRAMM = 1e-6
 class BeeSwarmConfig:
     # TODO: back up with beta probability theory
     PERCEPTION =  100   # Perception (no. of samples parameter) for generating alpha, beta (Beta distribution) in hive inspection
@@ -13,26 +16,26 @@ class BeeSwarmConfig:
     EXPLORING_INCENTIVE = 0.1  # Lambda parameter in exponential distribution going into exploration state
 
     BEE_SWARM_SIZE = 20                            # (count) | Number of bees represented by a single BeeSwarm agent
-    CARRYING_CAPACITY = 30e-6 * BEE_SWARM_SIZE      # (in kg) = 30mg per bee | Amount of resources a bee swarm can carry
-    SCENT_SCALE = 2.5                               # (scale) = 50% more focused on following scent
+    CARRYING_CAPACITY = 30*MILLIGRAMM * BEE_SWARM_SIZE      # (in kg) = 30mg per bee | Amount of resources a bee swarm can carry
+    SCENT_SCALE = 0.5                               # (scale) = 50% more focused on following scent
     FIELD_OF_VIEW = 1                               # (in m) TODO: calibrate further using real data
-    STARVATION_SPEED = 1/DAY                        # (in rate/s)
+    STARVATION_SPEED = 1/(12*HOUR)                  # (in rate/s)
     MAX_AGE = np.inf                                # (in s) = not used
     P_DEATH_BY_STORM = 1/(10*MINUTE)                # (probability / s) = on average within 10 minute TODO: calibrate further
+    P_DEATH_BY_OUTSIDE_RISK = 1/(7*WEEK)            # (probability / s) = on average within 7 weeks TODO: calibrate further
     SPEED = 3.5                                     # (in m/s) = 12.6km/h
-    DANCING_TIME = MINUTE                           # (in s) TODO: calibrate further
+    DANCING_TIME = 2*MINUTE                         # (in s) TODO: calibrate further
     P_FOLLOW_WIGGLE_DANCE = 0.7                     # (probability) TODO: calibrate further
-    P_ABORT = 1/(20*MINUTE)                                # (probability) TODO: calibrate further
+    P_ABORT = 1/(20*MINUTE)                         # (probability) TODO: calibrate further
     STORM_ABORT_FACTOR = 100                        # (scale) = 100 times more likely to abort during storm TODO: calibrate further
-    FEED_STORAGE = 0.01e-3 * BEE_SWARM_SIZE         # (in kg) = 0.01g per bee
+    FEED_STORAGE = 0.01*GRAMM * BEE_SWARM_SIZE # (in kg) = 0.01g per bee
 
 class HiveConfig:
     MAX_NECTAR_CAPACITY = 20            # (in kg) | NOTE: Quantity approximately needed to survive winter, given in "Wisdom of the Hive" book.
     DEFAULT_RADIUS = 20                 # (in m) | unrealistic, to enable heterogenous behavior "within" i.e. around hive at current time stepping
-    DEFAULT_NECTAR = 0.5                # (in kg)
+    DEFAULT_NECTAR = 0                  # (in kg)
     INIT_YOUNG_BEES = 0                 # (count) = not used
-    FEED_RATE: float = 1/MINUTE         # (rate/s)
-    P_NEW_FORAGER: float = 1/(10*DAY)   # (probability / s) = on average within 10 days
+    P_NEW_FORAGER: float = 0            # (probability / s) = not used
 
 class ResourceConfig:
     DEFAULT_QUANTITY = 1                # (in kg)
@@ -46,11 +49,11 @@ class VisualConfig:
     BEE_RADIUS = 0.002*RENDER_SIZE
 
 class ModelConfig:
-    SIZE = 2_000                        # (in m) = 2km x 2km
-    DT = MINUTE                         # (in s) = 1 minute
+    SIZE = 10_000                        # (in m)
+    DT = MINUTE                         # (in s)
     P_STORM_DEFAULT = 1/(10*DAY)        # (probability / s) = on average every 10 days
     STORM_DURATION_DEFAULT = DAY        # (in s)
     N_BEESWARMS = 500                   # (count)
     N_HIVES = 1                         # (count)
-    ABUNDANCE_RATIO = 1                 # (radio) how many times the max hive capacity in resources should be generated?
+    ABUNDANCE_RATIO = 0.25              # (radio) how many times the max hive capacity in resources should be generated?
     N_RESOURCE_SITES = int((ABUNDANCE_RATIO*HiveConfig.MAX_NECTAR_CAPACITY)/ResourceConfig.DEFAULT_QUANTITY) # (count)
