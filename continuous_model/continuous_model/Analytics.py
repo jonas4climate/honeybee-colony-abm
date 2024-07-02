@@ -1,6 +1,7 @@
 from mesa import  Model
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from .Bee import BeeSwarm, BeeState
 from .Model import Model
@@ -37,3 +38,16 @@ def mean_perceived_nectar(model: Model):
     
 def get_bee_count(scheduler: CustomScheduler) -> int:
     return len(scheduler.all_agents[BeeSwarm].values())
+
+def get_scent_scale(model: Model):
+    all_bees = model.get_agents_of_type(BeeSwarm)
+    if all_bees:
+        return [b.scent_scale for b in all_bees]
+
+def visualize_scent_scale(scent_scales):
+    plt.figure()
+    plt.hist(scent_scales)
+    plt.xlabel("Scent scale")
+    plt.ylabel("Number of bees")
+    plt.title("Scent scale distribution of all bees")
+    plt.show()

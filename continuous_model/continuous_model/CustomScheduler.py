@@ -1,4 +1,4 @@
-from mesa.time import RandomActivation
+from mesa.time import RandomActivation, BaseScheduler
 from .Bee import BeeSwarm
 from .Hive import Hive
 from .Resource import Resource

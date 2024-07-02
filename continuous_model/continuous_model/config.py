@@ -17,7 +17,8 @@ class BeeSwarmConfig:
 
     BEE_SWARM_SIZE = 20                            # (count) | Number of bees represented by a single BeeSwarm agent
     CARRYING_CAPACITY = 30*MILLIGRAMM * BEE_SWARM_SIZE      # (in kg) = 30mg per bee | Amount of resources a bee swarm can carry
-    SCENT_SCALE = 0.5                               # (scale) = 50% more focused on following scent
+    SCENT_SCALE_MEAN = 0.5                          # (scale) = on average 50% more focused on following scent
+    SCENT_SCALE_STD = 2                             # (scale)
     FIELD_OF_VIEW = 1                               # (in m) TODO: calibrate further using real data
     STARVATION_SPEED = 1/(12*HOUR)                  # (in rate/s)
     MAX_AGE = np.inf                                # (in s) = not used

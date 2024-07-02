@@ -5,8 +5,8 @@ from typing import Optional, Tuple
 from mesa import Agent, Model
 from math import atan2, cos, sin
 import numpy as np
-from numpy.random import random
-from scipy.stats import multivariate_normal, beta, expon
+from numpy.random import random, normal
+from scipy.stats import beta, expon
 
 from .config import BeeSwarmConfig, HiveConfig
 from .Resource import Resource
@@ -49,6 +49,7 @@ class BeeSwarm(Agent):
         self.fov = fov
         self.fed = fed
         self.load = 0.0  # agent amount of resources its carrying
+        self.scent_scale = max(normal(loc=BeeSwarmConfig.SCENT_SCALE_MEAN, scale=BeeSwarmConfig.SCENT_SCALE_STD), 0)
 
         self.inspect_hive()
 
@@ -118,7 +119,7 @@ class BeeSwarm(Agent):
         else: # Biased random walk
             attraction_current = self.scent_strength_at_pos(self.pos, resources)
             attraction_new = self.scent_strength_at_pos(newpos, resources)
-            ratio = attraction_new / (attraction_current * (1 + BeeSwarmConfig.SCENT_SCALE))
+            ratio = attraction_new / (attraction_current * (1 + self.scent_scale))
     
             # Metropolis algorithm
             if attraction_new > attraction_current or random() < ratio:

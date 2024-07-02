@@ -12,7 +12,7 @@ from mesa.time import RandomActivation
 import numpy as np
 from typing import List, Tuple
 
-from .Analytics import bees_proportion, nectar_in_hives, average_bee_fed, mean_perceived_nectar, get_bee_count
+from .Analytics import *
 from .Bee import BeeSwarm, BeeState
 from .config import ModelConfig
 from .Hive import Hive
@@ -53,6 +53,10 @@ class ForagerModel(Model):
         self.setup_datacollector()
         hive_locations, resource_locations = self.init_space(size, size, n_resources, n_hives)
         self.make_agents(hive_locations, n_bees_per_hive, resource_locations)
+        # self.inspect_setup()
+
+    def inspect_setup(self):
+        visualize_scent_scale(get_scent_scale(self))
 
     def setup_datacollector(self):
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
