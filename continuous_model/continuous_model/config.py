@@ -24,7 +24,7 @@ class BeeSwarmConfig:
     P_FOLLOW_WIGGLE_DANCE = 0.5                     # (probability) TODO: calibrate further
     P_ABORT = 1/HOUR                                # (probability) TODO: calibrate further
     STORM_ABORT_FACTOR = 100                        # (scale) = 100 times more likely to abort during storm TODO: calibrate further
-    FEED_STORAGE = 0.01e-3 * BEE_SWARM_SIZE            # (in kg) = 0.01g per bee
+    FEED_STORAGE = 0.01e-3 * BEE_SWARM_SIZE         # (in kg) = 0.01g per bee
 
 class HiveConfig:
     MAX_NECTAR_CAPACITY = 20            # (in kg) | NOTE: Quantity approximately needed to survive winter, given in "Wisdom of the Hive" book.
@@ -52,5 +52,5 @@ class ModelConfig:
     STORM_DURATION_DEFAULT = DAY        # (in s)
     N_BEESWARMS = 500                   # (count)
     N_HIVES = 1                         # (count)
-    ABUNDANCE_RATIO = 0.1                 # (radio) how many times the max hive capacity in resources should be generated?
+    ABUNDANCE_RATIO = 1                 # (radio) how many times the max hive capacity in resources should be generated?
     N_RESOURCE_SITES = int((ABUNDANCE_RATIO*HiveConfig.MAX_NECTAR_CAPACITY)/ResourceConfig.DEFAULT_QUANTITY) # (count)
