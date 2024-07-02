@@ -67,19 +67,6 @@ class Hive(Agent):
         self.young_bees += 1
         self.model.n_agents_existed += 1
 
-    # def kill_hive(self):
-    #     bees_in_hive = [bee for bee in self.model.get_agents_of_type(Bee) if
-    #                     bee.hive == self]
-    #     # Kill the bees inside hive
-    #     if self.nectar <= self.feed_rate:
-    #         # Kill all bees since food ran out
-    #         for bee in bees_in_hive:
-    #             bee._remove_agent()
-    #         print("Hive died due to lack of nectar")
-    #         self.model.schedule.remove(self)
-    #         self.model.space.remove_agent(self)
-    #         self.model.n_agents_existed -= 1
-
 
     def step(self):
         self.feed_bees()
