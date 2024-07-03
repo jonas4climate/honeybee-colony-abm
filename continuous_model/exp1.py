@@ -33,9 +33,11 @@ mean_survival_ratios = np.zeros((resolution, resolution))
 std_survival_ratios = np.zeros((resolution, resolution))
 
 np.random.seed(SEED)
+mean_file = os.path.join('data', 'exp1', 'bee_survival_ratio.gz')
+std_file = os.path.join('data', 'exp1', 'bee_survival_ratio_std.gz')
 
 # Generate / Load results
-if not os.path.exists('bee_survival_ratio.gz'):
+if not os.path.exists(mean_file):
     pbar = tqdm(total=resolution**2*N_sims, desc='Progress:')
     for i, p_storm in enumerate(p_storm_params):
         for j, dist_from_hive in enumerate(res_dist_from_hive_params):
@@ -55,11 +57,11 @@ if not os.path.exists('bee_survival_ratio.gz'):
             mean_survival_ratios[i, j] = np.mean(survival_ratios)
             std_survival_ratios[i, j] = np.std(survival_ratios)
     pbar.close()
-    np.savetxt('bee_survival_ratio.gz', mean_survival_ratios)
-    np.savetxt('bee_survival_ratio_std.gz', std_survival_ratios)
+    np.savetxt(mean_file, mean_survival_ratios)
+    np.savetxt(std_file, std_survival_ratios)
 else:
-    mean_survival_ratios = np.loadtxt('bee_survival_ratio.gz')
-    std_survival_ratios = np.loadtxt('bee_survival_ratio_std.gz')
+    mean_survival_ratios = np.loadtxt(mean_file)
+    std_survival_ratios = np.loadtxt(std_file)
 
 # Visualize results
 fig, axs = plt.subplots(1, 2, figsize=(12, 6))
