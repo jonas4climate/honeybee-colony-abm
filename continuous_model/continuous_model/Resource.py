@@ -5,8 +5,6 @@ import math
 
 from mesa import Agent, Model
 
-from .config import ResourceConfig
-
 class ResourceType(Enum):
     NECTAR = "nectar"
 

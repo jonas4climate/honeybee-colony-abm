@@ -1,5 +1,4 @@
 from __future__ import annotations
-from enum import Enum
 from typing import Optional, Tuple
 
 from mesa import Agent, Model
@@ -8,18 +7,9 @@ import numpy as np
 from numpy.random import random, normal
 from scipy.stats import beta, expon
 
-from .config import BeeSwarmConfig, HiveConfig
 from .Resource import Resource
 from .Weather import Weather
-
-
-class BeeState(Enum):
-    RESTING = "resting"
-    RETURNING = "returning"
-    EXPLORING = "exploring"
-    CARRYING = "carrying"
-    DANCING = "dancing"
-    FOLLOWING = "following"
+from .BeeState import BeeState
 
 
 class BeeSwarm(Agent):

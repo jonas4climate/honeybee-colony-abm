@@ -1,5 +1,9 @@
 import numpy as np
 
+from continuous_model.BeeState import BeeState
+from continuous_model.Hive import Hive
+from continuous_model.Resource import Resource
+
 # Unit utility
 MINUTE = 60
 HOUR = MINUTE*60
@@ -49,6 +53,18 @@ class ResourceConfig:
         self.default_persistent = kwargs.get('default_persistent', False)      # whether resources can run out
 
 class VisualConfig:
+    bee_colors = {
+        BeeState.RESTING : "#fc0303", # red
+        BeeState.RETURNING: "#3bf55a", # green
+        BeeState.EXPLORING : "#0af5f1", # blue
+        BeeState.CARRYING : "#59a2c2", # light blue
+        BeeState.DANCING : "#ff52df", # pink
+        BeeState.FOLLOWING : "#0a54f5" # dark blue
+    }
+
+    hive_color = "#82817c"
+    resource_color = "#0aad0d"
+
     def __init__(self, **kwargs):
         self.render_size = kwargs.get('render_size', 600)                       # Grid size for JS visualization
         self.hive_radius = kwargs.get('hive_radius', 0.03*self.render_size)     # Hive radius for JS visualization
@@ -56,7 +72,7 @@ class VisualConfig:
 
 class ModelConfig:
     def __init__(self, **kwargs):
-        self.size = kwargs.get('size', 10_000)                                  # (in m)
+        self.size = kwargs.get('size', 2_000)                                   # (in m)
         self.dt = kwargs.get('dt', MINUTE)                                      # (in s)
         self.p_storm_default = kwargs.get('p_storm_default', 1/(10*DAY))        # (probability / s) = on average every 10 days
         self.storm_duration_default = kwargs.get('storm_duration_default', DAY) # (in s)

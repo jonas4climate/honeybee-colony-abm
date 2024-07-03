@@ -13,7 +13,7 @@ import numpy as np
 from typing import List, Tuple
 
 from .Analytics import *
-from .Bee import BeeSwarm, BeeState
+from .Bee import BeeSwarm
 from .config import *
 from .Hive import Hive
 from .Resource import Resource
@@ -147,6 +147,23 @@ class ForagerModel(Model):
         # Start storming
         if np.random.random() < self.p_storm*self.dt:
             self.weather = Weather.STORM
+
+    def plot(self, ax):
+        ax.set_xlim(self.space.x_min, self.space.x_max)
+        ax.set_ylim(self.space.y_min, self.space.y_max)
+        ax.set_aspect('equal', 'box')
+
+        for hive in self.get_agents_of_type(Hive):
+            hive_circle = plt.Circle(hive.pos, hive.radius, color=VisualConfig.hive_color)
+            ax.add_patch(hive_circle)
+        
+        for bee in self.get_agents_of_type(BeeSwarm):
+            bee_circle = plt.Circle(bee.pos, 2, color=VisualConfig.bee_colors[bee.state])
+            ax.add_patch(bee_circle)
+        
+        for resource in self.get_agents_of_type(Resource):
+            resource_circle = plt.Circle(resource.pos, resource.radius, color=VisualConfig.resource_color)
+            ax.add_patch(resource_circle)
 
     @staticmethod
     def init_space(width, height, n_resources, n_hives):

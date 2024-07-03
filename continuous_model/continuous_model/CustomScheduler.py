@@ -1,8 +1,9 @@
-from mesa.time import RandomActivation, BaseScheduler
+from mesa.time import RandomActivation
 from .Bee import BeeSwarm
 from .Hive import Hive
 from .Resource import Resource
 import random
+
 class CustomScheduler(RandomActivation):
     def __init__(self, model):
         super().__init__(model)

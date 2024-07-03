@@ -9,17 +9,6 @@ from continuous_model.config import *
 from continuous_model.Hive import Hive
 from continuous_model.Resource import Resource
 
-bee_colors = {
-    BeeState.RESTING : "#fc0303", # red
-    BeeState.RETURNING: "#3bf55a", # green
-    BeeState.EXPLORING : "#0af5f1", # blue
-    BeeState.CARRYING : "#59a2c2", # light blue
-    BeeState.DANCING : "#ff52df", # pink
-    BeeState.FOLLOWING : "#0a54f5" # dark blue
-}
-
-hive_colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ff8000", "#ff0080", "#80ff00", "#0080ff"]
-
 visual_config = VisualConfig()
 model_config = ModelConfig()
 hive_config = HiveConfig()
@@ -28,11 +17,11 @@ resource_config = ResourceConfig()
 
 def agent_potrayal(agent):
     if isinstance(agent, BeeSwarm):
-        return {"Shape": "circle", "r": visual_config.bee_radius, "Filled": "true", "Color": bee_colors[agent.state]}
+        return {"Shape": "circle", "r": visual_config.bee_radius, "Filled": "true", "Color": VisualConfig.bee_colors[agent.state]}
     elif isinstance(agent, Hive):
-        return {"Shape": "circle", "r": visual_config.hive_radius, "Filled": "true", "Color": "#82817c"}
+        return {"Shape": "circle", "r": visual_config.hive_radius, "Filled": "true", "Color": VisualConfig.hive_color}
     elif isinstance(agent, Resource):
-        return {"Shape": "circle", "r": agent.radius*(visual_config.render_size/model_config.size), "Filled": "true", "Color": "#d1bcf9"}
+        return {"Shape": "circle", "r": agent.radius*(visual_config.render_size/model_config.size), "Filled": "true", "Color": VisualConfig.resource_color}
 
 
 forager_canvas = SimpleCanvas(
@@ -84,17 +73,17 @@ bee_number_plot = ChartModule([{"Label": "Bee count 🐝", "Color": "black"},
 
 
 
-prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": bee_colors[BeeState.RESTING]},
-                             {"Label": "returning 🔙", "Color": bee_colors[BeeState.RETURNING]},
-                             {"Label": "exploring 🗺️", "Color": bee_colors[BeeState.EXPLORING]},
-                             {"Label": "carrying 🎒", "Color": bee_colors[BeeState.CARRYING]},
-                             {"Label": "dancing 🪩", "Color": bee_colors[BeeState.DANCING]},
-                             {"Label": "following 🎯", "Color": bee_colors[BeeState.FOLLOWING]}])
+prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": BeeSwarm.bee_colors[BeeState.RESTING]},
+                             {"Label": "returning 🔙", "Color": BeeSwarm.bee_colors[BeeState.RETURNING]},
+                             {"Label": "exploring 🗺️", "Color": BeeSwarm.bee_colors[BeeState.EXPLORING]},
+                             {"Label": "carrying 🎒", "Color": BeeSwarm.bee_colors[BeeState.CARRYING]},
+                             {"Label": "dancing 🪩", "Color": BeeSwarm.bee_colors[BeeState.DANCING]},
+                             {"Label": "following 🎯", "Color": BeeSwarm.bee_colors[BeeState.FOLLOWING]}])
 
 bee_fed_plot = ChartModule([{"Label": "Average feed level of bees 🐝", "Color": "black"}])
 
 nectar_plot = ChartModule([{"Label": "Mean perceived nectar level", "Color": "black"},
-                                         {"Label": f"Hive (1) stock 🍯", "Color": hive_colors[0]}])
+                                         {"Label": f"Hive (1) stock 🍯", "Color": VisualConfig.hive_color}])
 
 # TODO: find a way to load this dynamically so we can have more hives without recompiling
 # nectar_plot = ChartModule([{"Label": f"Hive ({i+1}) stock 🍯", "Color": hive_colors[i]} for i in range(ModelConfig.N_HIVES)])
