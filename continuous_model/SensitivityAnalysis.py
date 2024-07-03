@@ -10,7 +10,7 @@ import mesa.batchrunner as mb
 from SALib.analyze import sobol
 from BatchRunnerMP import BatchRunnerMP
 
-def create_data(problem, save, rep=10, steps=100, samples=10):
+def create_data(problem, save, rep=3, steps=200, samples=5):
     # Get model reporters from model
     model_reporters = {'n_agents_existed': lambda mod: mod.n_agents_existed,
                 'n_bees': lambda mod: mod.schedule.get_bee_count(),
@@ -21,8 +21,8 @@ def create_data(problem, save, rep=10, steps=100, samples=10):
                 'prop_carrying': lambda mod: mod.bees_proportion()["carrying"],
                 'prop_dancing': lambda mod: mod.bees_proportion()["dancing"],
                 'prop_following': lambda mod: mod.bees_proportion()["following"],
-                'hive_1': lambda mod: mod.nectar_in_hives()[0],
-                'hive_2': lambda mod: mod.nectar_in_hives()[1]}
+                'hive_1': lambda mod: mod.nectar_in_hives()[0]}
+                # 'hive_2': lambda mod: mod.nectar_in_hives()[1]}
 
     # Sample from data
     params_values = sample(problem, N=samples)
@@ -47,7 +47,7 @@ def create_data(problem, save, rep=10, steps=100, samples=10):
         print(f"Repetition No. {i}")
     pbar.close()
     data = batch_run.get_model_vars_dataframe()
-    data.to_csv(f"{save}\\test_data.csv")
+    data.to_csv(save)
     return data
 
 def clean_data(data, save):
@@ -132,32 +132,33 @@ def plot_sensitivity_order(data,problem, new_path):
 
 if __name__ == "__main__":
     SAVE = "D:\\ABM\\abm-project\\continuous_model\\sensitivity_analysis"
-    # import os
+    import os
     # import numpy as np
     import warnings
+    # from continuous_model.config import *
     warnings.filterwarnings('ignore')
-    # os.chdir(SAVE)
+    os.chdir(SAVE)
     groups = np.arange(os.cpu_count())
     problem = {
         'num_vars': 2,
-        'names': ['p_storm', 'storm_duration'], #, 'n_resources'],
-        'bounds': [[0.2, 0.3], [5, 10]],  #, [1,5]],
+        'names': ['clust_coeff'], #, 'n_resources'],
+        'bounds': [[0.8, 0.9]],  #, [1,5]],
         'groups':[f"G{i}" for i in groups],
     }
     collected_df = []
     for i in range(5):
-        each_df = create_data(problem, save = SAVE)
+        each_df = create_data(problem, save = "03-07 data_iter_{}.csv".format(i), rep=1, steps=200, samples=1)
         collected_df.append(each_df)
     data = pd.concat(collected_df)
     print("Data Collected")
     # Save cleaned data
-    cleaned_data = clean_data(data, save={SAVE})
-    print("Data Cleaned")
-    # Analyze the data
-    Si = analyse(cleaned_data, problem)
-    print("Data Analysed")
-    # Plot the data
-    sensitivity_plot = plot_sensitivity_order(Si, problem, new_path="test")
+    # cleaned_data = clean_data(data, save={SAVE})
+    # print("Data Cleaned")
+    # # Analyze the data
+    # Si = analyse(cleaned_data, problem)
+    # print("Data Analysed")
+    # # Plot the data
+    # sensitivity_plot = plot_sensitivity_order(Si, problem, new_path="test")
 
 
 

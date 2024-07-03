@@ -24,10 +24,14 @@ from random import shuffle
 class ForagerModel(Model):
     def __init__(
         self,
-        model_config: ModelConfig,
-        hive_config: HiveConfig,
-        beeswarm_config: BeeSwarmConfig,
-        resource_config: ResourceConfig,
+        clust_coeff ,
+        n_clusters = 2,
+        model_config = ModelConfig(),
+        hive_config =  HiveConfig(),
+        beeswarm_config = BeeSwarmConfig(),
+        resource_config = ResourceConfig(),
+        # n_resources,
+        # n_clusters: ModelConfig.n_clusters,
         **kwargs
     ):
         super().__init__()
@@ -53,8 +57,14 @@ class ForagerModel(Model):
         self.storm_duration = model_config.storm_duration_default  # duration of the storm
         self.storm_time_passed = 0  # Time duration of storm thus far
 
+        # Parameters to vary
+        self.n_resources = model_config.n_resource_sites
+        self.n_clusters = n_clusters
+        self.clust_coeff = clust_coeff
+
         self.setup_datacollector(model_config.n_hives)
-        hive_locations, resource_locations = self.init_space(self.size, self.size, model_config.n_resource_sites, model_config.n_hives)
+        # hive_locations, resource_locations = self.init_space(self.size, self.size, n_resources, model_config.n_hives)
+        hive_locations, resource_locations = self.cluster_resources(self.size,  n_resources=self.n_resources, n_clusters = self.n_clusters, clust_coeff=self.clust_coeff)
         self.make_agents(hive_locations, model_config.n_beeswarms, resource_locations)
 
     def inspect_setup(self):
@@ -81,7 +91,7 @@ class ForagerModel(Model):
         }
 
         # Dynamically add nectar in hives
-        for i in range(n_hives):
+        for i in range(0, n_hives):
             model_reporters[f'Hive ({i+1}) stock 🍯'] = lambda mod: nectar_in_hives(mod)[i]
 
         agent_reporters = {}
@@ -164,4 +174,45 @@ class ForagerModel(Model):
             # for 1 hive, place at center
             hive_location = [[width/2, height/2]]
         return hive_location, resource_location
+
+    @staticmethod
+    def cluster_resources(size, n_resources, n_clusters, clust_coeff, default_dist=20):
+        """Cluster resources in the space."""
+        resource_location = []
+
+        # Generate cluster centers
+        cluster_centers = np.random.randint(0, size, size=(n_clusters, 2))
+
+        # Calculate the number of clustered resources
+        clustered_resources = int(n_resources * clust_coeff)
+        random_resources = n_resources - clustered_resources
+
+        # Generate resource_location around cluster centers
+        for center in cluster_centers:
+            resource_location.append(tuple(center))
+            for _ in range(int(clustered_resources / n_clusters)):
+                point = center + np.random.randn(2) * default_dist # (to spread out the resources)
+                x, y = point
+
+                while x < 0 or y < 0:
+                    point = center + np.random.randn(2) * default_dist  # (to spread out the resources)
+                    x, y = point
+            resource_location.append((point[0], point[1]))
+
+        # Generate remaining resource_location randomly in the grid
+        random_points = np.random.randint(0, size, size=(random_resources, 2))
+        for point in random_points:
+            resource_location.append((point[0], point[1]))
+
+        # for 1 hive, place at center
+        hive_location = [(size / 2, size / 2)]
+
+        # Ensure the total number of resources is exactly n_resources
+        resource_location = resource_location[:n_resources]
+
+        print(len(resource_location))
+        return hive_location, resource_location
+
+
+
 

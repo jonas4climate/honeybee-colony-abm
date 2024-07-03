@@ -62,4 +62,6 @@ class ModelConfig:
         self.storm_duration_default = kwargs.get('storm_duration_default', DAY) # (in s)
         self.n_beeswarms = kwargs.get('n_beeswarms', 500)                       # (count)
         self.n_hives = kwargs.get('n_hives', 1)                                 # (count)
-        self.n_resource_sites = kwargs.get('n_resource_sites', 10)              # (count)
+        self.n_resource_sites = kwargs.get('n_resources', 10)              # (count)
+        self.n_clusters = kwargs.get('n_clusters', 2)                          # (count)
+        self.clust_coeff = kwargs.get('clust_coeff', 0.7)                       # Cluster coefficient
