@@ -32,10 +32,6 @@ class ForagerModel(Model):
     ):
         super().__init__()
 
-        # Override config with visualization input options if passed on
-        for key, value in kwargs.items():
-            setattr(model_config, key, value)
-
         self.size = model_config.size  # side length of the square-shaped continuous space
         self.n_agents_existed = 0  # counter for all the agents that were added to the model
         self.dt = model_config.dt  # Time step in seconds
@@ -52,6 +48,10 @@ class ForagerModel(Model):
         self.p_storm = model_config.p_storm_default  # probabilitiy of a storm occuring in a day
         self.storm_duration = model_config.storm_duration_default  # duration of the storm
         self.storm_time_passed = 0  # Time duration of storm thus far
+
+        # Override config with visualization input options if passed on
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
         self.setup_datacollector(model_config.n_hives)
         hive_locations, resource_locations = self.init_space(self.size, self.size, model_config.n_resource_sites, model_config.n_hives)
