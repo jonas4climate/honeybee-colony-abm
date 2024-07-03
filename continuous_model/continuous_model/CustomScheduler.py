@@ -1,4 +1,4 @@
-from mesa.time import RandomActivation
+from mesa.time import RandomActivation, BaseScheduler
 from .Bee import BeeSwarm
 from .Hive import Hive
 from .Resource import Resource
@@ -38,9 +38,3 @@ class CustomScheduler(RandomActivation):
         # agent_type = type(agent)
         for agent_key in agent_keys:
             self.all_agents[agent][agent_key].step()
-
-    def get_bee_count(self) -> int:
-        return len(self.all_agents[BeeSwarm].values())
-
-
-
