@@ -48,6 +48,7 @@ class ForagerModel(Model):
         self.p_storm = model_config.p_storm_default  # probabilitiy of a storm occuring in a day
         self.storm_duration = model_config.storm_duration_default  # duration of the storm
         self.storm_time_passed = 0  # Time duration of storm thus far
+        self.n_beeswarms_initial = model_config.n_beeswarms
 
         # Override config with visualization input options if passed on
         for key, value in kwargs.items():
@@ -55,7 +56,7 @@ class ForagerModel(Model):
 
         self.setup_datacollector(model_config.n_hives)
         hive_locations, resource_locations = self.init_space(self.size, self.size, model_config.n_resource_sites, model_config.n_hives)
-        self.make_agents(hive_locations, model_config.n_beeswarms, resource_locations)
+        self.make_agents(hive_locations, self.n_beeswarms_initial, resource_locations)
 
     def inspect_setup(self):
         visualize_scent_scale(get_scent_scale(self))

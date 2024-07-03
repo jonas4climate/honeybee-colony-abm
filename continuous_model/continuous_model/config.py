@@ -21,7 +21,7 @@ class BeeSwarmConfig:
         self.p_nectar_communication = kwargs.get('p_nectar_communication', 0.02)    # (probability / s) | probability to communicate hive nectar level to other bees
         self.exploring_incentive =kwargs.get('exploring_incentive', 0.1)            # Lambda parameter in exponential distribution going into exploration state
 
-        self.bee_swarm_size =kwargs.get('bee_swarm_size', 20)                                           # (count) | Number of bees represented by a single BeeSwarm agent
+        self.bee_swarm_size =kwargs.get('bee_swarm_size', 300)                                          # (count) | Number of bees represented by a single BeeSwarm agent
         self.carrying_capacity = kwargs.get('carrying_capacity', 30*MILLIGRAMM * self.bee_swarm_size)   # (in kg) = 30mg per bee | Amount of resources a bee swarm can carry
         self.scent_scale_mean = kwargs.get('scent_scale_mean', 0.5)                                     # (scale) = on average 50% more focused on following scent
         self.scent_scale_std = kwargs.get('scent_scale_std', 2)                                         # (scale)
@@ -76,6 +76,6 @@ class ModelConfig:
         self.dt = kwargs.get('dt', MINUTE)                                      # (in s)
         self.p_storm_default = kwargs.get('p_storm_default', 1/(10*DAY))        # (probability / s) = on average every 10 days
         self.storm_duration_default = kwargs.get('storm_duration_default', DAY) # (in s)
-        self.n_beeswarms = kwargs.get('n_beeswarms', 500)                       # (count)
+        self.n_beeswarms = kwargs.get('n_beeswarms', 100)                       # (count)
         self.n_hives = kwargs.get('n_hives', 1)                                 # (count)
         self.n_resource_sites = kwargs.get('n_resource_sites', 10)              # (count)
