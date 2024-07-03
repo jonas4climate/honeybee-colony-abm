@@ -318,7 +318,6 @@ class BeeSwarm(Agent):
             extract_amount = min(resource.quantity, max_load_capacity)
             self.load = extract_amount
             resource.quantity -= extract_amount
-            # print(f'Resource quantity: {resource.quantity} | {self} gathered {extract_amount}')
 
     def update_properties(self):
         """Updates the properties of the bee."""
@@ -330,20 +329,16 @@ class BeeSwarm(Agent):
     def manage_death(self):
         """Handles tiny bee deaths."""
         if self.fed == 0:  # Death by starvation
-            print("Bee died by starvation")
             return self._remove_agent()
 
         if self.age >= self.max_age:  # Death by age
-            print("Bee died by age")
             return self._remove_agent()
 
         if (self.model.weather == Weather.STORM and self.is_outside):  # Death by storm
             if random() < self.p_death_by_storm * self.model.dt:
-                print("Bee died by storm")
                 return self._remove_agent()
         
         if (self.is_outside and random() < self.p_death_by_outside_risk * self.model.dt):
-            print("Bee died by outside risk")
             return self._remove_agent()
 
     def _remove_agent(self):
