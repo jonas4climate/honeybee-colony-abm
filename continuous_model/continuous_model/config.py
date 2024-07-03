@@ -1,8 +1,6 @@
 import numpy as np
 
 from continuous_model.BeeState import BeeState
-from continuous_model.Hive import Hive
-from continuous_model.Resource import Resource
 
 # Unit utility
 MINUTE = 60

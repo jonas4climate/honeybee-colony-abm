@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum
 from typing import Optional, Tuple
 
 from mesa import Agent, Model
@@ -9,7 +10,15 @@ from scipy.stats import beta, expon
 
 from .Resource import Resource
 from .Weather import Weather
-from .BeeState import BeeState
+
+
+class BeeState(Enum):
+    RESTING = "resting"
+    RETURNING = "returning"
+    EXPLORING = "exploring"
+    CARRYING = "carrying"
+    DANCING = "dancing"
+    FOLLOWING = "following"
 
 
 class BeeSwarm(Agent):
@@ -120,6 +129,9 @@ class BeeSwarm(Agent):
         else: # Biased random walk
             attraction_current = self.scent_strength_at_pos(self.pos, resources)
             attraction_new = self.scent_strength_at_pos(newpos, resources)
+
+            assert attraction_current > 0, f"Current attraction is {attraction_current} but must be > 0"
+            assert 1 + self.scent_scale > 0, f"Scent scale is {self.scent_scale} but must be > 0"
             ratio = attraction_new / (attraction_current * (1 + self.scent_scale))
     
             # Metropolis algorithm
@@ -318,6 +330,9 @@ class BeeSwarm(Agent):
             extract_amount = min(resource.quantity, max_load_capacity)
             self.load = extract_amount
             resource.quantity -= extract_amount
+            if not resource.persistent and resource.quantity <= 0:
+                resource._remove_agent()
+            # print(f'Resource quantity: {resource.quantity} | {self} gathered {extract_amount}')
 
     def update_properties(self):
         """Updates the properties of the bee."""
@@ -329,16 +344,20 @@ class BeeSwarm(Agent):
     def manage_death(self):
         """Handles tiny bee deaths."""
         if self.fed == 0:  # Death by starvation
+            # print("Bee died by starvation")
             return self._remove_agent()
 
         if self.age >= self.max_age:  # Death by age
+            # print("Bee died by age")
             return self._remove_agent()
 
         if (self.model.weather == Weather.STORM and self.is_outside):  # Death by storm
             if random() < self.p_death_by_storm * self.model.dt:
+                # print("Bee died by storm")
                 return self._remove_agent()
         
         if (self.is_outside and random() < self.p_death_by_outside_risk * self.model.dt):
+            # print("Bee died by outside risk")
             return self._remove_agent()
 
     def _remove_agent(self):

@@ -5,6 +5,8 @@ import math
 
 from mesa import Agent, Model
 
+from .config import ResourceConfig
+
 class ResourceType(Enum):
     NECTAR = "nectar"
 
@@ -35,17 +37,20 @@ class Resource(Agent):
         else:
             self.radius = math.sqrt(self.quantity / self.default_quantity) * self.default_radius
 
-        if not self.persistent and self.quantity <= 0:
-            # TODO: Mesa provides functionality to do that more efficiently
-            self.pos = None
-            self.model.n_agents_existed -= 1
-            self.model.space.remove_agent(self)
-            self.model.schedule.remove(self)
-            self.model.agents.remove(self) # All agents maintained in scheduler
-            self.remove()
+        # Resource removal when quantity is 0 is handled in resource extraction
 
     def produce_nectar(self):
         self.quantity += self.nectar_production_rate*self.model.dt
 
             # TODO: Manage the fact that bees are trying to go to a removed resource
             # self.model.kill_agents.append(self)
+
+    def _remove_agent(self):
+        """Helper for removing agents."""
+        # TODO: Mesa provides functionality to do that more efficiently
+        self.pos = None
+        self.model.n_agents_existed -= 1
+        self.model.space.remove_agent(self)
+        self.model.schedule.remove(self)
+        self.model.agents.remove(self)
+        self.remove()
