@@ -4,22 +4,24 @@ Jonas, Bartek and Pablo
 Based on the PDF Pablo sent on Saturday.
 """
 
-from mesa import  Agent, Model
-from mesa.space import ContinuousSpace
-from mesa.datacollection import DataCollector
-from mesa.time import RandomActivation
-
-import numpy as np
-from typing import List, Tuple
-
-from .Analytics import *
-from .Bee import BeeSwarm, BeeState
-from .config import *
-from .Hive import Hive
-from .Resource import Resource
-from .Weather import Weather
-from .CustomScheduler import CustomScheduler
+from enum import Enum
 from random import shuffle
+from .CustomScheduler import CustomScheduler
+from .Weather import Weather
+from .Resource import Resource
+from .Hive import Hive
+from .config import *
+from .Bee import BeeSwarm, BeeState
+from .Analytics import *
+from typing import List, Tuple
+import numpy as np
+from mesa.time import RandomActivation
+from mesa.datacollection import DataCollector
+from mesa.space import ContinuousSpace
+from mesa import Agent, Model
+import warnings
+warnings.simplefilter(action='ignore', category=UserWarning)
+
 
 class ForagerModel(Model):
     def __init__(
@@ -28,6 +30,7 @@ class ForagerModel(Model):
         hive_config: HiveConfig,
         beeswarm_config: BeeSwarmConfig,
         resource_config: ResourceConfig,
+        distance_from_hive = None,
         **kwargs
     ):
         super().__init__()
@@ -36,16 +39,19 @@ class ForagerModel(Model):
         self.n_agents_existed = 0  # counter for all the agents that were added to the model
         self.dt = model_config.dt  # Time step in seconds
 
-        self.hive_config = hive_config # Pass on when creating Hive agents
-        self.beeswarm_config = beeswarm_config # Pass on when creating Bee agents
+        self.hive_config = hive_config  # Pass on when creating Hive agents
+        self.beeswarm_config = beeswarm_config  # Pass on when creating Bee agents
         self.resource_config = resource_config
 
-        self.space = ContinuousSpace(self.size, self.size, False)  # continous space container from mesa package
-        self.schedule = CustomScheduler(self)  # Scheduler from Mesa's time module
+        # continous space container from mesa package
+        self.space = ContinuousSpace(self.size, self.size, False)
+        # Scheduler from Mesa's time module
+        self.schedule = CustomScheduler(self)
 
         # Weather parameters
         self.weather = Weather.NORMAL  # weather object
-        self.p_storm = model_config.p_storm_default  # probabilitiy of a storm occuring in a day
+        # probabilitiy of a storm occuring in a day
+        self.p_storm = model_config.p_storm_default
         self.storm_duration = model_config.storm_duration_default  # duration of the storm
         self.storm_time_passed = 0  # Time duration of storm thus far
 
@@ -54,8 +60,10 @@ class ForagerModel(Model):
             setattr(self, key, value)
 
         self.setup_datacollector(model_config.n_hives)
-        hive_locations, resource_locations = self.init_space(self.size, self.size, model_config.n_resource_sites, model_config.n_hives)
-        self.make_agents(hive_locations, model_config.n_beeswarms, resource_locations)
+        hive_locations, resource_locations = self.init_space(
+            self.size, self.size, model_config.n_resource_sites, model_config.n_hives, model_config.space_setup, distance_from_hive)
+        self.init_agents_in_space(
+            hive_locations, model_config.n_beeswarms, resource_locations)
 
     def inspect_setup(self):
         visualize_scent_scale(get_scent_scale(self))
@@ -82,7 +90,8 @@ class ForagerModel(Model):
 
         # Dynamically add nectar in hives
         for i in range(n_hives):
-            model_reporters[f'Hive ({i+1}) stock 🍯'] = lambda mod: nectar_in_hives(mod)[i]
+            model_reporters[f'Hive ({
+                i+1}) stock 🍯'] = lambda mod: nectar_in_hives(mod)[i]
 
         agent_reporters = {}
 
@@ -105,31 +114,28 @@ class ForagerModel(Model):
         self.n_agents_existed += 1
 
         return agent
-    
+
     def create_agents(self, agent_type, n, **kwargs):
         agents = [self.create_agent(agent_type, **kwargs) for _ in range(n)]
         return agents
-    
-    def make_agents(self, hive_locations, n_bees_per_hive, resource_locations):
-        # assert len(hive_locations) == n_hives
-        # assert len(resource_locations) == n_resources
-        
-        # Create Hives with their corresponding Bee agents
+
+    def init_agents_in_space(self, hive_locations, n_bees_per_hive, resource_locations):
+
         for i in range(len(hive_locations)):
             current_hive = self.create_agent(Hive, location=hive_locations[i])
             for _ in range(n_bees_per_hive):
                 self.create_agent(BeeSwarm, hive=current_hive)
-        
-        # Create Resources
+
         for i in range(len(resource_locations)):
             self.create_agent(Resource, location=resource_locations[i])
 
     def step(self):
         self.schedule.step()
         self.manage_weather_events()
-            
+
         # TODO: Add interaction of agents (?)
-        self.datacollector.collect(self)    # Record step variables in the DataCollector
+        # Record step variables in the DataCollector
+        self.datacollector.collect(self)
 
     def kill_agent(self, agent):
         self.schedule.remove(agent)
@@ -149,18 +155,22 @@ class ForagerModel(Model):
             self.weather = Weather.STORM
 
     @staticmethod
-    def init_space(width, height, n_resources, n_hives):
+    def init_space(width, height, n_resources, n_hives, space_setup, distance_from_hive):
         """Initialize the space with resources and hives."""
-        positions = [(x, y) for x in range(0, width, 10) for y in range(0, height, 10)]
-
-        shuffle(positions)
-
-        resource_location = positions[0:n_resources]
-        if n_hives != 1:
-            i_hives = n_resources + n_hives
-            hive_location = positions[n_resources:i_hives]
-        else:
-            # for 1 hive, place at center
-            hive_location = [[width/2, height/2]]
-        return hive_location, resource_location
-
+        if space_setup == SpaceSetup.RANDOM:
+            positions = [(x, y) for x in range(0, width, 10)
+                         for y in range(0, height, 10)]
+            shuffle(positions)
+            resource_locations = positions[0:n_resources]
+            if n_hives != 1:
+                i_hives = n_resources + n_hives
+                hive_locations = positions[n_resources:i_hives]
+            else:
+                # for 1 hive, place at center
+                hive_locations = [[width/2, height/2]]
+            return hive_locations, resource_locations
+        elif space_setup == SpaceSetup.FIXED_DISTANCE_FROM_HIVE:
+            hive_locations = [[width/2, height/2]]
+            assert distance_from_hive != None, "Distance from hive must be specified in this mode."
+            resource_locations = [(width/2 + distance_from_hive, height/2)]
+            return hive_locations, resource_locations

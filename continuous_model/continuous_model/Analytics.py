@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from .Bee import BeeSwarm, BeeState
-from .Model import Model
 from .Hive import Hive
 from .CustomScheduler import CustomScheduler
 
@@ -50,4 +49,12 @@ def visualize_scent_scale(scent_scales):
     plt.xlabel("Scent scale")
     plt.ylabel("Number of bees")
     plt.title("Scent scale distribution of all bees")
+    plt.show()
+
+def visualize_bee_count(bee_count: list):
+    plt.figure()
+    plt.plot(bee_count)
+    plt.xlabel('Time')
+    plt.ylabel('Bee count')
+    plt.title('Bee count over time')
     plt.show()

@@ -1,4 +1,5 @@
 import numpy as np
+from enum import Enum
 
 # Unit utility
 MINUTE = 60
@@ -8,6 +9,10 @@ WEEK = DAY*7
 MONTH = WEEK*4
 GRAMM = 1e-3
 MILLIGRAMM = 1e-6
+
+class SpaceSetup(Enum):
+    RANDOM = 'random' # Resources are placed randomly in the space
+    FIXED_DISTANCE_FROM_HIVE = 'fixed distance from hive' # Resources are placed at a fixed distance from the hive (Experiment 1)
 
 class BeeSwarmConfig:
     def __init__(self, **kwargs):
@@ -33,6 +38,9 @@ class BeeSwarmConfig:
         self.storm_abort_factor = kwargs.get('storm_abort_factor', 100)                                 # (scale) = 100 times more likely to abort during storm TODO: calibrate further
         self.feed_storage = kwargs.get('feed_storage', 0.01*GRAMM * self.bee_swarm_size)                # (in kg) = 0.01g per bee
 
+    def __str__(self):
+        return 'BeeSwarmConfig:\n' + '\n'.join([f'- {key}: {value}' for key, value in self.__dict__.items()])
+
 class HiveConfig:
     def __init__(self, **kwargs):
         self.max_nectar_capacity = kwargs.get('max_nectar_capacity', 20)       # (in kg) | NOTE: Quantity approximately needed to survive winter, given in "Wisdom of the Hive" book.
@@ -41,6 +49,9 @@ class HiveConfig:
         self.init_young_bees = kwargs.get('init_young_bees', 0)                # (count) = not used
         self.p_new_forager: float = kwargs.get('p_new_forager', 0)             # (probability / s) = not used
 
+    def __str__(self):
+        return 'HiveConfig\n:' + '\n'.join([f'- {key}: {value}' for key, value in self.__dict__.items()])
+
 class ResourceConfig:
     def __init__(self, **kwargs):
         self.default_quantity = kwargs.get('default_quantity', 1)              # (in kg)
@@ -48,11 +59,17 @@ class ResourceConfig:
         self.nectar_production_rate = kwargs.get('nectar_production_rate', 0)  # 2e-7 * np.pi * DEFAULT_RADIUS**2 / (60*60*24) # (in kg/s) | stems from this formula for flower nectar production: growth = 0.2 mg / (m^2 * day) from paper (https://besjournals.onlinelibrary.wiley.com/doi/10.1111/1365-2745.13598)
         self.default_persistent = kwargs.get('default_persistent', False)      # whether resources can run out
 
+    def __str__(self):
+        return 'ResourceConfig:\n' + '\n'.join([f'- {key}: {value}' for key, value in self.__dict__.items()])
+
 class VisualConfig:
     def __init__(self, **kwargs):
         self.render_size = kwargs.get('render_size', 600)                       # Grid size for JS visualization
         self.hive_radius = kwargs.get('hive_radius', 0.03*self.render_size)     # Hive radius for JS visualization
         self.bee_radius = kwargs.get('bee_radius', 0.002*self.render_size)      # Bee radius for JS visualization
+
+    def __str__(self):
+        return 'VisualConfig:\n' + '\n'.join([f'- {key}: {value}' for key, value in self.__dict__.items()])
 
 class ModelConfig:
     def __init__(self, **kwargs):
@@ -63,3 +80,7 @@ class ModelConfig:
         self.n_beeswarms = kwargs.get('n_beeswarms', 500)                       # (count)
         self.n_hives = kwargs.get('n_hives', 1)                                 # (count)
         self.n_resource_sites = kwargs.get('n_resource_sites', 10)              # (count)
+        self.space_setup = kwargs.get('space_setup', SpaceSetup.RANDOM)         # SpaceSetup enum
+
+    def __str__(self):
+        return 'ModelConfig:\n' + '\n'.join([f'- {key}: {value}' for key, value in self.__dict__.items()])
