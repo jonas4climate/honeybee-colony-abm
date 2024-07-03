@@ -29,9 +29,7 @@ class BeeSwarm(Agent):
         model: Model,  # model the agent belongs to
         hive,  # the Hive the Bee agent belongs to
         location: Optional[Tuple[float, float]] = None, # agent's current position
-        fov: float = BeeSwarmConfig.FIELD_OF_VIEW,  # radius around the agent in which it can perceive the environment
         age: float = 0,  # agent's current age (which has influence on their activity)
-        fed: float = BeeSwarmConfig.FEED_STORAGE,
         state: BeeState = BeeState.RESTING,  # Bee's current activity
         wiggle: bool = False,  # whether the Bee agent is currently wiggle dancing
     ):
@@ -39,17 +37,32 @@ class BeeSwarm(Agent):
         self.hive = hive
         self.pos = location if location is not None else hive.pos
         assert self.pos is not None, f"Bee agent {self} initialized with None position"
-
+    
         self.state = state
         self.wiggle = wiggle
         self.wiggle_destiny: Optional[Tuple[float, float]] = None
         self.dancing_time = 0
-
         self.age = age
-        self.fov = fov
-        self.fed = fed
+
+        beeswarm_config = model.beeswarm_config
+        
+        self.fov = beeswarm_config.field_of_view
+        self.fed = beeswarm_config.feed_storage
+        self.feed_storage = beeswarm_config.feed_storage
+        self.perception = beeswarm_config.perception
+        self.speed = beeswarm_config.speed
+        self.p_nectar_inspection = beeswarm_config.p_nectar_inspection
+        self.exploring_incentive = beeswarm_config.exploring_incentive
+        self.p_abort = beeswarm_config.p_abort
+        self.storm_abort_factor = beeswarm_config.storm_abort_factor
+        self.carrying_capacity = beeswarm_config.carrying_capacity
+        self.p_follow_wiggle_dance = beeswarm_config.p_follow_wiggle_dance
+        self.starvation_speed = beeswarm_config.starvation_speed
+        self.max_age = beeswarm_config.max_age
+        self.p_death_by_storm = beeswarm_config.p_death_by_storm
+        self.p_death_by_outside_risk = beeswarm_config.p_death_by_outside_risk
         self.load = 0.0  # agent amount of resources its carrying
-        self.scent_scale = max(normal(loc=BeeSwarmConfig.SCENT_SCALE_MEAN, scale=BeeSwarmConfig.SCENT_SCALE_STD), 0)
+        self.scent_scale = max(normal(loc=beeswarm_config.scent_scale_mean, scale=beeswarm_config.scent_scale_std), 0)
 
         self.inspect_hive()
 
@@ -73,14 +86,14 @@ class BeeSwarm(Agent):
         return scent_intrigue
     
     def inspect_hive(self):
-        mu = self.hive.nectar / HiveConfig.MAX_NECTAR_CAPACITY
+        mu = self.hive.nectar / self.hive.max_nectar_capacity
         if mu == 0:
             mu = 1e-24
         elif mu == 1:
             mu = 1 - 1e-24
 
-        a = BeeSwarmConfig.PERCEPTION * (mu)
-        b = BeeSwarmConfig.PERCEPTION * (1 - mu)
+        a = self.perception * (mu)
+        b = self.perception * (1 - mu)
         
         assert a > 0, f"Alpha parameter in Beta distribution is {a} but must be positive"
         assert b > 0, f"Beta parameter in Beta distribution is {b} but must be positive"
@@ -91,14 +104,14 @@ class BeeSwarm(Agent):
         if np.isclose(b, 0):
             b += np.finfo(np.float32).eps
 
-        self.perceived_nectar = beta.rvs(a, b) * HiveConfig.MAX_NECTAR_CAPACITY
+        self.perceived_nectar = beta.rvs(a, b) * self.hive.max_nectar_capacity
 
 
     def move_random_exploration(self, epsilon=1e-12):
         """
         Moves randomly in x and y in the interval [-max_movement,max_movement]
         """
-        distance = BeeSwarmConfig.SPEED * self.model.dt
+        distance = self.speed * self.model.dt
 
         # Choose a random point with radius equivalent to speed times time step
         angle = np.random.uniform(0, 2 * np.pi)
@@ -168,7 +181,7 @@ class BeeSwarm(Agent):
         dy = destiny_agent.pos[1] - self.pos[1]
 
         distance = (dx**2 + dy**2) ** 0.5
-        move_distance = BeeSwarmConfig.SPEED * self.model.dt
+        move_distance = self.speed * self.model.dt
         if distance > move_distance:
             angle = atan2(dy, dx)
             new_x = self.pos[0] + move_distance * cos(angle)
@@ -204,10 +217,10 @@ class BeeSwarm(Agent):
         # assert (self.wiggle_destiny is None), (f"Bee cannot be resting and have a wiggle destiny at the same time (currently: {self.wiggle_destiny}, self.state: {self.state}). Location: {self.pos}, Hive_location: {self.hive.pos}.")
         assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
 
-        if random() < BeeSwarmConfig.P_NECTAR_INSPECTION*self.model.dt:
+        if random() < self.p_nectar_inspection*self.model.dt:
             # Inspect hive resources with fixed probability
             self.inspect_hive()
-        elif random() < BeeSwarmConfig.P_NECTAR_COMMUNICATION*self.model.dt:
+        elif random() < self.p_nectar_inspection*self.model.dt:
             # If not inspecting, communicate the information with random nearby bee
             nearby_bees = self.model.space.get_neighbors(self.pos, self.fov)
             nearby_bees = [bee for bee in nearby_bees if isinstance(bee, BeeSwarm) and bee != self]
@@ -219,7 +232,7 @@ class BeeSwarm(Agent):
 
         # Start exploring based on exponential distribution
         # TODO: Normalize nectar capacity and perceived nectar to one unit
-        if random() < expon.sf(self.perceived_nectar/HiveConfig.MAX_NECTAR_CAPACITY, scale=BeeSwarmConfig.EXPLORING_INCENTIVE):
+        if random() < expon.sf(self.perceived_nectar/self.hive.max_nectar_capacity, scale=self.exploring_incentive):
             self.state = BeeState.EXPLORING
 
     def handle_returning(self):
@@ -229,9 +242,9 @@ class BeeSwarm(Agent):
             self.move_towards_hive()
 
     def handle_exploring(self):
-        p_abort = BeeSwarmConfig.P_ABORT * self.model.dt
+        p_abort = self.p_abort * self.model.dt
         if self.model.weather == Weather.STORM:
-            p_abort *= BeeSwarmConfig.STORM_ABORT_FACTOR
+            p_abort *= self.storm_abort_factor
         if random() < p_abort:
             self.state = BeeState.RETURNING
         else:
@@ -243,11 +256,11 @@ class BeeSwarm(Agent):
         # Instantly gather resources
         # TODO: If we don't vary the load, this variable can be deleted
         if self.load == 0:
-            self.load = BeeSwarmConfig.CARRYING_CAPACITY
+            self.load = self.carrying_capacity
 
         # Fly back and deposit, then start dancing
         if self.is_close_to_hive():
-            self.hive.nectar = min(self.hive.nectar + self.load, HiveConfig.MAX_NECTAR_CAPACITY)
+            self.hive.nectar = min(self.hive.nectar + self.load, self.hive.max_nectar_capacity)
             
             self.load = 0
             self.wiggle = True
@@ -258,7 +271,7 @@ class BeeSwarm(Agent):
     def handle_dancing(self):
         self.dancing_time += self.model.dt
         # Rest if done dancing
-        if self.dancing_time >= BeeSwarmConfig.DANCING_TIME:
+        if self.dancing_time >= self.dancing_time:
             self.dancing_time = 0
             self.wiggle_destiny = None
             self.wiggle = False
@@ -271,9 +284,9 @@ class BeeSwarm(Agent):
             # wiggle_destiny is already set to resource location
 
         # TODO: instead have it be scale based on distance to resource (i.e. expected time taken to get there)
-        p_abort_following = BeeSwarmConfig.P_ABORT * self.model.dt
+        p_abort_following = self.p_abort * self.model.dt
         if self.model.weather == Weather.STORM:
-            p_abort_following *= BeeSwarmConfig.STORM_ABORT_FACTOR
+            p_abort_following *= self.storm_abort_factor
         if random() < p_abort_following:
             self.state = BeeState.EXPLORING
         else:
@@ -294,7 +307,7 @@ class BeeSwarm(Agent):
         )
         np.random.shuffle(wiggling_bees_in_fov)
         for wiggling_bee in wiggling_bees_in_fov:
-            if random() < BeeSwarmConfig.P_FOLLOW_WIGGLE_DANCE:
+            if random() < self.p_follow_wiggle_dance:
                 self.wiggle_destiny = wiggling_bee.wiggle_destiny
                 self.state = BeeState.FOLLOWING
                 return
@@ -310,7 +323,7 @@ class BeeSwarm(Agent):
                 return
             
     def extract(self, resource: Resource):
-        max_load_capacity = BeeSwarmConfig.CARRYING_CAPACITY
+        max_load_capacity = self.carrying_capacity
         if resource.persistent == True:
             self.load = max_load_capacity
         else:
@@ -322,7 +335,7 @@ class BeeSwarm(Agent):
     def update_properties(self):
         """Updates the properties of the bee."""
         self.fed = max(
-            self.fed - BeeSwarmConfig.FEED_STORAGE * BeeSwarmConfig.STARVATION_SPEED * self.model.dt, 0
+            self.fed - self.feed_storage * self.starvation_speed * self.model.dt, 0
         )  # ensure fed is not negative
         self.age += self.model.dt
 
@@ -332,16 +345,16 @@ class BeeSwarm(Agent):
             print("Bee died by starvation")
             return self._remove_agent()
 
-        if self.age >= BeeSwarmConfig.MAX_AGE:  # Death by age
+        if self.age >= self.max_age:  # Death by age
             print("Bee died by age")
             return self._remove_agent()
 
         if (self.model.weather == Weather.STORM and self.is_outside):  # Death by storm
-            if random() < BeeSwarmConfig.P_DEATH_BY_STORM * self.model.dt:
+            if random() < self.p_death_by_storm * self.model.dt:
                 print("Bee died by storm")
                 return self._remove_agent()
         
-        if (self.is_outside and random() < BeeSwarmConfig.P_DEATH_BY_OUTSIDE_RISK * self.model.dt):
+        if (self.is_outside and random() < self.p_death_by_outside_risk * self.model.dt):
             print("Bee died by outside risk")
             return self._remove_agent()
 

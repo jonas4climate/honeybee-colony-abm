@@ -14,7 +14,7 @@ from typing import List, Tuple
 
 from .Analytics import *
 from .Bee import BeeSwarm, BeeState
-from .config import ModelConfig
+from .config import *
 from .Hive import Hive
 from .Resource import Resource
 from .Weather import Weather
@@ -23,42 +23,44 @@ from random import shuffle
 
 class ForagerModel(Model):
     def __init__(
-        self, 
-        size: int, 
-        n_hives: int = ModelConfig.N_HIVES,
-        # hive_locations: List[Tuple[int, int]],
-        # n_resources: int,
-        # resource_locations: List[Tuple[int, int]],
-        n_resources: int = ModelConfig.N_RESOURCE_SITES,
-        n_bees_per_hive: int = ModelConfig.N_BEESWARMS,
-        dt: int = ModelConfig.DT,
-        p_storm: float = ModelConfig.P_STORM_DEFAULT, 
-        storm_duration: float = ModelConfig.STORM_DURATION_DEFAULT
+        self,
+        model_config: ModelConfig,
+        hive_config: HiveConfig,
+        beeswarm_config: BeeSwarmConfig,
+        resource_config: ResourceConfig,
+        **kwargs
     ):
         super().__init__()
 
-        self.size = size  # side length of the square-shaped continuous space
-        self.n_agents_existed = 0  # counter for all the agents that were added to the model
-        self.dt = dt  # Time step in seconds
+        # Override config with visualization input options if passed on
+        for key, value in kwargs.items():
+            setattr(model_config, key, value)
 
-        self.space = ContinuousSpace(size, size, False)  # continous space container from mesa package
+        self.size = model_config.size  # side length of the square-shaped continuous space
+        self.n_agents_existed = 0  # counter for all the agents that were added to the model
+        self.dt = model_config.dt  # Time step in seconds
+
+        self.hive_config = hive_config # Pass on when creating Hive agents
+        self.beeswarm_config = beeswarm_config # Pass on when creating Bee agents
+        self.resource_config = resource_config
+
+        self.space = ContinuousSpace(self.size, self.size, False)  # continous space container from mesa package
         self.schedule = CustomScheduler(self)  # Scheduler from Mesa's time module
 
         # Weather parameters
         self.weather = Weather.NORMAL  # weather object
-        self.p_storm = p_storm  # probabilitiy of a storm occuring in a day
-        self.storm_duration = storm_duration  # duration of the storm
+        self.p_storm = model_config.p_storm_default  # probabilitiy of a storm occuring in a day
+        self.storm_duration = model_config.storm_duration_default  # duration of the storm
         self.storm_time_passed = 0  # Time duration of storm thus far
 
-        self.setup_datacollector()
-        hive_locations, resource_locations = self.init_space(size, size, n_resources, n_hives)
-        self.make_agents(hive_locations, n_bees_per_hive, resource_locations)
-        # self.inspect_setup()
+        self.setup_datacollector(model_config.n_hives)
+        hive_locations, resource_locations = self.init_space(self.size, self.size, model_config.n_resource_sites, model_config.n_hives)
+        self.make_agents(hive_locations, model_config.n_beeswarms, resource_locations)
 
     def inspect_setup(self):
         visualize_scent_scale(get_scent_scale(self))
 
-    def setup_datacollector(self):
+    def setup_datacollector(self, n_hives):
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
         # TODO: Add method with % of each type of bee among all LIVING bees
         def get_weather(model):
@@ -79,7 +81,7 @@ class ForagerModel(Model):
         }
 
         # Dynamically add nectar in hives
-        for i in range(ModelConfig.N_HIVES):
+        for i in range(n_hives):
             model_reporters[f'Hive ({i+1}) stock 🍯'] = lambda mod: nectar_in_hives(mod)[i]
 
         agent_reporters = {}
