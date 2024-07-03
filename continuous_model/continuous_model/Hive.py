@@ -9,13 +9,12 @@ class Hive(Agent):
         self, 
         # id: int,  # unique identifier, required in mesa package
         model: Model,  # model the agent belongs to
-        location: Tuple[int, int]
     ):
         super().__init__(model.next_id(), model)
         hive_config = model.hive_config
         beeswarm_config = model.beeswarm_config
 
-        self.pos = location
+        self.pos = None
         self.radius = hive_config.default_radius
         self.nectar = hive_config.default_nectar
         self.young_bees = hive_config.init_young_bees
@@ -55,7 +54,7 @@ class Hive(Agent):
         print('A bee grew up to become a forager')
         self.young_bees -= 1
         self.nectar -= self.nectar_for_maturation
-        self.model.create_agent(BeeSwarm, hive=self)
+        self.model.create_agent(BeeSwarm, location=self.pos, hive=self)
         self.young_bees += 1
         self.model.n_agents_existed += 1
 

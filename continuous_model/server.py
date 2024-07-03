@@ -73,12 +73,12 @@ bee_number_plot = ChartModule([{"Label": "Bee count 🐝", "Color": "black"},
 
 
 
-prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": BeeSwarm.bee_colors[BeeState.RESTING]},
-                             {"Label": "returning 🔙", "Color": BeeSwarm.bee_colors[BeeState.RETURNING]},
-                             {"Label": "exploring 🗺️", "Color": BeeSwarm.bee_colors[BeeState.EXPLORING]},
-                             {"Label": "carrying 🎒", "Color": BeeSwarm.bee_colors[BeeState.CARRYING]},
-                             {"Label": "dancing 🪩", "Color": BeeSwarm.bee_colors[BeeState.DANCING]},
-                             {"Label": "following 🎯", "Color": BeeSwarm.bee_colors[BeeState.FOLLOWING]}])
+prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": VisualConfig.bee_colors[BeeState.RESTING]},
+                             {"Label": "returning 🔙", "Color": VisualConfig.bee_colors[BeeState.RETURNING]},
+                             {"Label": "exploring 🗺️", "Color": VisualConfig.bee_colors[BeeState.EXPLORING]},
+                             {"Label": "carrying 🎒", "Color": VisualConfig.bee_colors[BeeState.CARRYING]},
+                             {"Label": "dancing 🪩", "Color": VisualConfig.bee_colors[BeeState.DANCING]},
+                             {"Label": "following 🎯", "Color": VisualConfig.bee_colors[BeeState.FOLLOWING]}])
 
 bee_fed_plot = ChartModule([{"Label": "Average feed level of bees 🐝", "Color": "black"}])
 

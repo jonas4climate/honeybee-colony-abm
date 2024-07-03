@@ -91,24 +91,20 @@ class ForagerModel(Model):
             agent_reporters=agent_reporters
         )
 
-    def create_agent(self, agent_type, **kwargs):
+    def create_agent(self, agent_type, location, **kwargs):
         # TODO: fix, we are getting warnings about an agent being placed twice / having a position already
         agent = agent_type(self, **kwargs)
         # self.agents.append(agent)
-
+        
         assert agent != None, f"Agent {agent} is None"
-        assert agent.pos != None, f"Agent {agent} has None position"
+        self.space.place_agent(agent, location)
 
-        self.space.place_agent(agent, agent.pos)
+        assert agent.pos != None, f"Agent {agent} has None position"
 
         self.schedule.add(agent)
         self.n_agents_existed += 1
 
         return agent
-    
-    def create_agents(self, agent_type, n, **kwargs):
-        agents = [self.create_agent(agent_type, **kwargs) for _ in range(n)]
-        return agents
     
     def make_agents(self, hive_locations, n_bees_per_hive, resource_locations):
         # assert len(hive_locations) == n_hives
@@ -118,7 +114,7 @@ class ForagerModel(Model):
         for i in range(len(hive_locations)):
             current_hive = self.create_agent(Hive, location=hive_locations[i])
             for _ in range(n_bees_per_hive):
-                self.create_agent(BeeSwarm, hive=current_hive)
+                self.create_agent(BeeSwarm, location=hive_locations[i], hive=current_hive)
         
         # Create Resources
         for i in range(len(resource_locations)):

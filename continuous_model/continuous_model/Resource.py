@@ -12,11 +12,10 @@ class Resource(Agent):
     def __init__(
             self, 
             model: 'Model',
-            location: Tuple[int, int],
             resource_type: ResourceType = ResourceType.NECTAR
         ):
         super().__init__(model.next_id(), model)
-        self.pos = location  # agent's current position, x and y coordinate
+        self.pos = None  # agent's current position, x and y coordinate
         self.type = resource_type  # type of the resource
         resource_config = model.resource_config
         self.quantity = resource_config.default_quantity  # (in kg) how much of the resource is left
