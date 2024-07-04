@@ -309,7 +309,7 @@ class BeeSwarm(Agent):
         np.random.shuffle(dancing_bees)
         for bee in list(dancing_bees):
             if self.is_bee_in_sight(bee) and random() < self.p_follow_wiggle_dance:
-                self.wiggle_destiny = wiggling_bee.wiggle_destiny
+                self.wiggle_destiny = bee.wiggle_destiny
                 self.state = BeeState.FOLLOWING
                 return
 
