@@ -51,6 +51,30 @@ def run_simulation(params):
     survival_ratio = model.datacollector.model_vars['Bee count 🐝'][-1] / n_beeswarms
     return survival_ratio
 
+def visualize_results(data, name: str, cmap):
+    step = data.shape[2] // resolution
+
+    fig, axs = plt.subplots(1, resolution, figsize=(16, 4.5), sharey='row')
+    images = []
+    for i, ax in enumerate(axs):
+        slice_idx = i * step
+        slice_data = data[:, :, slice_idx]
+        img = ax.imshow(slice_data, cmap=cmap)
+        images.append(img)
+        ax.set_title(f'abort probability (per min) = {p_abort_params[slice_idx]*MINUTE:.2f}', fontsize=11)
+        ax.set_xlabel('storm probability (per hour)')
+        ax.set_xticks(np.arange(resolution))
+        ax.set_xticklabels([f'{p_storm*HOUR:.2f}' for p_storm in p_storm_params])
+        if i == 0:
+            ax.set_ylabel('distance from hive (in km)')
+        ax.set_yticks(np.arange(resolution))
+        ax.set_yticklabels([f'{dist_from_hive/1000:.2f}' for dist_from_hive in res_dist_from_hive_params])
+
+    fig.colorbar(images[-1], ax=axs, orientation='horizontal', fraction=.1)
+    plt.suptitle(f'{name} of survival ratios as a function of resource distance, storm and abort probabilities after {t_steps*dt/DAY} day(s)')
+    plt.savefig(f'../assets/images/bee_survival_ratio_3d_{name}.png')
+    plt.show()
+
 if __name__ == '__main__':
     # Generate / Load results
     if not os.path.exists(mean_file):
@@ -72,25 +96,5 @@ if __name__ == '__main__':
         std_survival_ratios = np.load(std_file)
 
     # Visualize results
-    step = mean_survival_ratios.shape[2] // resolution
-
-    fig, axs = plt.subplots(1, resolution, figsize=(18, 4.5), sharey='all')
-    images = []
-    for i, ax in enumerate(axs):
-        slice_idx = i * step
-        slice_data = mean_survival_ratios[:, :, slice_idx]
-        img = ax.imshow(slice_data, cmap='viridis')
-        images.append(img)
-        ax.set_title(f'abort probability (per min) = {p_abort_params[slice_idx]*MINUTE:.2f}', fontsize=11)
-        ax.set_xlabel('storm probability (per hour)')
-        ax.set_xticks(np.arange(resolution))
-        ax.set_xticklabels([f'{p_storm*HOUR:.2f}' for p_storm in p_storm_params])
-        if i == 0:
-            ax.set_ylabel('distance from hive (in km)')
-        ax.set_yticks(np.arange(resolution))
-        ax.set_yticklabels([f'{dist_from_hive/1000:.2f}' for dist_from_hive in res_dist_from_hive_params])
-
-    fig.colorbar(images[-1], ax=axs, orientation='horizontal', fraction=.1)
-
-    plt.suptitle(f'Mean survival ratios as a function of resource distance, storm and abort probabilities after {t_steps*dt/DAY} day(s)')
-    plt.show()
+    visualize_results(mean_survival_ratios, name='Mean', cmap='viridis')
+    visualize_results(std_survival_ratios, name='STD', cmap='hot')
