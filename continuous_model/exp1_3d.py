@@ -54,7 +54,7 @@ def run_simulation(params):
 def visualize_results(data, name: str, cmap):
     step = data.shape[2] // resolution
 
-    fig, axs = plt.subplots(1, resolution, figsize=(16, 4.5), sharey='row')
+    fig, axs = plt.subplots(1, resolution, figsize=(16, 5), sharey='row')
     images = []
     for i, ax in enumerate(axs):
         slice_idx = i * step
@@ -70,7 +70,7 @@ def visualize_results(data, name: str, cmap):
         ax.set_yticks(np.arange(resolution))
         ax.set_yticklabels([f'{p_storm*HOUR:.2f}' for p_storm in p_storm_params])
 
-    fig.colorbar(images[-1], ax=axs, orientation='horizontal', fraction=.1)
+    fig.colorbar(images[-1], ax=axs, orientation='horizontal', fraction=.1, label=f'{name} of survival ratio', pad=0.2, shrink=0.5)
     plt.suptitle(f'{name} of survival ratios as a function of resource distance, storm and abort probabilities after {t_steps*dt/DAY} day(s)')
     plt.savefig(f'../assets/images/bee_survival_ratio_3d_{name}.png')
     plt.show()
