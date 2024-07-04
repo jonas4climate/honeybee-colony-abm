@@ -3,6 +3,7 @@ import numpy as np
 from tqdm import tqdm
 import os
 import pandas as pd
+from multiprocessing.pool import Pool
 
 from continuous_model.Bee import BeeSwarm
 from continuous_model.Hive import Hive
@@ -36,54 +37,55 @@ np.random.seed(SEED)
 mean_file = os.path.join('data', 'exp1', 'bee_survival_ratio.gz')
 std_file = os.path.join('data', 'exp1', 'bee_survival_ratio_std.gz')
 
-# Generate / Load results
-if not os.path.exists(mean_file):
-    pbar = tqdm(total=resolution**2*N_sims, desc='Progress:')
-    for i, p_storm in enumerate(p_storm_params):
-        for j, dist_from_hive in enumerate(res_dist_from_hive_params):
-            params_list = [(p_storm, dist_from_hive) for _ in range(N_sims)]
-            survival_ratios = pool.map(run_simulation, params_list)
-                mean_survival_ratios[i, j, k] = np.mean(survival_ratios)
-                std_survival_ratios[i, j, k] = np.std(survival_ratios)
-                pbar.update(N_sims)
-                model_config = ModelConfig(n_beeswarms=n_beeswarms, p_storm_default=p_storm, dt=dt, size=size,
-                                n_resource_sites=n_resource_sites, space_setup=space_setup, default_persistent=default_persistent,
-                                storm_duration_default=default_storm_duration)
-                beeswarm_config = BeeSwarmConfig(p_abort=p_abort)
-                hive_config = HiveConfig()
-                resource_config = ResourceConfig()
-                model = ForagerModel(model_config, hive_config, beeswarm_config, resource_config, dist_from_hive)
-                for t in range(t_steps):
-                    model.step()
-                survival_ratios[k] = model.datacollector.model_vars['Bee count 🐝'][-1] / n_beeswarms
-                pbar.update(1)
-            mean_survival_ratios[i, j] = np.mean(survival_ratios)
-            std_survival_ratios[i, j] = np.std(survival_ratios)
-    pbar.close()
-    np.savetxt(mean_file, mean_survival_ratios)
-    np.savetxt(std_file, std_survival_ratios)
-else:
-    mean_survival_ratios = np.loadtxt(mean_file)
-    std_survival_ratios = np.loadtxt(std_file)
+def run_simulation(params):
+        p_storm, dist_from_hive = params
+        model_config = ModelConfig(n_beeswarms=n_beeswarms, p_storm_default=p_storm, dt=dt, size=size,
+                        n_resource_sites=n_resource_sites, space_setup=space_setup, default_persistent=default_persistent,
+                        storm_duration_default=default_storm_duration)
+        beeswarm_config = BeeSwarmConfig(p_abort=p_abort)
+        hive_config = HiveConfig()
+        resource_config = ResourceConfig()
+        model = ForagerModel(model_config, hive_config, beeswarm_config, resource_config, dist_from_hive)
+        for t in range(t_steps):
+            model.step()
+        survival_ratio = model.datacollector.model_vars['Bee count 🐝'][-1] / n_beeswarms
+        return survival_ratio
 
-# Visualize results
-fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+if __name__ == '__main__':
+    # Generate / Load results
+    if not os.path.exists(mean_file):
+        pbar = tqdm(total=resolution**2*N_sims, desc='Progress:')
+        with Pool() as pool:
+            for i, p_storm in enumerate(p_storm_params):
+                for j, dist_from_hive in enumerate(res_dist_from_hive_params):
+                    params_list = [(p_storm, dist_from_hive) for _ in range(N_sims)]
+                    survival_ratios = pool.map(run_simulation, params_list)
+                    pbar.update(N_sims)
+                    mean_survival_ratios[i, j] = np.mean(survival_ratios)
+                    std_survival_ratios[i, j] = np.std(survival_ratios)
+            pbar.close()
+            np.savetxt(mean_file, mean_survival_ratios)
+            np.savetxt(std_file, std_survival_ratios)
+    else:
+        mean_survival_ratios = np.loadtxt(mean_file)
+        std_survival_ratios = np.loadtxt(std_file)
 
-im0 = axs[0].imshow(mean_survival_ratios, cmap='viridis', aspect='auto')
-plt.colorbar(im0, ax=axs[0])
-axs[0].set_title('Mean survival ratio of bees')
+    # Visualize results
+    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+    im0 = axs[0].imshow(mean_survival_ratios, cmap='viridis', aspect='auto')
+    plt.colorbar(im0, ax=axs[0])
+    axs[0].set_title('Mean survival ratio of bees')
+    im1 = axs[1].imshow(std_survival_ratios, cmap='hot', aspect='auto')
+    plt.colorbar(im1, ax=axs[1])
+    axs[1].set_title('Standard deviation of survival ratio of bees')
 
-im1 = axs[1].imshow(std_survival_ratios, cmap='hot', aspect='auto')
-plt.colorbar(im1, ax=axs[1])
-axs[1].set_title('Standard deviation of survival ratio of bees')
+    for ax in axs:
+        ax.set_xlabel('Distance from hive (in km)')
+        ax.set_xticks(np.arange(resolution))
+        ax.set_xticklabels([f'{x/1000:.2f}' for x in res_dist_from_hive_params])
+        ax.set_ylabel('Storm probability (per hour)')
+        ax.set_yticks(np.arange(resolution))
+        ax.set_yticklabels([f'{x*HOUR:.2f}' for x in p_storm_params])
 
-for ax in axs:
-    ax.set_xlabel('Distance from hive (in km)')
-    ax.set_xticks(np.arange(resolution))
-    ax.set_xticklabels([f'{x/1000:.2f}' for x in res_dist_from_hive_params])
-    ax.set_ylabel('Storm probability (per hour)')
-    ax.set_yticks(np.arange(resolution))
-    ax.set_yticklabels([f'{x*HOUR:.2f}' for x in p_storm_params])
-
-plt.tight_layout()
-plt.show()
+    plt.tight_layout()
+    plt.show()
