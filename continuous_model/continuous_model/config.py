@@ -70,7 +70,7 @@ class VisualConfig:
 
 class ModelConfig:
     def __init__(self, **kwargs):
-        self.size = kwargs.get('size', 2_000)                                   # (in m)
+        self.size = kwargs.get('size', 2_500)                                   # (in m)
         self.dt = kwargs.get('dt', MINUTE)                                      # (in s)
         self.p_storm_default = kwargs.get('p_storm_default', 1/(10*DAY))        # (probability / s) = on average every 10 days
         self.storm_duration_default = kwargs.get('storm_duration_default', DAY) # (in s)
