@@ -24,8 +24,8 @@ default_storm_duration = 2*HOUR
 
 dt = MINUTE
 t_steps = DAY//dt
-resolution = 3
-N_sims = 1
+resolution = 5
+N_sims = 10
 
 p_storm_params = np.linspace(0, 1/(2*HOUR), resolution)
 res_dist_from_hive_params = np.linspace(0, (size-1)/2, resolution)
