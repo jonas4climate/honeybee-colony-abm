@@ -8,9 +8,8 @@ import numpy as np
 from numpy.random import random, normal
 from scipy.stats import beta, expon
 
-from .config import BeeSwarmConfig, HiveConfig
 from .Resource import Resource
-from .Weather import Weather
+from ..util.Weather import Weather
 
 
 class BeeState(Enum):

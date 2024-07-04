@@ -1,7 +1,7 @@
-from mesa.time import RandomActivation, BaseScheduler
-from .Bee import BeeSwarm
-from .Hive import Hive
-from .Resource import Resource
+from mesa.time import RandomActivation
+from ..agents.Bee import BeeSwarm
+from ..agents.Hive import Hive
+from ..agents.Resource import Resource
 import random
 class CustomScheduler(RandomActivation):
     def __init__(self, model):

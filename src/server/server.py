@@ -1,13 +1,13 @@
 import mesa
 
-from continuous_model.Model import ForagerModel
-from SimpleContinuousModule import SimpleCanvas
+from .SimpleContinuousModule import SimpleCanvas
 from mesa.visualization.modules import ChartModule
 
-from continuous_model.Bee import BeeSwarm, BeeState
-from continuous_model.config import *
-from continuous_model.Hive import Hive
-from continuous_model.Resource import Resource
+from ..model.Model import ForagerModel
+from ..model.agents.Bee import BeeSwarm, BeeState
+from ..model.agents.Hive import Hive
+from ..model.agents.Resource import Resource
+from ..model.config.config import *
 
 bee_colors = {
     BeeState.RESTING : "#fc0303", # red
@@ -35,15 +35,14 @@ def agent_potrayal(agent):
         return {"Shape": "circle", "r": agent.radius*(visual_config.render_size/model_config.size), "Filled": "true", "Color": "#d1bcf9"}
 
 
-forager_canvas = SimpleCanvas(
-    portrayal_method=agent_potrayal, canvas_height=visual_config.render_size, canvas_width=visual_config.render_size
-)
+forager_canvas = SimpleCanvas(portrayal_method=agent_potrayal, canvas_height=visual_config.render_size, canvas_width=visual_config.render_size)
 
 model_params = {
     "model_config": model_config,
     "hive_config": hive_config,
     "beeswarm_config": beeswarm_config,
     "resource_config": resource_config,
+    "distance_from_hive": 100,
     "p_storm": mesa.visualization.Slider(
         name="Storm probability",
         value=model_config.p_storm_default,
@@ -107,4 +106,4 @@ server = mesa.visualization.ModularServer(
     model_params=model_params,
 )
 
-server.port=8525
+server.port=8524

@@ -3,8 +3,8 @@ from mesa import  Model
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .Bee import BeeSwarm, BeeState
-from .Hive import Hive
+from ..agents.Bee import BeeSwarm, BeeState
+from ..agents.Hive import Hive
 from .CustomScheduler import CustomScheduler
 
 def bees_proportion(model):

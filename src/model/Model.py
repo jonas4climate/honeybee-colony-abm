@@ -4,21 +4,18 @@ Jonas, Bartek and Pablo
 Based on the PDF Pablo sent on Saturday.
 """
 
-from enum import Enum
 from random import shuffle
-from .CustomScheduler import CustomScheduler
-from .Weather import Weather
-from .Resource import Resource
-from .Hive import Hive
-from .config import *
-from .Bee import BeeSwarm, BeeState
-from .Analytics import *
-from typing import List, Tuple
+from .util.CustomScheduler import CustomScheduler
+from .util.Weather import Weather
+from .agents.Resource import Resource
+from .agents.Hive import Hive
+from .config.config import *
+from .agents.Bee import BeeSwarm
+from .util.Analytics import *
 import numpy as np
-from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from mesa.space import ContinuousSpace
-from mesa import Agent, Model
+from mesa import Model
 import warnings
 warnings.simplefilter(action='ignore', category=UserWarning)
 
@@ -92,8 +89,7 @@ class ForagerModel(Model):
 
         # Dynamically add nectar in hives
         for i in range(n_hives):
-            model_reporters[f'Hive ({
-                i+1}) stock 🍯'] = lambda mod: nectar_in_hives(mod)[i]
+            model_reporters[f'Hive ({i+1}) stock 🍯'] = lambda mod: nectar_in_hives(mod)[i]
 
         agent_reporters = {}
 
