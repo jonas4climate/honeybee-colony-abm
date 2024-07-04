@@ -149,11 +149,17 @@ class BeeSwarm(Agent):
     def is_outside(self):
         return not self.is_close_to_hive()
     
+    def is_bee_in_sight(self, bee):
+        return self.is_close_to(bee, self.fov)
+    
     def is_resource_in_sight(self, resource):
         return self.is_close_to(resource, resource.radius+self.fov)
 
     def is_close_to_hive(self):
         return self.is_close_to(self.hive, self.hive.radius)
+    
+    def is_hive_in_sight(self):
+        return self.is_close_to(self.hive, self.hive.radius+self.fov)
 
     def is_close_to_resource(self, resource):
         return self.is_close_to(resource, resource.radius)
@@ -251,7 +257,8 @@ class BeeSwarm(Agent):
         if random() < p_abort:
             self.state = BeeState.RETURNING
         else:
-            self.try_follow_wiggle_dance()
+            if self.is_hive_in_sight(): # Wiggle dance only happens in the hive -> only check if close enough to perceive it
+                self.try_follow_wiggle_dance()
             self.try_gather_resources()
             self.move_random_exploration()
 
@@ -264,10 +271,11 @@ class BeeSwarm(Agent):
         # Fly back and deposit, then start dancing
         if self.is_close_to_hive():
             self.hive.nectar = min(self.hive.nectar + self.load, self.hive.max_nectar_capacity)
-            
+
             self.load = 0
             self.wiggle = True
             self.state = BeeState.DANCING
+            self.model.wiggle_dancing_bees.add(self)
         else:
             self.move_towards_hive()
 
@@ -279,6 +287,7 @@ class BeeSwarm(Agent):
             self.wiggle_destiny = None
             self.wiggle = False
             self.state = BeeState.RESTING
+            self.model.wiggle_dancing_bees.remove(self)
 
     def handle_following(self):
         # Check safely if close to resource (could have disappeared), carry resource if arrived
@@ -296,28 +305,16 @@ class BeeSwarm(Agent):
             self.move_towards(self.wiggle_destiny)
 
     def try_follow_wiggle_dance(self):
-        agents_in_fov = self.model.space.get_neighbors(
-            self.pos, self.fov, include_center=True
-        )
-        wiggling_bees_in_fov = np.array(
-            [
-                agent
-                for agent in agents_in_fov
-                if agent != self
-                and isinstance(agent, BeeSwarm)
-                and agent.wiggle
-            ]
-        )
-        np.random.shuffle(wiggling_bees_in_fov)
-        for wiggling_bee in wiggling_bees_in_fov:
-            if random() < self.p_follow_wiggle_dance:
+        dancing_bees = list(self.model.wiggle_dancing_bees)
+        np.random.shuffle(dancing_bees)
+        for bee in list(dancing_bees):
+            if self.is_bee_in_sight(bee) and random() < self.p_follow_wiggle_dance:
                 self.wiggle_destiny = wiggling_bee.wiggle_destiny
                 self.state = BeeState.FOLLOWING
                 return
 
     def try_gather_resources(self):
         resources = self.model.get_agents_of_type(Resource)
-
         for res in resources:
             if self.is_close_to_resource(res):
                 self.wiggle_destiny = res

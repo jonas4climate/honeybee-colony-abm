@@ -64,6 +64,8 @@ class ForagerModel(Model):
             self.size, self.size, model_config.n_resource_sites, model_config.n_hives, model_config.space_setup, distance_from_hive)
         self.init_agents_in_space(
             hive_locations, model_config.n_beeswarms, resource_locations)
+        
+        self.wiggle_dancing_bees = set() # Keep track of all bees currently wiggle dancing
 
     def inspect_setup(self):
         visualize_scent_scale(get_scent_scale(self))
