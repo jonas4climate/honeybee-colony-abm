@@ -71,12 +71,13 @@ if __name__ == '__main__':
         std_survival_ratios = np.loadtxt(std_file)
 
     # Visualize results
-    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
-    im0 = axs[0].imshow(mean_survival_ratios, cmap='viridis', aspect='auto')
-    plt.colorbar(im0, ax=axs[0])
+    fig, axs = plt.subplots(1, 2, figsize=(10, 6.3))
+
+    im0 = axs[0].imshow(mean_survival_ratios, cmap='viridis')
+    plt.colorbar(im0, ax=axs[0], label='Survival ratio', orientation='horizontal', fraction=0.046, pad=0.1)
     axs[0].set_title('Mean survival ratio of bees')
-    im1 = axs[1].imshow(std_survival_ratios, cmap='hot', aspect='auto')
-    plt.colorbar(im1, ax=axs[1])
+    im1 = axs[1].imshow(std_survival_ratios, cmap='hot')
+    plt.colorbar(im1, ax=axs[1], label='Survival ratio', orientation='horizontal', fraction=0.046, pad=0.1)
     axs[1].set_title('Standard deviation of survival ratio of bees')
 
     for ax in axs:
@@ -88,4 +89,6 @@ if __name__ == '__main__':
         ax.set_yticklabels([f'{x*HOUR:.2f}' for x in p_storm_params])
 
     plt.tight_layout()
+    plt.suptitle('Mean and STD of survival ratios as a function of resource distance and storm probability')
+    plt.savefig('../assets/images/bee_survival_ratio_2d.png')
     plt.show()
