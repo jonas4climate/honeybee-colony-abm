@@ -41,8 +41,11 @@ if not os.path.exists(mean_file):
     pbar = tqdm(total=resolution**2*N_sims, desc='Progress:')
     for i, p_storm in enumerate(p_storm_params):
         for j, dist_from_hive in enumerate(res_dist_from_hive_params):
-            survival_ratios = np.zeros(N_sims)
-            for k in range(N_sims):
+            params_list = [(p_storm, dist_from_hive) for _ in range(N_sims)]
+            survival_ratios = pool.map(run_simulation, params_list)
+                mean_survival_ratios[i, j, k] = np.mean(survival_ratios)
+                std_survival_ratios[i, j, k] = np.std(survival_ratios)
+                pbar.update(N_sims)
                 model_config = ModelConfig(n_beeswarms=n_beeswarms, p_storm_default=p_storm, dt=dt, size=size,
                                 n_resource_sites=n_resource_sites, space_setup=space_setup, default_persistent=default_persistent,
                                 storm_duration_default=default_storm_duration)
