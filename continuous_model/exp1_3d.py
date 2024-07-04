@@ -62,13 +62,13 @@ def visualize_results(data, name: str, cmap):
         img = ax.imshow(slice_data, cmap=cmap)
         images.append(img)
         ax.set_title(f'abort probability (per min) = {p_abort_params[slice_idx]*MINUTE:.2f}', fontsize=11)
-        ax.set_xlabel('storm probability (per hour)')
+        ax.set_xlabel('distance from hive (in km)')
         ax.set_xticks(np.arange(resolution))
-        ax.set_xticklabels([f'{p_storm*HOUR:.2f}' for p_storm in p_storm_params])
+        ax.set_xticklabels([f'{dist_from_hive/1000:.2f}' for dist_from_hive in res_dist_from_hive_params])
         if i == 0:
-            ax.set_ylabel('distance from hive (in km)')
+            ax.set_ylabel('storm probability (per hour)')
         ax.set_yticks(np.arange(resolution))
-        ax.set_yticklabels([f'{dist_from_hive/1000:.2f}' for dist_from_hive in res_dist_from_hive_params])
+        ax.set_yticklabels([f'{p_storm*HOUR:.2f}' for p_storm in p_storm_params])
 
     fig.colorbar(images[-1], ax=axs, orientation='horizontal', fraction=.1)
     plt.suptitle(f'{name} of survival ratios as a function of resource distance, storm and abort probabilities after {t_steps*dt/DAY} day(s)')
