@@ -55,7 +55,7 @@ class CustomScheduler(RandomActivation):
         for agent in self.all_agents[BeeSwarm].values():
             self.bee_positions.append(agent.pos)
 
-    def make_heatmap(self, size, title="Heatmap of bee positions"):
+    def make_heatmap(self, size, title="Heatmap of bee positions", save=False, filename="heatmap.png"):
         bee_positions = np.array(self.bee_positions)
 
         # noinspection PyTypeChecker
@@ -68,4 +68,7 @@ class CustomScheduler(RandomActivation):
         plt.title(title)
         plt.xlabel('X')
         plt.ylabel('Y')
-        plt.show()
+        if save:
+            plt.savefig(filename)
+        else:
+            plt.show()

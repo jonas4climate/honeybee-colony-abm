@@ -100,6 +100,10 @@ class BeeSwarm(Agent):
         # Agent's probability to abort exploration
         self.p_abort = model.beeswarm_config.p_abort
 
+        # Scaling factor for the probability to abort exploration during stormy weather
+        self.storm_abort_factor = model.beeswarm_config.storm_abort_factor
+
+
         # Inspect hive
         self.inspect_hive()
 
