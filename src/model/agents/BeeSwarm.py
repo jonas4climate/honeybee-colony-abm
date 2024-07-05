@@ -94,6 +94,9 @@ class BeeSwarm(Agent):
         # Agent's probability of death outside hive
         self.p_death_by_outside_risk = model.beeswarm_config.p_death_by_outside_risk
 
+        # Agent's probability of death during storm
+        self.p_death_by_storm = model.beeswarm_config.p_death_by_storm
+
         # Agent's probability to follow waggle dance
         self.p_follow_waggle_dance = model.beeswarm_config.p_follow_waggle_dance
 
