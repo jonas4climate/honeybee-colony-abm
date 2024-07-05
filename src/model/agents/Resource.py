@@ -37,7 +37,8 @@ class Resource(Agent):
         # Rate of replenishing nectar level
         # TODO: Remove this, jesus. This is so stupid.
         self.nectar_production_rate = resource_config.nectar_production_rate
-        
+        self.extracted_nectar = 0  # (in kg) how much nectar has been extracted from the resource
+
     def step(self):
         """Agent's step function required by Mesa package."""
         # Replenish the resources

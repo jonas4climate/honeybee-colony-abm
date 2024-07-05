@@ -2,7 +2,11 @@ from mesa.time import RandomActivation
 from ..agents.BeeSwarm import BeeSwarm
 from ..agents.Hive import Hive
 from ..agents.Resource import Resource
+
 import random
+import numpy as np
+import matplotlib.pyplot as plt
+
 class CustomScheduler(RandomActivation):
     def __init__(self, model):
         super().__init__(model)
@@ -13,7 +17,8 @@ class CustomScheduler(RandomActivation):
         }
 
         self.schedule_order = [Resource, Hive, BeeSwarm]
-        # self.agents = {}
+        self.bee_positions = []
+
     def add(self, agent):
         if agent not in self._agents:
             self._agents.add(agent)
@@ -29,6 +34,8 @@ class CustomScheduler(RandomActivation):
 
     def step(self) -> None:
         for agent_class in self.schedule_order:
+            # if agent_class == BeeSwarm:    # Uncomment for heatmap (slows down Sensitivity Analysis)
+            #     self.get_bee_positions()
             self.step_for_each(agent_class)
         self.steps += 1
 
@@ -38,3 +45,25 @@ class CustomScheduler(RandomActivation):
         # agent_type = type(agent)
         for agent_key in agent_keys:
             self.all_agents[agent][agent_key].step()
+
+    def get_bee_count(self) -> int:
+        """Get the number of bees in the model"""
+        return len(self.all_agents[BeeSwarm].values())
+
+    def get_bee_positions(self):
+        for agent in self.all_agents[BeeSwarm].values():
+            self.bee_positions.append(agent.pos)
+
+    def make_heatmap(self, size):
+        bee_positions = np.array(self.bee_positions)
+        # noinspection PyTypeChecker
+        heatmap, xedges, yedges = np.histogram2d(bee_positions[:, 0], bee_positions[:, 1], bins=20,
+                                                 range=[[0, size], [0, size]])
+        plt.figure(figsize=(10, 8))
+        # noinspection PyTypeChecker
+        plt.imshow(heatmap.T, origin='lower', cmap='hot', extent=[0, size, 0, size], alpha=1)
+        plt.colorbar(label='Density')
+        plt.title('Agent Movement Heatmap')
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.show()

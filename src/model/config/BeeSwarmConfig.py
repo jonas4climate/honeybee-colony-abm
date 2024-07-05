@@ -23,7 +23,7 @@ class BeeSwarmConfig:
         # [s] Time spent on waggle dancing
         self.waggle_dance_length = kwargs.get('waggle_dance_length', 2*MINUTE)
         # Probability of nearby in-hive bee to follow a waggle dance
-        self.p_follow_wiggle_dance = kwargs.get('p_follow_wiggle_dance', 0.7)
+        self.p_follow_waggle_dance = kwargs.get('p_follow_waggle_dance', 0.7)
 
         # ---| Nectar insepection and communication with other bees |---
 

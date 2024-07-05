@@ -10,7 +10,7 @@ from scipy.stats import beta, expon
 
 from .Resource import Resource
 from ..util.Weather import Weather
-from ..config.BeeSwarmConfig  import BeeSwarmConfig
+from ..config.BeeSwarmConfig import BeeSwarmConfig
 
 class BeeState(Enum):
     RESTING = "resting"
@@ -29,7 +29,7 @@ class BeeSwarm(Agent):
         location: Optional[Tuple[float, float]] = None, # agent's current position
         age: float = 0,  # agent's current age (which has influence on their activity)
         state: BeeState = BeeState.RESTING,  # Bee's current activity
-        wiggle: bool = False,  # whether the Bee agent is currently wiggle dancing
+        wiggle: bool = False,  # whether the Bee agent is currently wiggle dancing,
     ):
         super().__init__(model.next_id() , model)
 
@@ -55,6 +55,12 @@ class BeeSwarm(Agent):
         # Age of the BeeSwarm agent [s]
         self.age: int = age
 
+        # Maximum age of the BeeSwarm agent [s]
+        self.max_age: int = model.beeswarm_config.max_age
+
+        # Speed of the BeeSwarm agent [m/s]
+        self.speed: float = model.beeswarm_config.speed
+
         # Reference to the set of parameters governing BeeSwarm's agent behaviour
         self.beeswarm_config = model.beeswarm_config
 
@@ -69,7 +75,35 @@ class BeeSwarm(Agent):
 
         # Agent's perceived amount of resources available in the hive
         self.perceived_nectar = 0.0
+
+        # Agent's perception
+        self.perception = model.beeswarm_config.perception
+
+        # Agent's starvation speed
+        self.starvation_speed = model.beeswarm_config.starvation_speed
+
+        # Agents probability of nectar inspection
+        self.p_nectar_inspection = model.beeswarm_config.p_nectar_inspection
+
+        # Agent's carrying capacity
+        self.carrying_capacity = model.beeswarm_config.carrying_capacity
+
+        # Agent's exploring incentive
+        self.exploring_incentive = model.beeswarm_config.exploring_incentive
+
+        # Agent's probability of death outside hive
+        self.p_death_by_outside_risk = model.beeswarm_config.p_death_by_outside_risk
+
+        # Agent's probability to follow waggle dance
+        self.p_follow_waggle_dance = model.beeswarm_config.p_follow_waggle_dance
+
+        # Agent's probability to abort exploration
+        self.p_abort = model.beeswarm_config.p_abort
+
+        # Inspect hive
         self.inspect_hive()
+
+
 
     def step(self):
         """Agent's step function required by Mesa package."""
@@ -407,7 +441,7 @@ class BeeSwarm(Agent):
         np.random.shuffle(dancing_bees)
 
         for bee in list(dancing_bees):
-            if self.is_bee_in_sight(bee) and random() < self.p_follow_wiggle_dance:
+            if self.is_bee_in_sight(bee) and random() < self.p_follow_waggle_dance:
                 self.wiggle_destiny = bee.wiggle_destiny
                 self.state = BeeState.FOLLOWING
                 return
@@ -441,6 +475,8 @@ class BeeSwarm(Agent):
             extract_amount = min(resource.quantity, self.carrying_capacity)
             self.load = extract_amount
             resource.quantity -= extract_amount
+            resource.extracted_nectar += extract_amount
+            # print(f'Resource quantity: {resource.quantity} | {self} gathered {extract_amount}')
 
             # If resource is depleted, remove it
             if not resource.persistent and resource.quantity <= 0:
@@ -449,11 +485,16 @@ class BeeSwarm(Agent):
     def update_properties(self):
         """Updates the properties of the bee."""
         # Update hunger level, ensuring it's non-negative
-        self.fed = max(self.fed - self.feed_storage * self.starvation_speed * self.model.dt, 0)
+        self.fed = max(self.fed - self.fed * self.starvation_speed * self.model.dt, 0)
 
         self.age += self.model.dt
 
     def manage_death(self):
+        """Handles tiny bee deaths."""
+        if self.fed == 0:  # Death by starvation
+            # print("Bee died by starvation")
+            return self._remove_agent()
+
         """Handles death of BeeSwarm agent."""
         # Death by starvation
         if self.fed == 0:
@@ -466,10 +507,12 @@ class BeeSwarm(Agent):
         # Death by storm
         if (self.model.weather == Weather.STORM and self.is_outside):
             if random() < self.p_death_by_storm * self.model.dt:
+                # print("Bee died by storm")
                 return self._remove_agent()
         
         # Death by random outside risk
         if (self.is_outside and random() < self.p_death_by_outside_risk * self.model.dt):
+            # print("Bee died by outside risk")
             return self._remove_agent()
 
     def _remove_agent(self):

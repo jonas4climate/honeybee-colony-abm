@@ -27,10 +27,15 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 class ForagerModel(Model):
     def __init__(
         self,
-        model_config: ModelConfig,
-        hive_config: HiveConfig,
-        beeswarm_config: BeeSwarmConfig,
-        resource_config: ResourceConfig,
+        # clust_coeff,
+        # n_clusters = 3,
+        # n_resources = 10,   # Parameters to vary for sensitivity analysis go first
+        model_config = ModelConfig(),
+        hive_config =  HiveConfig(),
+        beeswarm_config = BeeSwarmConfig(),
+        resource_config = ResourceConfig(),
+        # n_resources,
+        # n_clusters: ModelConfig.n_clusters,
         distance_from_hive = None,
         **kwargs
     ):
@@ -56,6 +61,18 @@ class ForagerModel(Model):
         self.storm_duration = model_config.storm_duration_default  # duration of the storm
         self.storm_time_passed = 0  # Time duration of storm thus far
 
+        # Parameters to vary
+        self.n_resources = model_config.n_resource_sites
+        # self.n_clusters = n_clusters    # Number of clusters (use only when clustering resources)
+        # self.clust_coeff = clust_coeff    # Uncomment when clustering resources
+
+        self.setup_datacollector(model_config.n_hives)
+        hive_locations, resource_locations = self.init_space(self.size, self.size, self.n_resources, model_config.n_hives, model_config.space_setup, distance_from_hive)
+        # hive_locations, resource_locations = self.cluster_resources(self.size,  n_resources=self.n_resources, n_clusters = self.n_clusters, clust_coeff=self.clust_coeff)
+        # hive_locations, resource_locations = self.cluster_around_hive(self.size,  n_resources=self.n_resources, clust_coeff=self.clust_coeff, hive_radius=hive_config.default_radius)
+        self.init_agents_in_space(
+            hive_locations, model_config.n_beeswarms, resource_locations)
+
         # Override config with visualization input options if passed on
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -67,6 +84,8 @@ class ForagerModel(Model):
             hive_locations, model_config.n_beeswarms, resource_locations)
         
         self.wiggle_dancing_bees = set() # Keep track of all bees currently wiggle dancing
+
+        self.mean_dist = self.average_dist() # Get average distance of resources from hive for all resources
 
     def inspect_setup(self):
         visualize_scent_scale(get_scent_scale(self))
@@ -92,7 +111,7 @@ class ForagerModel(Model):
         }
 
         # Dynamically add nectar in hives
-        for i in range(n_hives):
+        for i in range(0, n_hives):
             model_reporters[f'Hive ({i+1}) stock 🍯'] = lambda mod: nectar_in_hives(mod)[i]
 
         agent_reporters = {}
@@ -176,3 +195,81 @@ class ForagerModel(Model):
             assert distance_from_hive != None, "Distance from hive must be specified in this mode."
             resource_locations = [(width/2 + distance_from_hive, height/2)]
             return hive_locations, resource_locations
+
+    @staticmethod
+    def cluster_resources(size, n_resources, n_clusters, clust_coeff, spread_dist=100):
+        """Cluster resources in space."""
+        resource_location = []
+
+        # Generate cluster centers
+        cluster_centers = np.random.randint(0, size, size=(n_clusters, 2))
+
+        # Calculate the number of clustered resources
+        clustered_resources = int(n_resources * clust_coeff)
+        random_resources = n_resources - clustered_resources - n_clusters
+
+        # Generate resource_location around cluster centers
+        for center in cluster_centers:
+            resource_location.append(tuple(center))
+            for _ in range(int(clustered_resources / n_clusters)):
+                point = center + np.random.randn(2) * spread_dist  # (to spread out the resources)
+                x, y = point
+
+                while x < 0 or x >= size or y < 0 or y >= size:
+                    point = center + np.random.randn(2) * spread_dist  # (to spread out the resources)
+                    x, y = point
+            resource_location.append((point[0], point[1]))
+
+        # Generate remaining resource_location randomly in the grid
+        if random_resources > 0:
+            random_points = np.random.randint(0, size, size=(random_resources, 2))
+            for point in random_points:
+                resource_location.append((point[0], point[1]))
+
+        # for 1 hive, place at center
+        hive_location = [(size / 2, size / 2)]
+
+        # Ensure the total number of resources is exactly n_resources
+        resource_location = resource_location[:n_resources]
+
+        print(len(resource_location))
+        return hive_location, resource_location
+
+
+    @staticmethod
+    def cluster_around_hive(size, n_resources, clust_coeff, spread_dist=500):
+        """Cluster resources around hive."""
+        hive_location = [(size / 2, size / 2)]
+        resource_location = []
+
+        clustered_resources = int(n_resources * clust_coeff)
+        random_resources = n_resources - clustered_resources
+
+        # Generate resource_location around cluster centers
+        for center in hive_location:
+            for _ in range(clustered_resources):
+                point = center + np.random.randn(2) * spread_dist
+                x, y = point
+                while x < 0 or x >= size or y < 0 or y >= size:  # Make sure point is inside the grid
+                    while (size / 2 - 500) < x < (size / 2 + 500) or (size / 2 - 200) < y < (
+                            size / 2 + 200):  # Make sure point is outside the hive
+                        # Spread points away from the hive and then add some spread for resources
+                        point = center + (np.random.randn(2) * spread_dist)
+                        x, y = point
+                        print(point)
+                resource_location.append((point[0], point[1]))
+
+        if random_resources > 0:
+            random_points = np.random.randint(0, size, size=(random_resources, 2))
+            for point in random_points:
+                resource_location.append((point[0], point[1]))
+
+        return hive_location, resource_location
+
+
+    def average_dist(self):
+        all_resources = self.get_agents_of_type(Resource)
+        all_distances = []
+        for r in all_resources:
+            all_distances.append(math.dist(r.pos, (self.size / 2, self.size / 2)))
+        return np.mean(all_distances)

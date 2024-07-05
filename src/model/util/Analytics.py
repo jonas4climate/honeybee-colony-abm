@@ -2,9 +2,11 @@ from mesa import  Model
 
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 from ..agents.BeeSwarm import BeeSwarm, BeeState
 from ..agents.Hive import Hive
+from ..agents.Resource import Resource
 from .CustomScheduler import CustomScheduler
 
 def bees_proportion(model):
@@ -50,6 +52,27 @@ def visualize_scent_scale(scent_scales):
     plt.ylabel("Number of bees")
     plt.title("Scent scale distribution of all bees")
     plt.show()
+
+def extracted_nectar(model: Model):
+    all_resources = model.get_agents_of_type(Resource)
+    if all_resources:
+        return np.sum([r.extracted_nectar for r in all_resources])
+    else:
+        return 0
+
+def variance_locations(model):
+    all_resources = model.get_agents_of_type(Resource)
+    all_distances = []
+    for r in all_resources:
+        all_distances.append(math.dist(r.pos, (model.size / 2, model.size / 2)))
+    return np.var(all_distances)
+
+def average_dist(model):
+    all_resources = model.get_agents_of_type(Resource)
+    all_distances = []
+    for r in all_resources:
+        all_distances.append(math.dist(r.pos, (model.size / 2, model.size / 2)))
+    return np.mean(all_distances)
 
 def visualize_bee_count(bee_count: list):
     plt.figure()
