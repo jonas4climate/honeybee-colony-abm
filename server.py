@@ -79,16 +79,17 @@ model_params = {
                                       min_value=1,
                                       max_value=60,
                                       step = 1),
-    "n_clusters": mesa.visualization.Slider("Number of clusters",
-                                        value = model_config.n_clusters,
-                                        min_value=0,
-                                        max_value=5,
-                                        step = 1),
-    "clust_coeff": mesa.visualization.Slider("Cluster coefficient",
-                                        value = model_config.clust_coeff,
-                                        min_value=0,
-                                        max_value=1,
-                                        step = 0.1),
+    ##  Uncomment when clustering resources
+    # "n_clusters": mesa.visualization.Slider("Number of clusters",
+    #                                     value = model_config.n_clusters,
+    #                                     min_value=0,
+    #                                     max_value=5,
+    #                                     step = 1),
+    # "clust_coeff": mesa.visualization.Slider("Cluster coefficient",
+    #                                     value = model_config.clust_coeff,
+    #                                     min_value=0,
+    #                                     max_value=1,
+    #                                     step = 0.1),
 }
 
 
