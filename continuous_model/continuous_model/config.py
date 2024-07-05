@@ -57,11 +57,11 @@ class VisualConfig:
 class ModelConfig:
     def __init__(self, **kwargs):
         self.size = kwargs.get('size', 10_000)                                  # (in m)
-        self.dt = kwargs.get('dt', MINUTE)                                      # (in s)
+        self.dt = kwargs.get('dt', 60)                                          # (in s)
         self.p_storm_default = kwargs.get('p_storm_default', 1/(10*DAY))        # (probability / s) = on average every 10 days
         self.storm_duration_default = kwargs.get('storm_duration_default', DAY) # (in s)
         self.n_beeswarms = kwargs.get('n_beeswarms', 500)                       # (count)
         self.n_hives = kwargs.get('n_hives', 1)                                 # (count)
-        self.n_resource_sites = kwargs.get('n_resources', 10)              # (count)
+        self.n_resource_sites = kwargs.get('n_resources', 10)                   # (count)
         self.n_clusters = kwargs.get('n_clusters', 2)                          # (count)
         self.clust_coeff = kwargs.get('clust_coeff', 0.7)                       # Cluster coefficient

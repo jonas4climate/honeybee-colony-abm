@@ -8,6 +8,8 @@ from mesa import  Agent, Model
 from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
 from mesa.time import RandomActivation
+import warnings
+warnings.filterwarnings("ignore")
 
 import numpy as np
 from typing import List, Tuple
@@ -24,8 +26,9 @@ from random import shuffle
 class ForagerModel(Model):
     def __init__(
         self,
-        clust_coeff ,
-        n_clusters = 2,
+        clust_coeff,
+        n_clusters = 3,
+        n_resources = 10,   # Parameters to vary for sensitivity analysis go first
         model_config = ModelConfig(),
         hive_config =  HiveConfig(),
         beeswarm_config = BeeSwarmConfig(),
@@ -59,13 +62,16 @@ class ForagerModel(Model):
 
         # Parameters to vary
         self.n_resources = model_config.n_resource_sites
-        self.n_clusters = n_clusters
+        self.n_clusters = n_clusters    # Number of clusters (use only when clustering resources)
         self.clust_coeff = clust_coeff
 
         self.setup_datacollector(model_config.n_hives)
         # hive_locations, resource_locations = self.init_space(self.size, self.size, n_resources, model_config.n_hives)
         hive_locations, resource_locations = self.cluster_resources(self.size,  n_resources=self.n_resources, n_clusters = self.n_clusters, clust_coeff=self.clust_coeff)
+        # hive_locations, resource_locations = self.cluster_around_hive(self.size,  n_resources=self.n_resources, clust_coeff=self.clust_coeff, hive_radius=hive_config.default_radius)
         self.make_agents(hive_locations, model_config.n_beeswarms, resource_locations)
+
+        self.mean_dist = self.average_dist()
 
     def inspect_setup(self):
         visualize_scent_scale(get_scent_scale(self))
@@ -176,8 +182,8 @@ class ForagerModel(Model):
         return hive_location, resource_location
 
     @staticmethod
-    def cluster_resources(size, n_resources, n_clusters, clust_coeff, default_dist=20):
-        """Cluster resources in the space."""
+    def cluster_resources(size, n_resources, n_clusters, clust_coeff, spread_dist=100):
+        """Cluster resources in space."""
         resource_location = []
 
         # Generate cluster centers
@@ -185,24 +191,25 @@ class ForagerModel(Model):
 
         # Calculate the number of clustered resources
         clustered_resources = int(n_resources * clust_coeff)
-        random_resources = n_resources - clustered_resources
+        random_resources = n_resources - clustered_resources - n_clusters
 
         # Generate resource_location around cluster centers
         for center in cluster_centers:
             resource_location.append(tuple(center))
             for _ in range(int(clustered_resources / n_clusters)):
-                point = center + np.random.randn(2) * default_dist # (to spread out the resources)
+                point = center + np.random.randn(2) * spread_dist # (to spread out the resources)
                 x, y = point
 
-                while x < 0 or y < 0:
-                    point = center + np.random.randn(2) * default_dist  # (to spread out the resources)
+                while x < 0 or x >= size or y < 0 or y >= size:
+                    point = center + np.random.randn(2) * spread_dist  # (to spread out the resources)
                     x, y = point
             resource_location.append((point[0], point[1]))
 
         # Generate remaining resource_location randomly in the grid
-        random_points = np.random.randint(0, size, size=(random_resources, 2))
-        for point in random_points:
-            resource_location.append((point[0], point[1]))
+        if random_resources > 0:
+            random_points = np.random.randint(0, size, size=(random_resources, 2))
+            for point in random_points:
+                resource_location.append((point[0], point[1]))
 
         # for 1 hive, place at center
         hive_location = [(size / 2, size / 2)]
@@ -213,6 +220,40 @@ class ForagerModel(Model):
         print(len(resource_location))
         return hive_location, resource_location
 
+    @staticmethod
+    def cluster_around_hive(size, n_resources, clust_coeff, hive_radius, spread_dist=500):
+        """Cluster resources around hive."""
+        hive_location = [(size / 2, size / 2)]
+        resource_location = []
 
+        clustered_resources = int(n_resources * clust_coeff)
+        random_resources = n_resources - clustered_resources
+
+        # Generate resource_location around cluster centers
+        for center in hive_location:
+            for _ in range(clustered_resources):
+                point = center + np.random.randn(2) * spread_dist
+                x, y = point
+                while x < 0 or x >= size or y < 0 or y >= size:   # Make sure point is inside the grid
+                    while (size/2 - 500) <  x < (size/2 + 500) or (size/2 - 200) < y < (size/2 + 200):    # Make sure point is outside the hive
+                        # Spread points away from the hive and then add some spread for resources
+                        point = center + (np.random.randn(2) * spread_dist)
+                        x, y = point
+                        print(point)
+                resource_location.append((point[0], point[1]))
+
+        if random_resources > 0:
+            random_points = np.random.randint(0, size, size=(random_resources, 2))
+            for point in random_points:
+                resource_location.append((point[0], point[1]))
+
+        return hive_location, resource_location
+
+    def average_dist(self):
+        all_resources = self.get_agents_of_type(Resource)
+        all_distances = []
+        for r in all_resources:
+            all_distances.append(math.dist(r.pos, (self.size / 2, self.size / 2)))
+        return np.mean(all_distances)
 
 

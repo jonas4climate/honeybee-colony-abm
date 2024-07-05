@@ -27,7 +27,8 @@ class Resource(Agent):
         self.default_radius = resource_config.default_radius
         self.persistent = resource_config.default_persistent  # whether the resource persists forever
         self.nectar_production_rate = resource_config.nectar_production_rate
-        
+        self.extracted_nectar = 0  # (in kg) how much nectar has been extracted from the resource
+
     def step(self):
         self.produce_nectar()
         # 1. Depletion, if quantity reaches 0
