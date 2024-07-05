@@ -97,5 +97,5 @@ if __name__ == '__main__':
 
     plt.tight_layout()
     plt.suptitle('Mean and STD of survival ratios as a function of resource distance and storm probability')
-    plt.savefig('../assets/images/bee_survival_ratio_2d.png')
+    plt.savefig('../figures/bee_survival_ratio_2d.png')
     plt.show()

@@ -79,7 +79,7 @@ def visualize_results(data, name: str, cmap):
 
     fig.colorbar(images[-1], ax=axs, orientation='horizontal', fraction=.1, label=f'{name} of survival ratio', pad=0.2, shrink=0.5)
     plt.suptitle(f'{name} of survival ratios as a function of resource distance, storm and abort probabilities after {t_steps*dt/DAY} day(s)')
-    plt.savefig(f'../assets/images/bee_survival_ratio_3d_{name}.png')
+    plt.savefig(f'../figures/bee_survival_ratio_3d_{name}.png')
     plt.show()
 
 if __name__ == '__main__':
