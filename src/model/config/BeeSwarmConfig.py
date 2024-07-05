@@ -23,9 +23,9 @@ class BeeSwarmConfig:
         # [s] Time spent on waggle dancing
         self.waggle_dance_length = kwargs.get('waggle_dance_length', 2*MINUTE)
         # Probability of nearby in-hive bee to follow a waggle dance
-        self.p_follow_waggle_dance = kwargs.get('p_follow_waggle_dance', 0.7)
+        self.p_follow_waggle_dance = kwargs.get('p_follow_waggle_dance', 0.7 / self.waggle_dance_length)
 
-        # ---| Nectar insepection and communication with other bees |---
+        # ---| Nectar insepection, communication with other bees and exploration |---
 
         # [m] Field of view of a bee in which it is capable of interacting with other bees
         self.field_of_view = kwargs.get('field_of_view', 1)
@@ -40,6 +40,8 @@ class BeeSwarmConfig:
         self.p_nectar_communication = kwargs.get('p_nectar_communication', 1e-3)
         # Lambda parameter for the exponential distribution describing bee's incentive to explore based on perceived nectar level
         self.exploring_incentive = kwargs.get('exploring_incentive', 0.1)
+        # Maximal time spent in the ready state, awaiting for recruitment or starting exploration
+        self.max_ready_time = kwargs.get('max_ready_time', 20 * MINUTE)
 
         # ---| Movement outside the hive and bias towards the resources |---
 

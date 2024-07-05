@@ -14,15 +14,18 @@ from src.model.config.ResourceConfig import ResourceConfig
 from src.model.config.ModelConfig import ModelConfig
 from src.model.config.VisualConfig import VisualConfig
 
+# TODO: Should be part of visual config
 bee_colors = {
     BeeState.RESTING : "#fc0303", # red
     BeeState.RETURNING: "#3bf55a", # green
+    BeeState.READY: "#ffA500",   # orange
     BeeState.EXPLORING : "#0af5f1", # blue
     BeeState.CARRYING : "#59a2c2", # light blue
     BeeState.DANCING : "#ff52df", # pink
     BeeState.FOLLOWING : "#0a54f5" # dark blue
 }
 
+# TODO: Should be part of visual config
 hive_colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ff8000", "#ff0080", "#80ff00", "#0080ff"]
 
 visual_config = VisualConfig()

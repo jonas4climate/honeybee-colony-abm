@@ -15,6 +15,7 @@ from ..config.BeeSwarmConfig import BeeSwarmConfig
 class BeeState(Enum):
     RESTING = "resting"
     RETURNING = "returning"
+    READY = "ready"
     EXPLORING = "exploring"
     CARRYING = "carrying"
     DANCING = "dancing"
@@ -44,6 +45,7 @@ class BeeSwarm(Agent):
         self.state: BeeState = state
 
         # Whether the bee is waggle dancing
+        # TODO: Delete, this is what Beestate.DANCING is for
         self.wiggle: bool = wiggle
 
         # Destination of resource communicate through waggle dance recruitment
@@ -51,6 +53,9 @@ class BeeSwarm(Agent):
 
         # Amount of time spent waggle dancing [s]
         self.dancing_time: int = 0
+
+        # Amount of time spent in the ready state [s]
+        self.ready_time: int = 0
 
         # Age of the BeeSwarm agent [s]
         self.age: int = age
@@ -106,11 +111,8 @@ class BeeSwarm(Agent):
         # Scaling factor for the probability to abort exploration during stormy weather
         self.storm_abort_factor = model.beeswarm_config.storm_abort_factor
 
-
         # Inspect hive
         self.inspect_hive()
-
-
 
     def step(self):
         """Agent's step function required by Mesa package."""
@@ -317,6 +319,8 @@ class BeeSwarm(Agent):
             return self.handle_resting()
         elif self.state == BeeState.RETURNING:
             return self.handle_returning()
+        elif self.state == BeeState.READY:
+            return self.handle_ready()
         elif self.state == BeeState.EXPLORING:
             return self.handle_exploring()
         elif self.state == BeeState.CARRYING:
@@ -334,13 +338,14 @@ class BeeSwarm(Agent):
         assert self.load == 0, "Bee cannot be resting and carrying at the same time"
         assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
 
+        # TODO: Add small random movement
         if random() < self.p_nectar_inspection*self.model.dt:
             # Inspect hive resources with fixed probability
             self.inspect_hive()
 
         elif random() < self.p_nectar_inspection*self.model.dt:
             # If not inspecting, communicate the information with random nearby bee
-            nearby_bees = self.model.space.get_neighbors(self.pos, self.beeswarm_config.field_of_view)
+            nearby_bees = self.model.space.get_neighbors(self.pos, self.beeswarm_config.field_of_view, include_center=False)
             nearby_bees = [bee for bee in nearby_bees if isinstance(bee, BeeSwarm) and bee != self]
 
             if len(nearby_bees) > 0:
@@ -350,7 +355,7 @@ class BeeSwarm(Agent):
 
         # Start exploring based on exponential distribution
         if random() < expon.sf(self.perceived_nectar / self.hive.max_nectar_capacity, scale=self.exploring_incentive):
-            self.state = BeeState.EXPLORING
+            self.state = BeeState.READY
 
     def handle_returning(self):
         """
@@ -360,6 +365,23 @@ class BeeSwarm(Agent):
             self.state = BeeState.RESTING
         else:
             self.move_towards_hive()
+
+    def handle_ready(self):
+        """
+        Handles the behaviour of a bee ready to explore or become recruited.
+        """
+        # Increment time spent in a ready state
+        self.ready_time += self.model.dt
+        
+        # If bored with being ready decide to explore or go back to resting
+        if random() < expon.sf(max(0, self.beeswarm_config.max_ready_time - self.ready_time), scale=5e-3):
+            self.ready_time = 0
+            self.state = BeeState.RESTING
+            # Start exploring based on exponential distribution (other bees could have commnicated change in perceived nectar level)
+            if random() < expon.sf(self.perceived_nectar / self.hive.max_nectar_capacity, scale=self.exploring_incentive):
+                self.state = BeeState.EXPLORING
+            else:
+                self.state = BeeState.RESTING
 
     def handle_exploring(self):
         """
@@ -374,9 +396,6 @@ class BeeSwarm(Agent):
         if random() < p_abort:
             self.state = BeeState.RETURNING
         else:
-            # TODO: This logic seems wrong and / or expensive computationally. There should be a buffer state between rest and exploration.
-            if self.is_hive_in_sight():
-                self.try_follow_wiggle_dance()
             self.try_gather_resources()
             self.move_random_exploration()
 
@@ -418,6 +437,15 @@ class BeeSwarm(Agent):
             self.wiggle = False
             self.state = BeeState.RESTING
             self.model.wiggle_dancing_bees.remove(self)
+        else:
+            # Find nearby ready bees and try to employ them with certain probability
+            nearby_ready_bees = self.model.space.get_neighbors(self.pos, self.beeswarm_config.field_of_view, include_center=False)
+            nearby_ready_bees = list(filter(lambda bee : isinstance(bee, BeeSwarm) and bee.state == BeeState.READY, nearby_ready_bees))
+
+            for bee in nearby_ready_bees:
+                if random() < self.p_follow_waggle_dance * self.model.dt:
+                    bee.wiggle_destiny = self.wiggle_destiny
+                    bee.state = BeeState.FOLLOWING
 
     def handle_following(self):
         """
@@ -438,20 +466,20 @@ class BeeSwarm(Agent):
         else:
             self.move_towards(self.wiggle_destiny)
 
-    def try_follow_wiggle_dance(self):
-        """
-        Checks if waggle dancing bee is in close proximity and becomes a recruit with certain probability.
-        """
-        # TODO: This is not the correct way to go. This is computationally expensive. This sucks.
-        # This should be treated from the waggle dancer perspective, not a random bee in the hive. This should be changed  in optimization commit.
-        dancing_bees = list(self.model.wiggle_dancing_bees)
-        np.random.shuffle(dancing_bees)
+    # def try_follow_wiggle_dance(self):
+    #     """
+    #     Checks if waggle dancing bee is in close proximity and becomes a recruit with certain probability.
+    #     """
+    #     # TODO: This is not the correct way to go. This is computationally expensive. This sucks.
+    #     # This should be treated from the waggle dancer perspective, not a random bee in the hive. This should be changed  in optimization commit.
+    #     dancing_bees = list(self.model.wiggle_dancing_bees)
+    #     np.random.shuffle(dancing_bees)
 
-        for bee in list(dancing_bees):
-            if self.is_bee_in_sight(bee) and random() < self.p_follow_waggle_dance:
-                self.wiggle_destiny = bee.wiggle_destiny
-                self.state = BeeState.FOLLOWING
-                return
+    #     for bee in list(dancing_bees):
+    #         if self.is_bee_in_sight(bee) and random() < self.p_follow_waggle_dance:
+    #             self.wiggle_destiny = bee.wiggle_destiny
+    #             self.state = BeeState.FOLLOWING
+    #             return
 
     def try_gather_resources(self):
         """
@@ -459,6 +487,7 @@ class BeeSwarm(Agent):
         """
         # TODO: This is not the correct way to go. This is computationally expensive. This sucks.
         # Mesa's space module has get_neighborhood() function specifically for that purpose. This should be changed in optimization commit.
+        # Also, this should be handled from Resource agent perspective. Optimal computationally.
         resources = self.model.get_agents_of_type(Resource)
         for res in resources:
             if self.is_close_to_resource(res):
