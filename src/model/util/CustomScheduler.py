@@ -1,5 +1,5 @@
 from mesa.time import RandomActivation
-from ..agents.Bee import BeeSwarm
+from ..agents.BeeSwarm import BeeSwarm
 from ..agents.Hive import Hive
 from ..agents.Resource import Resource
 import random

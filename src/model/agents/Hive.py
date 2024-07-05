@@ -2,8 +2,7 @@ from mesa import Agent, Model
 
 from typing import Tuple
 import numpy as np
-from .Bee import BeeSwarm
-from ..config.config import HiveConfig, BeeSwarmConfig
+from .BeeSwarm import BeeSwarm
 
 class Hive(Agent):
     def __init__(

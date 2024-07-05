@@ -5,7 +5,7 @@ from tqdm import tqdm
 import os
 from multiprocess.pool import Pool
 
-from src.model.agents.Bee import BeeSwarm
+from model.agents.BeeSwarm import BeeSwarm
 from src.model.agents.Hive import Hive
 from src.model.agents.Resource import Resource
 from src.model.config.config import *

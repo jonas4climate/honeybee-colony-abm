@@ -1,13 +1,18 @@
 import mesa
 
-from .SimpleContinuousModule import SimpleCanvas
+from SimpleContinuousModule import SimpleCanvas
 from mesa.visualization.modules import ChartModule
 
-from ..model.Model import ForagerModel
-from ..model.agents.Bee import BeeSwarm, BeeState
-from ..model.agents.Hive import Hive
-from ..model.agents.Resource import Resource
-from ..model.config.config import *
+from src.model.Model import ForagerModel
+from src.model.agents.BeeSwarm import BeeSwarm, BeeState
+from src.model.agents.Hive import Hive
+from src.model.agents.Resource import Resource
+
+from src.model.config.BeeSwarmConfig import BeeSwarmConfig
+from src.model.config.HiveConfig import HiveConfig
+from src.model.config.ResourceConfig import ResourceConfig
+from src.model.config.ModelConfig import ModelConfig
+from src.model.config.VisualConfig import VisualConfig
 
 bee_colors = {
     BeeState.RESTING : "#fc0303", # red

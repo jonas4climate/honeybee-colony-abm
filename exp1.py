@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from multiprocessing.pool import Pool
 
-from src.model.agents.Bee import BeeSwarm
+from model.agents.BeeSwarm import BeeSwarm
 from src.model.agents.Hive import Hive
 from src.model.agents.Resource import Resource
 from src.model.config.config import *

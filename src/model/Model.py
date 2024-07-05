@@ -9,8 +9,12 @@ from .util.CustomScheduler import CustomScheduler
 from .util.Weather import Weather
 from .agents.Resource import Resource
 from .agents.Hive import Hive
-from .config.config import *
-from .agents.Bee import BeeSwarm
+from .config.ModelConfig import ModelConfig
+from .config.BeeSwarmConfig import BeeSwarmConfig
+from .config.HiveConfig import HiveConfig
+from .config.ResourceConfig import ResourceConfig
+from .agents.BeeSwarm import BeeSwarm
+from .util.SpaceSetup import SpaceSetup
 from .util.Analytics import *
 import numpy as np
 from mesa.datacollection import DataCollector

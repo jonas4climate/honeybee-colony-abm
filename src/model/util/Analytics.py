@@ -3,7 +3,7 @@ from mesa import  Model
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ..agents.Bee import BeeSwarm, BeeState
+from ..agents.BeeSwarm import BeeSwarm, BeeState
 from ..agents.Hive import Hive
 from .CustomScheduler import CustomScheduler
 
