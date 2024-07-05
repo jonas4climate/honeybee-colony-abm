@@ -229,7 +229,7 @@ class ForagerModel(Model):
 
 
     @staticmethod
-    def cluster_around_hive(size, n_resources, clust_coeff, hive_dist = 50, spread_dist= 50):
+    def cluster_around_hive(size, n_resources, clust_coeff, hive_dist = 50, spread_dist= 100):
         """Cluster resources around hive."""
         hive_location = [(size / 2, size / 2)]
         resource_location = []

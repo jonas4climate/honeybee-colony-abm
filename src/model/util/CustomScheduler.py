@@ -6,6 +6,7 @@ from ..agents.Resource import Resource
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 
 class CustomScheduler(RandomActivation):
     def __init__(self, model):
@@ -35,9 +36,8 @@ class CustomScheduler(RandomActivation):
     def step(self, locate_bees=None) -> None:
         for agent_class in self.schedule_order:
             self.step_for_each(agent_class)
-            if locate_bees:
-                if agent_class == BeeSwarm:
-                    self.get_bee_positions()
+            if agent_class == BeeSwarm:         # Uncomment for heatmap (slows down code otherwise)
+                self.get_bee_positions()
         self.steps += 1
 
     def step_for_each(self, agent):
@@ -55,16 +55,17 @@ class CustomScheduler(RandomActivation):
         for agent in self.all_agents[BeeSwarm].values():
             self.bee_positions.append(agent.pos)
 
-    def make_heatmap(self, size):
+    def make_heatmap(self, size, title="Heatmap of bee positions"):
         bee_positions = np.array(self.bee_positions)
+
         # noinspection PyTypeChecker
         heatmap, xedges, yedges = np.histogram2d(bee_positions[:, 0], bee_positions[:, 1], bins=20,
                                                  range=[[0, size], [0, size]])
         plt.figure(figsize=(10, 8))
         # noinspection PyTypeChecker
-        plt.imshow(heatmap.T, origin='lower', cmap='hot', extent=[0, size, 0, size], alpha=1)
+        plt.imshow(heatmap.T, norm=LogNorm(), origin='lower', cmap='hot', extent=[0, size, 0, size], alpha=1)
         plt.colorbar(label='Density')
-        plt.title('Agent Movement Heatmap')
+        plt.title(title)
         plt.xlabel('X')
         plt.ylabel('Y')
         plt.show()
