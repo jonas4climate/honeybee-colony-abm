@@ -27,5 +27,11 @@ class ModelConfig:
         # Helper parameter, type of space setup depending on the experiment
         self.space_setup = kwargs.get('space_setup', SpaceSetup.RANDOM)
 
+        # Helper parameter, type of resource placement depending on the experiment
+        self.resource_placement = kwargs.get('resource_placement', "simple")
+
+        # Clustering coefficient
+        self.clust_coeff = kwargs.get('clust_coeff', 0.5)
+
     def __str__(self):
         return 'ModelConfig:\n' + '\n'.join([f'- {key}: {value}' for key, value in self.__dict__.items()])

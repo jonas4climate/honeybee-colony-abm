@@ -32,11 +32,12 @@ class CustomScheduler(RandomActivation):
         agent_type = type(agent)
         del self.all_agents[agent_type][agent.unique_id]
 
-    def step(self) -> None:
+    def step(self, locate_bees=None) -> None:
         for agent_class in self.schedule_order:
-            # if agent_class == BeeSwarm:    # Uncomment for heatmap (slows down Sensitivity Analysis)
-            #     self.get_bee_positions()
             self.step_for_each(agent_class)
+            if locate_bees:
+                if agent_class == BeeSwarm:
+                    self.get_bee_positions()
         self.steps += 1
 
     def step_for_each(self, agent):

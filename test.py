@@ -312,3 +312,23 @@ plt.title('Agent Movement Heatmap')
 plt.xlabel('X')
 plt.ylabel('Y')
 plt.show()
+
+
+import numpy as np
+
+x = 2301
+y = 2301
+size = 5000
+spread_dist = 300
+center = (size / 2, size / 2)
+point = center + np.random.randn(2) * spread_dist
+
+
+x, y = point
+while x < 0 or x >= size or y < 0 or y >= size:  # Make sure point is inside the grid
+    while x > (size / 2 - 200) or x < (size / 2 + 200) or (size / 2 - 200) < y < (
+            size / 2 + 200):  # Make sure point is outside the hive
+        # Spread points away from the hive and then add some spread for resources
+        point = center + (np.random.randn(2) * spread_dist)
+        x, y = point
+        print(point)
