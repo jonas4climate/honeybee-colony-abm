@@ -5,48 +5,57 @@ import math
 
 from mesa import Agent, Model
 
-class ResourceType(Enum):
-    NECTAR = "nectar"
-
 class Resource(Agent):
     def __init__(
             self, 
             model: 'Model',
-            location: Tuple[int, int],
-            resource_type: ResourceType = ResourceType.NECTAR
+            location: Tuple[int, int]
         ):
         super().__init__(model.next_id(), model)
-        self.pos = location  # agent's current position, x and y coordinate
-        self.type = resource_type  # type of the resource
+
+        # Resource's position in space
+        self.pos = location
+
+        # Reference to the set of parameters governing Resource's agent behaviour
         resource_config = model.resource_config
-        self.quantity = resource_config.default_quantity  # (in kg) how much of the resource is left
+
+        # Quantity of nectar available at the resource
+        self.quantity = resource_config.default_quantity
+
+        # Default quantity in model parameters
         self.default_quantity = resource_config.default_quantity
-        self.radius = resource_config.default_radius  # (in m) effective radius of the resource
+
+        # Radius of the resource, in that proximity it can be foraged
+        self.radius = resource_config.default_radius
+
+        # Default radius of the resource in model parameters
         self.default_radius = resource_config.default_radius
-        self.persistent = resource_config.default_persistent  # whether the resource persists forever
+
+        # Whether the resource can be depleted or persists forever
+        self.persistent = resource_config.default_persistent
+
+        # Rate of replenishing nectar level
+        # TODO: Remove this, jesus. This is so stupid.
         self.nectar_production_rate = resource_config.nectar_production_rate
         
     def step(self):
+        """Agent's step function required by Mesa package."""
+        # Replenish the resources
         self.produce_nectar()
-        # 1. Depletion, if quantity reaches 0
-        # self.radius = self.quantity / ResourceConfig.DEFAULT_QUANTITY * ResourceConfig.DEFAULT_RADIUS
+        
+        # TODO: Remove this, jesus. This is soooo stupid.
         if self.quantity <= 0:
             self.quantity = 0
             self.radius = 0
         else:
             self.radius = math.sqrt(self.quantity / self.default_quantity) * self.default_radius
 
-        # Resource removal when quantity is 0 is handled in resource extraction
-
     def produce_nectar(self):
+        """Replenish the nectar by a fixed value given in model parameters."""
         self.quantity += self.nectar_production_rate*self.model.dt
-
-            # TODO: Manage the fact that bees are trying to go to a removed resource
-            # self.model.kill_agents.append(self)
 
     def _remove_agent(self):
         """Helper for removing agents."""
-        # TODO: Mesa provides functionality to do that more efficiently
         self.pos = None
         self.model.n_agents_existed -= 1
         self.model.space.remove_agent(self)
