@@ -374,7 +374,7 @@ class BeeSwarm(Agent):
         self.ready_time += self.model.dt
         
         # If bored with being ready decide to explore or go back to resting
-        if random() < expon.sf(max(0, self.beeswarm_config.max_ready_time - self.ready_time), scale=5e-3):
+        if  (self.ready_time > self.beeswarm_config.max_ready_time) or (random() < self.model.READY_EXPON_SF[(self.beeswarm_config.max_ready_time - self.ready_time) // self.model.dt]):
             self.ready_time = 0
             self.state = BeeState.RESTING
             # Start exploring based on exponential distribution (other bees could have commnicated change in perceived nectar level)

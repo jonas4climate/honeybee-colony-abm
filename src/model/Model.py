@@ -17,6 +17,7 @@ from .agents.BeeSwarm import BeeSwarm
 from .util.SpaceSetup import SpaceSetup
 from .util.Analytics import *
 import numpy as np
+from scipy.stats import beta, expon
 from mesa.datacollection import DataCollector
 from mesa.space import ContinuousSpace
 from mesa import Model
@@ -57,6 +58,9 @@ class ForagerModel(Model):
         self.storm_duration = model_config.storm_duration_default  # duration of the storm
         self.storm_time_passed = 0  # Time duration of storm thus far
 
+        # Pre-compute discretized distributions to reduce computation time
+        self.READY_EXPON_SF = expon.sf(np.linspace(0, self.beeswarm_config.max_ready_time, self.beeswarm_config.max_ready_time // self.dt + 1), scale=2e2)
+
         # Parameters for clustering resources
         self.n_resources = model_config.n_resource_sites  # Number of resources
         self.clust_coeff = model_config.clust_coeff    # Uncomment when clustering resources
@@ -66,6 +70,7 @@ class ForagerModel(Model):
             hive_locations, resource_locations = self.init_space(self.size, self.size, self.n_resources, model_config.n_hives, model_config.space_setup, distance_from_hive)
         else:
             hive_locations, resource_locations = self.cluster_around_hive(self.size,  n_resources=self.n_resources, clust_coeff=self.clust_coeff)
+
         # hive_locations, resource_locations = self.cluster_resources(self.size,  n_resources=self.n_resources, n_clusters = self.n_clusters, clust_coeff=self.clust_coeff)
         self.init_agents_in_space(
             hive_locations, model_config.n_beeswarms, resource_locations)
