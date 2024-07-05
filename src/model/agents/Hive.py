@@ -50,8 +50,8 @@ class Hive(Agent):
         Feeds all bees within the hive.
         """
         # Get all the bee agents within the hive
-        agents_in_hive = self.model.space.get_neighbors(self.pos, self.radius, include_center=True)
-        bees_to_feed_in_hive = [agent for agent in agents_in_hive if type(agent) is BeeSwarm and agent.hive == self and agent.fed <= self.beeswarm_config.feed_storage]
+        agents_in_hive = self.model.space.get_neighbors(self.pos, self.radius, include_center=False)
+        bees_to_feed_in_hive = [agent for agent in agents_in_hive if agent.hive == self and agent.fed <= self.beeswarm_config.feed_storage]
 
         # Feeds all the bees taking care of the available resources
         # TODO: If we get rid of hunger logic, we can "parallelize" it by multiplying number of bees in hive by a constant

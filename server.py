@@ -103,6 +103,7 @@ bee_number_plot = ChartModule([{"Label": "Bee count 🐝", "Color": "black"},
 
 
 prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": bee_colors[BeeState.RESTING]},
+                             {"Label": "ready", "Color": bee_colors[BeeState.READY]},
                              {"Label": "returning 🔙", "Color": bee_colors[BeeState.RETURNING]},
                              {"Label": "exploring 🗺️", "Color": bee_colors[BeeState.EXPLORING]},
                              {"Label": "carrying 🎒", "Color": bee_colors[BeeState.CARRYING]},

@@ -43,10 +43,12 @@ class BeeSwarmConfig:
         # Maximal time spent in the ready state, awaiting for recruitment or starting exploration
         self.max_ready_time = kwargs.get('max_ready_time', 20 * MINUTE)
 
-        # ---| Movement outside the hive and bias towards the resources |---
+        # ---| Movement and bias towards the resources |---
 
-        # [m/s] Amount of distance covered by the BeeSwarm agent
+        # [m/s] Amount of distance covered by the BeeSwarm agent outside the hive
         self.speed = kwargs.get('speed', 3.5)
+        # [m] Amount of distance covered by the BeeSwarm agent inside the hive, does not scale with time
+        self.speed_in_hive = kwargs.get('speed_in_hive', 10)
         # Mean of the sampled Gaussian scaling factor governing bee's increased incentive to move closer to the resource
         self.scent_scale_mean = kwargs.get('scent_scale_mean', 0.5)
         # SD of the sampled Gaussian scaling factor governing bee's increased incentive to move closer to the resource

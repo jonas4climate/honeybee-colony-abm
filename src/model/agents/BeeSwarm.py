@@ -63,8 +63,11 @@ class BeeSwarm(Agent):
         # Maximum age of the BeeSwarm agent [s]
         self.max_age: int = model.beeswarm_config.max_age
 
-        # Speed of the BeeSwarm agent [m/s]
+        # Speed of the BeeSwarm agent outside the hive [m/s]
         self.speed: float = model.beeswarm_config.speed
+
+        # Speed of the BeeSwarm agent inside the hive [m/s]
+        self.speed_in_hive: float = model.beeswarm_config.speed_in_hive
 
         # Reference to the set of parameters governing BeeSwarm's agent behaviour
         self.beeswarm_config = model.beeswarm_config
@@ -180,6 +183,32 @@ class BeeSwarm(Agent):
         # Sample perceived nectar from the Beta distribution
         self.perceived_nectar = beta.rvs(a, b) * self.hive.max_nectar_capacity
 
+    def move_random_in_hive(self):
+        """
+        Moves randomly in x and y in the interval [-distance, distance]
+        """
+        # Choose a random point with radius equivalent to speed times time step
+        angle = np.random.uniform(0, 2 * np.pi)
+        dx = self.speed_in_hive * np.cos(angle)
+        dy = self.speed_in_hive * np.sin(angle)
+
+        # Calculate the new position, taking the boundaries into account
+        newx = self.pos[0] + dx
+        newy = self.pos[1] + dy
+        newpos = (newx, newy)
+        
+        # Repeat untill the new position is within the hive
+        while self.model.space.get_distance(self.hive.pos, newpos) > self.hive.radius:
+            angle = np.random.uniform(0, 2 * np.pi)
+            dx = self.speed_in_hive * np.cos(angle)
+            dy = self.speed_in_hive * np.sin(angle)
+
+            # Calculate the new position, taking the boundaries into account
+            newx = self.pos[0] + dx
+            newy = self.pos[1] + dy
+            newpos = (newx, newy)
+
+        self.model.space.move_agent(self, newpos)
 
     def move_random_exploration(self, epsilon=1e-12):
         """
@@ -334,16 +363,13 @@ class BeeSwarm(Agent):
         """
         Handles the behaviour of a bee resting in the hive.
         """
+        self.move_random_in_hive()
 
-        assert self.load == 0, "Bee cannot be resting and carrying at the same time"
-        assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
-
-        # TODO: Add small random movement
-        if random() < self.p_nectar_inspection*self.model.dt:
+        if random() < self.p_nectar_inspection * self.model.dt:
             # Inspect hive resources with fixed probability
             self.inspect_hive()
 
-        elif random() < self.p_nectar_inspection*self.model.dt:
+        elif random() < self.p_nectar_inspection * self.model.dt:
             # If not inspecting, communicate the information with random nearby bee
             nearby_bees = self.model.space.get_neighbors(self.pos, self.beeswarm_config.field_of_view, include_center=False)
             nearby_bees = [bee for bee in nearby_bees if isinstance(bee, BeeSwarm) and bee != self]
@@ -370,6 +396,8 @@ class BeeSwarm(Agent):
         """
         Handles the behaviour of a bee ready to explore or become recruited.
         """
+        self.move_random_in_hive()
+
         # Increment time spent in a ready state
         self.ready_time += self.model.dt
         
@@ -462,7 +490,7 @@ class BeeSwarm(Agent):
 
         # Abort recruitment with certain probability, otherwise continue moving towards the resource
         if random() < p_abort_following:
-            self.state = BeeState.EXPLORING
+            self.state = BeeState.RETURNING
         else:
             self.move_towards(self.wiggle_destiny)
 
@@ -553,7 +581,6 @@ class BeeSwarm(Agent):
 
     def _remove_agent(self):
         """Helper for removing agents."""
-        # TODO: Mesa provides functionality to do that more efficiently
         self.model.n_agents_existed -= 1
         self.model.space.remove_agent(self)
         self.model.schedule.remove(self)

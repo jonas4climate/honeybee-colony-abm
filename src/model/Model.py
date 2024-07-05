@@ -98,6 +98,7 @@ class ForagerModel(Model):
             'Bee count 🐝': lambda mod: get_bee_count(mod.schedule),
             'Storm ⛈️': get_weather,
             'resting 💤': lambda mod: bees_proportion(mod)["resting"],
+            'ready': lambda mod: bees_proportion(mod)["ready"],
             'returning 🔙': lambda mod: bees_proportion(mod)["returning"],
             'exploring 🗺️': lambda mod: bees_proportion(mod)["exploring"],
             'carrying 🎒': lambda mod: bees_proportion(mod)["carrying"],

@@ -9,7 +9,7 @@ class HiveConfig:
         self.default_radius = kwargs.get('default_radius', 20)
 
         # [kg] Default amount of nectar stored in the hive
-        self.default_nectar = kwargs.get('default_nectar', 0)
+        self.default_nectar = kwargs.get('default_nectar', 2)
 
         # Default number of young bees in the hive at the simulation start
         # TODO: Remove (?)
