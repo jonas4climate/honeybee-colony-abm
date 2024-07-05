@@ -5,11 +5,18 @@ import os
 import pandas as pd
 from multiprocessing.pool import Pool
 
-from continuous_model.Bee import BeeSwarm
-from continuous_model.Hive import Hive
-from continuous_model.Resource import Resource
-from continuous_model.Model import ForagerModel, SpaceSetup
-from continuous_model.config import *
+from model.agents.BeeSwarm import BeeSwarm
+from src.model.agents.Hive import Hive
+from src.model.agents.Resource import Resource
+
+from src.model.config.BeeSwarmConfig import BeeSwarmConfig
+from src.model.config.HiveConfig import HiveConfig
+from src.model.config.ResourceConfig import ResourceConfig
+from src.model.config.ModelConfig import ModelConfig
+
+from src.model.util.Units import *
+
+from src.model.Model import ForagerModel, SpaceSetup
 
 SEED = 42
 
@@ -90,5 +97,5 @@ if __name__ == '__main__':
 
     plt.tight_layout()
     plt.suptitle('Mean and STD of survival ratios as a function of resource distance and storm probability')
-    plt.savefig('../assets/images/bee_survival_ratio_2d.png')
+    plt.savefig('../figures/bee_survival_ratio_2d.png')
     plt.show()
