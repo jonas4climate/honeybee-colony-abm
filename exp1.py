@@ -8,7 +8,14 @@ from multiprocessing.pool import Pool
 from model.agents.BeeSwarm import BeeSwarm
 from src.model.agents.Hive import Hive
 from src.model.agents.Resource import Resource
-from src.model.config.config import *
+
+from src.model.config.BeeSwarmConfig import BeeSwarmConfig
+from src.model.config.HiveConfig import HiveConfig
+from src.model.config.ResourceConfig import ResourceConfig
+from src.model.config.ModelConfig import ModelConfig
+
+from src.model.util.Units import *
+
 from src.model.Model import ForagerModel, SpaceSetup
 
 SEED = 42
