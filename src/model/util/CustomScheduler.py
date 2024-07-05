@@ -1,8 +1,8 @@
-from mesa.time import RandomActivation, BaseScheduler
-from .Bee import BeeSwarm
-from .Hive import Hive
-from .Resource import Resource
-from .config import *
+from mesa.time import RandomActivation
+from ..agents.BeeSwarm import BeeSwarm
+from ..agents.Hive import Hive
+from ..agents.Resource import Resource
+
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,6 +18,7 @@ class CustomScheduler(RandomActivation):
 
         self.schedule_order = [Resource, Hive, BeeSwarm]
         self.bee_positions = []
+
     def add(self, agent):
         if agent not in self._agents:
             self._agents.add(agent)
@@ -44,6 +45,7 @@ class CustomScheduler(RandomActivation):
         # agent_type = type(agent)
         for agent_key in agent_keys:
             self.all_agents[agent][agent_key].step()
+
     def get_bee_count(self) -> int:
         """Get the number of bees in the model"""
         return len(self.all_agents[BeeSwarm].values())

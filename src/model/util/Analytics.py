@@ -4,10 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-from .Bee import BeeSwarm, BeeState
-from .Model import Model
-from .Hive import Hive
-from .Resource import Resource
+from ..agents.BeeSwarm import BeeSwarm, BeeState
+from ..agents.Hive import Hive
+from ..agents.Resource import Resource
 from .CustomScheduler import CustomScheduler
 
 def bees_proportion(model):
@@ -74,3 +73,11 @@ def average_dist(model):
     for r in all_resources:
         all_distances.append(math.dist(r.pos, (model.size / 2, model.size / 2)))
     return np.mean(all_distances)
+
+def visualize_bee_count(bee_count: list):
+    plt.figure()
+    plt.plot(bee_count)
+    plt.xlabel('Time')
+    plt.ylabel('Bee count')
+    plt.title('Bee count over time')
+    plt.show()

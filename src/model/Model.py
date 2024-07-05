@@ -4,74 +4,88 @@ Jonas, Bartek and Pablo
 Based on the PDF Pablo sent on Saturday.
 """
 
-from mesa import  Agent, Model
-from mesa.space import ContinuousSpace
-from mesa.datacollection import DataCollector
-from mesa.time import RandomActivation
-import warnings
-warnings.filterwarnings("ignore")
-
-import numpy as np
-from typing import List, Tuple
-
-from .Analytics import *
-from .Bee import BeeSwarm, BeeState
-from .config import *
-from .Hive import Hive
-from .Resource import Resource
-from .Weather import Weather
-from .CustomScheduler import CustomScheduler
 from random import shuffle
+from .util.CustomScheduler import CustomScheduler
+from .util.Weather import Weather
+from .agents.Resource import Resource
+from .agents.Hive import Hive
+from .config.ModelConfig import ModelConfig
+from .config.BeeSwarmConfig import BeeSwarmConfig
+from .config.HiveConfig import HiveConfig
+from .config.ResourceConfig import ResourceConfig
+from .agents.BeeSwarm import BeeSwarm
+from .util.SpaceSetup import SpaceSetup
+from .util.Analytics import *
+import numpy as np
+from mesa.datacollection import DataCollector
+from mesa.space import ContinuousSpace
+from mesa import Model
+import warnings
+warnings.simplefilter(action='ignore', category=UserWarning)
+
 
 class ForagerModel(Model):
     def __init__(
         self,
-        clust_coeff,
-        n_clusters = 3,
-        n_resources = 10,   # Parameters to vary for sensitivity analysis go first
+        # clust_coeff,
+        # n_clusters = 3,
+        # n_resources = 10,   # Parameters to vary for sensitivity analysis go first
         model_config = ModelConfig(),
         hive_config =  HiveConfig(),
         beeswarm_config = BeeSwarmConfig(),
         resource_config = ResourceConfig(),
         # n_resources,
         # n_clusters: ModelConfig.n_clusters,
+        distance_from_hive = None,
         **kwargs
     ):
         super().__init__()
-
-        # Override config with visualization input options if passed on
-        for key, value in kwargs.items():
-            setattr(model_config, key, value)
 
         self.size = model_config.size  # side length of the square-shaped continuous space
         self.n_agents_existed = 0  # counter for all the agents that were added to the model
         self.dt = model_config.dt  # Time step in seconds
 
-        self.hive_config = hive_config # Pass on when creating Hive agents
-        self.beeswarm_config = beeswarm_config # Pass on when creating Bee agents
+        self.hive_config = hive_config  # Pass on when creating Hive agents
+        self.beeswarm_config = beeswarm_config  # Pass on when creating Bee agents
         self.resource_config = resource_config
 
-        self.space = ContinuousSpace(self.size, self.size, False)  # continous space container from mesa package
-        self.schedule = CustomScheduler(self)  # Scheduler from Mesa's time module
+        # continous space container from mesa package
+        self.space = ContinuousSpace(self.size, self.size, False)
+        # Scheduler from Mesa's time module
+        self.schedule = CustomScheduler(self)
 
         # Weather parameters
         self.weather = Weather.NORMAL  # weather object
-        self.p_storm = model_config.p_storm_default  # probabilitiy of a storm occuring in a day
+        # probabilitiy of a storm occuring in a day
+        self.p_storm = model_config.p_storm_default
         self.storm_duration = model_config.storm_duration_default  # duration of the storm
         self.storm_time_passed = 0  # Time duration of storm thus far
 
         # Parameters to vary
         self.n_resources = model_config.n_resource_sites
-        self.n_clusters = n_clusters    # Number of clusters (use only when clustering resources)
-        self.clust_coeff = clust_coeff
+        # self.n_clusters = n_clusters    # Number of clusters (use only when clustering resources)
+        # self.clust_coeff = clust_coeff    # Uncomment when clustering resources
 
         self.setup_datacollector(model_config.n_hives)
-        # hive_locations, resource_locations = self.init_space(self.size, self.size, n_resources, model_config.n_hives)
-        hive_locations, resource_locations = self.cluster_resources(self.size,  n_resources=self.n_resources, n_clusters = self.n_clusters, clust_coeff=self.clust_coeff)
+        hive_locations, resource_locations = self.init_space(self.size, self.size, self.n_resources, model_config.n_hives, model_config.space_setup, distance_from_hive)
+        # hive_locations, resource_locations = self.cluster_resources(self.size,  n_resources=self.n_resources, n_clusters = self.n_clusters, clust_coeff=self.clust_coeff)
         # hive_locations, resource_locations = self.cluster_around_hive(self.size,  n_resources=self.n_resources, clust_coeff=self.clust_coeff, hive_radius=hive_config.default_radius)
-        self.make_agents(hive_locations, model_config.n_beeswarms, resource_locations)
+        self.init_agents_in_space(
+            hive_locations, model_config.n_beeswarms, resource_locations)
 
-        self.mean_dist = self.average_dist()
+        # Override config with visualization input options if passed on
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+        self.setup_datacollector(model_config.n_hives)
+        hive_locations, resource_locations = self.init_space(
+            self.size, self.size, model_config.n_resource_sites, model_config.n_hives, model_config.space_setup, distance_from_hive)
+        self.init_agents_in_space(
+            hive_locations, model_config.n_beeswarms, resource_locations)
+        
+        self.wiggle_dancing_bees = set() # Keep track of all bees currently wiggle dancing
+
+        self.mean_dist = self.average_dist() # Get average distance of resources from hive for all resources
 
     def inspect_setup(self):
         visualize_scent_scale(get_scent_scale(self))
@@ -121,31 +135,28 @@ class ForagerModel(Model):
         self.n_agents_existed += 1
 
         return agent
-    
+
     def create_agents(self, agent_type, n, **kwargs):
         agents = [self.create_agent(agent_type, **kwargs) for _ in range(n)]
         return agents
-    
-    def make_agents(self, hive_locations, n_bees_per_hive, resource_locations):
-        # assert len(hive_locations) == n_hives
-        # assert len(resource_locations) == n_resources
-        
-        # Create Hives with their corresponding Bee agents
+
+    def init_agents_in_space(self, hive_locations, n_bees_per_hive, resource_locations):
+
         for i in range(len(hive_locations)):
             current_hive = self.create_agent(Hive, location=hive_locations[i])
             for _ in range(n_bees_per_hive):
                 self.create_agent(BeeSwarm, hive=current_hive)
-        
-        # Create Resources
+
         for i in range(len(resource_locations)):
             self.create_agent(Resource, location=resource_locations[i])
 
     def step(self):
         self.schedule.step()
         self.manage_weather_events()
-            
+
         # TODO: Add interaction of agents (?)
-        self.datacollector.collect(self)    # Record step variables in the DataCollector
+        # Record step variables in the DataCollector
+        self.datacollector.collect(self)
 
     def kill_agent(self, agent):
         self.schedule.remove(agent)
@@ -165,21 +176,25 @@ class ForagerModel(Model):
             self.weather = Weather.STORM
 
     @staticmethod
-    def init_space(width, height, n_resources, n_hives):
+    def init_space(width, height, n_resources, n_hives, space_setup, distance_from_hive):
         """Initialize the space with resources and hives."""
-        positions = [(x, y) for x in range(0, width, 10) for y in range(0, height, 10)]
-
-        shuffle(positions)
-
-        resource_location = positions[0:n_resources]
-        if n_hives != 1:
-            i_hives = n_resources + n_hives
-            hive_location = [positions[n_resources:i_hives]]
-        else:
-            hive_location = [positions[n_resources + 1]]
-            # for 1 hive, place at center
-            hive_location = [[width/2, height/2]]
-        return hive_location, resource_location
+        if space_setup == SpaceSetup.RANDOM:
+            positions = [(x, y) for x in range(0, width, 10)
+                         for y in range(0, height, 10)]
+            shuffle(positions)
+            resource_locations = positions[0:n_resources]
+            if n_hives != 1:
+                i_hives = n_resources + n_hives
+                hive_locations = positions[n_resources:i_hives]
+            else:
+                # for 1 hive, place at center
+                hive_locations = [[width/2, height/2]]
+            return hive_locations, resource_locations
+        elif space_setup == SpaceSetup.FIXED_DISTANCE_FROM_HIVE:
+            hive_locations = [[width/2, height/2]]
+            assert distance_from_hive != None, "Distance from hive must be specified in this mode."
+            resource_locations = [(width/2 + distance_from_hive, height/2)]
+            return hive_locations, resource_locations
 
     @staticmethod
     def cluster_resources(size, n_resources, n_clusters, clust_coeff, spread_dist=100):
@@ -197,7 +212,7 @@ class ForagerModel(Model):
         for center in cluster_centers:
             resource_location.append(tuple(center))
             for _ in range(int(clustered_resources / n_clusters)):
-                point = center + np.random.randn(2) * spread_dist # (to spread out the resources)
+                point = center + np.random.randn(2) * spread_dist  # (to spread out the resources)
                 x, y = point
 
                 while x < 0 or x >= size or y < 0 or y >= size:
@@ -220,8 +235,9 @@ class ForagerModel(Model):
         print(len(resource_location))
         return hive_location, resource_location
 
+
     @staticmethod
-    def cluster_around_hive(size, n_resources, clust_coeff, hive_radius, spread_dist=500):
+    def cluster_around_hive(size, n_resources, clust_coeff, spread_dist=500):
         """Cluster resources around hive."""
         hive_location = [(size / 2, size / 2)]
         resource_location = []
@@ -234,8 +250,9 @@ class ForagerModel(Model):
             for _ in range(clustered_resources):
                 point = center + np.random.randn(2) * spread_dist
                 x, y = point
-                while x < 0 or x >= size or y < 0 or y >= size:   # Make sure point is inside the grid
-                    while (size/2 - 500) <  x < (size/2 + 500) or (size/2 - 200) < y < (size/2 + 200):    # Make sure point is outside the hive
+                while x < 0 or x >= size or y < 0 or y >= size:  # Make sure point is inside the grid
+                    while (size / 2 - 500) < x < (size / 2 + 500) or (size / 2 - 200) < y < (
+                            size / 2 + 200):  # Make sure point is outside the hive
                         # Spread points away from the hive and then add some spread for resources
                         point = center + (np.random.randn(2) * spread_dist)
                         x, y = point
@@ -249,11 +266,10 @@ class ForagerModel(Model):
 
         return hive_location, resource_location
 
+
     def average_dist(self):
         all_resources = self.get_agents_of_type(Resource)
         all_distances = []
         for r in all_resources:
             all_distances.append(math.dist(r.pos, (self.size / 2, self.size / 2)))
         return np.mean(all_distances)
-
-

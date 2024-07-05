@@ -4,12 +4,12 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import os
 from SALib.sample.saltelli import sample
-from continuous_model.Model import ForagerModel
+from src.model.Model import ForagerModel
 from itertools import combinations
 import mesa.batchrunner as mb
 from SALib.analyze import sobol
 from BatchRunnerMP import BatchRunnerMP
-from continuous_model.Analytics import *
+from src.model.util.Analytics import *
 
 
 def create_data(problem, save, param_save, rep=2, steps=500, samples=5):
