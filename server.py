@@ -42,7 +42,7 @@ def agent_potrayal(agent):
         return {"Shape": "circle", "r": visual_config.resource_radius, "Filled": "true", "Color": "#d1bcf9"}
 
 
-forager_canvas = SimpleCanvas(portrayal_method=agent_potrayal, canvas_height=visual_config.render_size, canvas_width=visual_config.render_size)
+forager_canvas = SimpleCanvas(portrayal_method=agent_potrayal, canvas_height=MC.SIZE*visual_config.render_scale, canvas_width=MC.SIZE*visual_config.render_scale)
 
 model_params = {
     "model_config": model_config,

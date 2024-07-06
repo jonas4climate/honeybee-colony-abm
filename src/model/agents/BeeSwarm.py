@@ -35,10 +35,13 @@ class BeeSwarm(Agent):
         # Destination of resource communicated through waggle dance recruitment
         self.resource_destination: Optional[Tuple[float, float]] = None
 
+        # Time spent resting after successful foraging trip
+        self.resting_time = 0
+
         # Agent's perceived amount of resources available in the hive
         self.perceived_nectar = 0.0
 
-        # Inspect hive
+        # Inspect hive and change perceived nectar value
         self.inspect_hive()
 
     @property
@@ -154,10 +157,6 @@ class BeeSwarm(Agent):
         newy = max(0, min(newy, self.model.size-epsilon))
         newpos = (newx, newy)
 
-        # TODO: Remove
-        # self.model.space.move_agent(self, newpos)
-        # return
-
         # Calculate resource attraction bias
         resources = self.model.get_agents_of_type(Resource)
 
@@ -265,10 +264,12 @@ class BeeSwarm(Agent):
             for bee in nearby_bees:
                 if isinstance(bee, BeeSwarm) and random() < BSC.P_NECTAR_COMMUNICATION:
                     bee.perceived_nectar = self.perceived_nectar
-        
+
         # Start exploring based on exponential distribution and self-perceived nectar
-        if random() < expon.pdf(self.perceived_nectar, scale=BSC.EXPLORING_INCENTIVE):
+        if self.resting_time == 0 and random() < expon.pdf(self.perceived_nectar, scale=BSC.EXPLORING_INCENTIVE):
             self.state = BeeState.EXPLORING
+        else:
+            self.resting_time = max(self.resting_time - 1, 0)
 
     def handle_returning(self):
         """
@@ -276,6 +277,7 @@ class BeeSwarm(Agent):
         """
         if self.is_in_hive:
             self.state = BeeState.RESTING
+            self.resting_time = BSC.RESTING_PERIOD
         else:
             self.move_towards_hive()
 
@@ -312,11 +314,12 @@ class BeeSwarm(Agent):
         nearby_resting_bees = list(filter(lambda bee : isinstance(bee, BeeSwarm) and bee.state == BeeState.RESTING, nearby_resting_bees))
 
         for bee in nearby_resting_bees:
-            if random() < BSC.P_FOLLOW_WAGGLE_DANCE:
+            if bee.resting_time == 0 and random() < BSC.P_FOLLOW_WAGGLE_DANCE:
                 bee.state = BeeState.FOLLOWING
                 bee.resource_destination = self.resource_destination
 
         self.state = BeeState.RESTING
+        self.resting_time = BSC.RESTING_PERIOD
         self.resource_destination = None
 
     def handle_following(self):
@@ -332,8 +335,11 @@ class BeeSwarm(Agent):
 
     def manage_death(self):
         """Handles death of BeeSwarm agent."""
-        # Death by storm
-        # TODO: Add storm factor
+        death_factor = BSC.P_DEATH
+
+        # Higher death chance during storm
+        if self.model.is_raining:
+            death_factor *= BSC.DEATH_STORM_FACTOR
         
         # Death by random outside risk
         if not self.is_in_hive and random() < BSC.P_DEATH:

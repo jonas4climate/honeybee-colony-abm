@@ -1,7 +1,10 @@
 class HiveConfig:
 
+    # Radius of "hive area", reflecting hive's closest vicinity where bees can communicate
     RADIUS = 5
-    P_NEW_FORAGER = 0.05
+
+    # Probability of a new forager emerging from young population at each simulation step
+    P_BIRTH = 0.1
 
     def __init__(self, **kwargs):
 

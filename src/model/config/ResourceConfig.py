@@ -1,6 +1,7 @@
 class ResourceConfig:
 
-    RADIUS = 10
+    # Radius of the Resource agent - in that vicinity bees can forage the nectar
+    RADIUS = 5
 
     def __init__(self, **kwargs):
 
