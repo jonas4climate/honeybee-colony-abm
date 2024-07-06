@@ -15,15 +15,15 @@ class Resource(Agent):
     def __init__(
             self, 
             model: 'Model',
-            location: Tuple[int, int]
+            quantity: float = RC.DEFAULT_QUANTITY
         ):
         super().__init__(model.next_id(), model)
 
-        # Resource's position in space
-        self.pos = location
+        # Hive's position in space, initialization done through ContinousSpace.place_agent()
+        self.pos = None
 
         # Quantity of nectar available at the resource
-        self.quantity = self.model.resource_config.default_quantity
+        self.quantity = quantity
         assert self.quantity // BSC.CARRYING_CAPACITY
 
     def step(self):

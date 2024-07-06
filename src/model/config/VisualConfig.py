@@ -1,20 +1,28 @@
 from .HiveConfig import HiveConfig as HC
-from .ModelConfig import ModelConfig as MC
 from .ResourceConfig import ResourceConfig as RC
 
+from enum import Enum
+
+class VisualMode(Enum):
+    CLASSIC = 0
+    SERVER = 1
+
 class VisualConfig:
-    def __init__(self, **kwargs):
-        # Grid size for JS server visualization
-        self.render_scale = kwargs.get('render_scale', 3)
 
-        # Hive radius size in JS server visualization
-        self.hive_radius = kwargs.get('hive_radius', HC.RADIUS * self.render_scale)
+    # Default number of resources in JS server visualization
+    N_RESOURCES_DEFAULT = 1
 
-        # Bee agent radius size in JS server visualization
-        self.bee_radius = kwargs.get('bee_radius', 0.4 * self.render_scale)
+    # Default distance of all resources to the hive in JS server visualization
+    RESOURCE_DISTANCE_DEFAULT = 20
 
-        # Resource agent radius size in JS server visualization
-        self.resource_radius = kwargs.get('resource_radius', RC.RADIUS * self.render_scale)
+    # Grid size for JS server visualization
+    RENDER_SCALE = 3
 
-    def __str__(self):
-        return 'VisualConfig:\n' + '\n'.join([f'- {key}: {value}' for key, value in self.__dict__.items()])
+    # Hive radius size in JS server visualization
+    HIVE_RADIUS = HC.RADIUS * RENDER_SCALE
+
+    # Bee agent radius size in JS server visualization
+    BEE_RADIUS = 0.4 * RENDER_SCALE
+
+    # Resource agent radius size in JS server visualization
+    RESOURCE_RADIUS = RC.RADIUS * RENDER_SCALE

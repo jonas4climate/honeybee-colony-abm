@@ -1,18 +1,15 @@
 class HiveConfig:
 
+    # Number of Bee agents in the hive at the simulation start
+    N_BEES = 200
+
     # Radius of "hive area", reflecting hive's closest vicinity where bees can communicate
     RADIUS = 5
 
+    # Default initial amount of nectar stored in the hive at the start of the simulation
+    DEFAULT_INIT_NECTAR = 5.0
+
     # Probability of a new forager emerging from young population at each simulation step
     P_BIRTH = 0.1
-
-    def __init__(self, **kwargs):
-
-        # [kg] Default amount of nectar stored in the hive
-        self.default_nectar = kwargs.get('default_nectar', 5.0)
+    
         
-        # Probability of a new forager emerging from young population at each simulation step
-        self.p_new_forager: float = kwargs.get('p_new_forager', 0)
-
-    def __str__(self):
-        return 'HiveConfig\n:' + '\n'.join([f'- {key}: {value}' for key, value in self.__dict__.items()])

@@ -27,7 +27,7 @@ class BeeSwarm(Agent):
         self.hive = hive
 
         # Agent's position in space
-        self.pos = hive.pos
+        self.pos = None
 
         # Agent's current activity
         self.state: BeeState = BeeState.RESTING

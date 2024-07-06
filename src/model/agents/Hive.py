@@ -11,16 +11,15 @@ class Hive(Agent):
 
     def __init__(
         self,
-        model: Model,
-        location: Tuple[int, int]
+        model: Model
     ):
         super().__init__(model.next_id(), model)
 
-        # Hive's position in space
-        self.pos = location
+        # Hive's position in space, initialization done through ContinousSpace.place_agent()
+        self.pos = None
 
         # Initial state of resources within the hive
-        self.nectar = 5.0
+        self.nectar = HC.DEFAULT_INIT_NECTAR
 
     def feed_bees(self):
         """
@@ -35,7 +34,7 @@ class Hive(Agent):
         """
         Creates a new adult bee agent.
         """
-        self.model.create_agent(BeeSwarm, hive=self)
+        self.model.create_agent(BeeSwarm, self.pos, hive=self)
             
     def step(self):
         """Agent's step function required by Mesa package."""
