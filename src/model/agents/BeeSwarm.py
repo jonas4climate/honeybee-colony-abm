@@ -5,12 +5,11 @@ from typing import Optional, Tuple
 from mesa import Agent, Model
 from math import atan2, cos, sin
 import numpy as np
-from numpy.random import random, normal
-from scipy.stats import beta, expon
+from numpy.random import random
+from scipy.stats import expon, uniform
 
 from .Resource import Resource
 from ..util.Weather import Weather
-from ..config.BeeSwarmConfig import BeeSwarmConfig
 
 class BeeState(Enum):
     RESTING = "resting"
@@ -57,9 +56,6 @@ class BeeSwarm(Agent):
         # Amount of time spent in the ready state [s]
         self.ready_time: int = 0
 
-        # Age of the BeeSwarm agent [s]
-        self.age: int = age
-
         # Maximum age of the BeeSwarm agent [s]
         self.max_age: int = model.beeswarm_config.max_age
 
@@ -72,47 +68,23 @@ class BeeSwarm(Agent):
         # Reference to the set of parameters governing BeeSwarm's agent behaviour
         self.beeswarm_config = model.beeswarm_config
 
-        # Amount of resource load carried by the agent
-        self.load = 0.0
-
-        # Agent's hunger level
-        self.fed = self.beeswarm_config.feed_storage
-
-        # Agent's sampled Gaussian scaling factor for random walk bias towards resources
-        self.scent_scale = max(normal(loc=self.beeswarm_config.scent_scale_mean, scale=self.beeswarm_config.scent_scale_std), 0)
-
         # Agent's perceived amount of resources available in the hive
         self.perceived_nectar = 0.0
 
-        # Agent's perception
-        self.perception = model.beeswarm_config.perception
-
-        # Agent's starvation speed
-        self.starvation_speed = model.beeswarm_config.starvation_speed
+        # Agent's food consumption
+        self.food_consumption = model.beeswarm_config.food_consumption
 
         # Agents probability of nectar inspection
         self.p_nectar_inspection = model.beeswarm_config.p_nectar_inspection
 
-        # Agent's carrying capacity
-        self.carrying_capacity = model.beeswarm_config.carrying_capacity
-
         # Agent's exploring incentive
         self.exploring_incentive = model.beeswarm_config.exploring_incentive
-
-        # Agent's probability of death outside hive
-        self.p_death_by_outside_risk = model.beeswarm_config.p_death_by_outside_risk
-
-        # Agent's probability of death during storm
-        self.p_death_by_storm = model.beeswarm_config.p_death_by_storm
 
         # Agent's probability to follow waggle dance
         self.p_follow_waggle_dance = model.beeswarm_config.p_follow_waggle_dance
 
         # Agent's probability to abort exploration
         self.p_abort = model.beeswarm_config.p_abort
-
-        # Scaling factor for the probability to abort exploration during stormy weather
-        self.storm_abort_factor = model.beeswarm_config.storm_abort_factor
 
         # Inspect hive
         self.inspect_hive()
@@ -158,30 +130,8 @@ class BeeSwarm(Agent):
         """
         Bee agent inspects the hive and samples perceived nectar level from Beta distribution.
         """
-
         # Mean of the Beta distribution, equal to normalized nectar level within hive
-        mu = self.hive.nectar / self.hive.max_nectar_capacity
-        if mu == 0:
-            mu = 1e-24
-        elif mu == 1:
-            mu = 1 - 1e-24
-
-        # Alpha and Beta parameters of Beta distribution, with bee's perception as the no. of samples
-        a = self.perception * (mu)
-        b = self.perception * (1 - mu)
-        
-        assert a > 0, f"Alpha parameter in Beta distribution is {a} but must be positive"
-        assert b > 0, f"Beta parameter in Beta distribution is {b} but must be positive"
-
-        # Handle edge cases
-        if np.isclose(a, 0):
-            a += np.finfo(np.float32).eps
-
-        if np.isclose(b, 0):
-            b += np.finfo(np.float32).eps
-
-        # Sample perceived nectar from the Beta distribution
-        self.perceived_nectar = beta.rvs(a, b) * self.hive.max_nectar_capacity
+        self.perceived_nectar = max(self.hive.nectar + uniform.rvs(-1, 1), 0)
 
     def move_random_in_hive(self):
         """
@@ -549,9 +499,7 @@ class BeeSwarm(Agent):
     def update_properties(self):
         """Updates the properties of the bee."""
         # Update hunger level, ensuring it's non-negative
-        self.fed = max(self.fed - self.fed * self.starvation_speed * self.model.dt, 0)
-
-        self.age += self.model.dt
+        self.fed = max(self.fed - self.starvation_speed, 0)
 
     def manage_death(self):
         """Handles tiny bee deaths."""
@@ -560,23 +508,11 @@ class BeeSwarm(Agent):
             return self._remove_agent()
 
         """Handles death of BeeSwarm agent."""
-        # Death by starvation
-        if self.fed == 0:
-            return self._remove_agent()
-
-        # Death by age
-        if self.age >= self.max_age:
-            return self._remove_agent()
-
         # Death by storm
-        if (self.model.weather == Weather.STORM and self.is_outside):
-            if random() < self.p_death_by_storm * self.model.dt:
-                # print("Bee died by storm")
-                return self._remove_agent()
+        # TODO: Implement
         
         # Death by random outside risk
-        if (self.is_outside and random() < self.p_death_by_outside_risk * self.model.dt):
-            # print("Bee died by outside risk")
+        if random() < self.p_death:
             return self._remove_agent()
 
     def _remove_agent(self):

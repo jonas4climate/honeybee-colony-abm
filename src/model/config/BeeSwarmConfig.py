@@ -14,16 +14,12 @@ class BeeSwarmConfig:
         # ---| Feeding and hunger |---
 
         # [1/s] Quantity deducted from in-hive bee's hunger level at each step
-        self.starvation_speed = kwargs.get('starvation_speed', 1/(12*HOUR))
-        # Amount of resource needed to facilitate feeding the BeeSwarm agent
-        self.feed_storage = kwargs.get('feed_storage', 0.01 * GRAMM * self.bee_swarm_size)
+        self.food_consumption = kwargs.get('food_consumption', 0.001)
 
         # ---| Waggle dancing |---
 
-        # [s] Time spent on waggle dancing
-        self.waggle_dance_length = kwargs.get('waggle_dance_length', 2*MINUTE)
         # Probability of nearby in-hive bee to follow a waggle dance
-        self.p_follow_waggle_dance = kwargs.get('p_follow_waggle_dance', 0.7 / self.waggle_dance_length)
+        self.p_follow_waggle_dance = kwargs.get('p_follow_waggle_dance', 0.7)
 
         # ---| Nectar insepection, communication with other bees and exploration |---
 
@@ -33,39 +29,24 @@ class BeeSwarmConfig:
         # Beta distribution, lower number leads to less precise perceived nectar values w.r.t to actual values
         self.perception = kwargs.get('perception', 100)
         # [1/s] Probability for each bee in the hive to asses nectar resources at the given simulation step
-        # TODO: Adapt the value (?)
-        self.p_nectar_inspection = kwargs.get('p_nectar_inspection', 0.2 * 1 / MINUTE)
+        self.p_nectar_inspection = kwargs.get('p_nectar_inspection', 0.1)
         # [1/s] Probability for each bee in the hive to communicate their perceived nectar level to other bee
-        # TODO: Adapt the value (?)
-        self.p_nectar_communication = kwargs.get('p_nectar_communication', 1e-3)
+        self.p_nectar_communication = kwargs.get('p_nectar_communication', 0.1)
         # Lambda parameter for the exponential distribution describing bee's incentive to explore based on perceived nectar level
         self.exploring_incentive = kwargs.get('exploring_incentive', 0.1)
         # Maximal time spent in the ready state, awaiting for recruitment or starting exploration
-        self.max_ready_time = kwargs.get('max_ready_time', 20 * MINUTE)
+        self.max_ready_time = kwargs.get('max_ready_time', 20)
 
         # ---| Movement and bias towards the resources |---
 
         # [m/s] Amount of distance covered by the BeeSwarm agent outside the hive
         self.speed = kwargs.get('speed', 3.5)
         # [m] Amount of distance covered by the BeeSwarm agent inside the hive, does not scale with time
-        self.speed_in_hive = kwargs.get('speed_in_hive', 10)
-        # Mean of the sampled Gaussian scaling factor governing bee's increased incentive to move closer to the resource
-        self.scent_scale_mean = kwargs.get('scent_scale_mean', 0.5)
-        # SD of the sampled Gaussian scaling factor governing bee's increased incentive to move closer to the resource
-        self.scent_scale_std = kwargs.get('scent_scale_std', 2)
+        self.speed_in_hive = kwargs.get('speed_in_hive', 1)
         # [1/s] Probability for an outside bee to die from random (non weather and age related) factors
-        self.p_death_by_outside_risk = kwargs.get('p_death_by_outside_risk', 1/(7*WEEK))
+        self.p_death = kwargs.get('p_death_by_outside_risk', 0.01)
         # [1/s] Probability that a bee will abort exploration and return to hive
-        self.p_abort = kwargs.get('p_abort', 1/(20*MINUTE))
-        # Amount of resources a single BeeSwarm agent carries on a foraging trip
-        self.carrying_capacity = kwargs.get('carrying_capacity', 30 * MILLIGRAMM * self.bee_swarm_size)
-        
-        # ---| Weather effects |---
-
-        # [1/s] Probability for an outside bee to die during storm at each step
-        self.p_death_by_storm = kwargs.get('p_death_by_storm', 1/(10*MINUTE))
-        # Scaling factor for the probability to abort exploration during stormy weather
-        self.storm_abort_factor = kwargs.get('storm_abort_factor', 100)
+        self.p_abort = kwargs.get('p_abort', 0.01)
 
     def __str__(self):
         return 'BeeSwarmConfig:\n' + '\n'.join([f'- {key}: {value}' for key, value in self.__dict__.items()])

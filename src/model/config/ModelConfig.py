@@ -4,7 +4,7 @@ from ..util.SpaceSetup import SpaceSetup
 class ModelConfig:
     def __init__(self, **kwargs):
         # [m] Side length of square continuous space where the bees can forage
-        self.size = kwargs.get('size', 10_000)
+        self.size = kwargs.get('size', 2_000)
 
         # [s] Time step of the simulations
         self.dt = kwargs.get('dt', MINUTE)
@@ -16,13 +16,13 @@ class ModelConfig:
         self.storm_duration_default = kwargs.get('storm_duration_default', DAY)
 
         # Default number of beeswarms spawned within the single Hive agent
-        self.n_beeswarms = kwargs.get('n_beeswarms', 500)
+        self.n_beeswarms = kwargs.get('n_beeswarms', 200)
 
         # Default number of hives spawned in the simulation
         self.n_hives = kwargs.get('n_hives', 1)
 
         # Default number of resource sites spawned in the simulation
-        self.n_resource_sites = kwargs.get('n_resource_sites', 10)
+        self.n_resource_sites = kwargs.get('n_resource_sites', 1)
 
         # Helper parameter, type of space setup depending on the experiment
         self.space_setup = kwargs.get('space_setup', SpaceSetup.RANDOM)

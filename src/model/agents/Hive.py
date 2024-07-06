@@ -33,50 +33,14 @@ class Hive(Agent):
         # Initial state of resources within the hive
         self.nectar = self.hive_config.default_nectar
 
-        # Number of young bees which can mature to foragers
-        self.young_bees = self.hive_config.init_young_bees
-
         # Probability with which a young bee becomes a forager
         self.p_new_forager = self.hive_config.p_new_forager
-
-        # Maximal nectar capacity within the hive
-        self.max_nectar_capacity = self.hive_config.max_nectar_capacity
-
-        # Nectar required for maturation of a young bee
-        self.nectar_for_maturation = 0
 
     def feed_bees(self):
         """
         Feeds all bees within the hive.
         """
-        # Get all the bee agents within the hive
-        agents_in_hive = self.model.space.get_neighbors(self.pos, self.radius, include_center=False)
-        bees_to_feed_in_hive = [agent for agent in agents_in_hive if agent.hive == self and agent.fed <= self.beeswarm_config.feed_storage]
-
-        # Feeds all the bees taking care of the available resources
-        # TODO: If we get rid of hunger logic, we can "parallelize" it by multiplying number of bees in hive by a constant
-        for bee in bees_to_feed_in_hive:
-            if self.nectar == 0:
-                break
-            feed_amount = min(self.beeswarm_config.feed_storage - bee.fed, self.nectar)
-            bee.fed += feed_amount
-            self.nectar -= feed_amount
-
-    def mature_bees(self):
-        """
-        Matures the young population into adult bees.
-        """
-        # TODO: Remove (?) We don't use it.
-
-        # Probability of young bee maturing
-        p_new_bee = self.p_new_forager*self.model.dt
-
-        # Matures all bees using available resources
-        for _ in range(self.young_bees):
-            if self.nectar < self.nectar_for_maturation:
-                break
-            if np.random.random() < p_new_bee:
-                self.create_bee()
+        # TODO: Implement
 
     def create_bee(self):
         """
