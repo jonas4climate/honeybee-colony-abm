@@ -5,7 +5,12 @@ import math
 
 from mesa import Agent, Model
 
+from ..agents.BeeSwarm import BeeSwarm, BeeState
+
 class Resource(Agent):
+
+    RADIUS = 10
+
     def __init__(
             self, 
             model: 'Model',
@@ -16,28 +21,21 @@ class Resource(Agent):
         # Resource's position in space
         self.pos = location
 
-        # Reference to the set of parameters governing Resource's agent behaviour
-        resource_config = model.resource_config
-
         # Quantity of nectar available at the resource
-        self.quantity = resource_config.default_quantity
-
-        # Radius of the resource, in that proximity it can be foraged
-        self.radius = resource_config.default_radius
-
-        # Default radius of the resource in model parameters
-        self.default_radius = resource_config.default_radius
+        self.quantity = self.model.resource_config.default_quantity
+        assert self.quantity // BeeSwarm.CARRYING_CAPACITY
 
     def step(self):
         """Agent's step function required by Mesa package."""
-        # Replenish the resources
-        # TODO: ?
+        nearby_foragers = self.model.space.get_neighbors(self.pos, Resource.RADIUS, include_center=False)
+        nearby_foragers = list(filter(lambda bee : isinstance(bee, BeeSwarm) and bee.is_exploring or bee.is_following, nearby_foragers))
 
-    def _remove_agent(self):
-        """Helper for removing agents."""
-        self.pos = None
-        self.model.n_agents_existed -= 1
-        self.model.space.remove_agent(self)
-        self.model.schedule.remove(self)
-        self.model.agents.remove(self)
-        self.remove()
+        # Each nearby forager extracts the resource
+        for forager in nearby_foragers:
+            if (self.quantity == 0):
+                # If there is no resource to take, the bee returns with empty hands
+                forager.state = BeeState.RETURNING
+            else:
+                # Otherwise it grabs the resource and goes back to the hive
+                self.quantity = max(0, self.quantity - BeeSwarm.CARRYING_CAPACITY)
+                forager.state = BeeState.CARRYING

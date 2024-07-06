@@ -52,7 +52,7 @@ class ForagerModel(Model):
         self.schedule = CustomScheduler(self)
 
         # Weather parameters
-        self.weather = Weather.NORMAL  # weather object
+        self.weather = Weather.SUNNY  # weather object
         # probabilitiy of a storm occuring in a day
         self.p_storm = model_config.p_storm_default
         self.storm_duration = model_config.storm_duration_default  # duration of the storm
@@ -87,11 +87,19 @@ class ForagerModel(Model):
     def inspect_setup(self):
         visualize_scent_scale(get_scent_scale(self))
 
+    @property
+    def is_sunny(self):
+        return self.weather == Weather.SUNNY
+
+    @property
+    def is_raining(self):
+        return self.weather == Weather.RAIN
+
     def setup_datacollector(self, n_hives):
         # TODO: Add foraging metrics from the literature, as defined in http://dx.doi.org/10.17221/7240-VETMED
         # TODO: Add method with % of each type of bee among all LIVING bees
         def get_weather(model):
-            return get_bee_count(model.schedule) if model.weather == Weather.STORM else 0
+            return get_bee_count(model.schedule) if model.weather == Weather.RAIN else 0
 
         model_reporters = {
             'n_agents_existed': lambda mod: mod.n_agents_existed,
@@ -162,16 +170,16 @@ class ForagerModel(Model):
         self.n_agents_existed -= 1
 
     def manage_weather_events(self):
-        # Keep storming until storm duration passed
-        if self.weather == Weather.STORM:
+        # Keep raining until storm duration passed
+        if self.is_raining:
             self.storm_time_passed += self.dt
             if self.storm_time_passed >= self.storm_duration:
-                self.weather = Weather.NORMAL
+                self.weather = Weather.SUNNY
                 self.storm_time_passed = 0
 
-        # Start storming
+        # Start raining
         if np.random.random() < self.p_storm*self.dt:
-            self.weather = Weather.STORM
+            self.weather = Weather.RAIN
 
     @staticmethod
     def init_space(width, height, n_resources, n_hives, space_setup, distance_from_hive):

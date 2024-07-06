@@ -22,12 +22,6 @@ class BeeSwarmConfig:
         self.p_follow_waggle_dance = kwargs.get('p_follow_waggle_dance', 0.7)
 
         # ---| Nectar insepection, communication with other bees and exploration |---
-
-        # [m] Field of view of a bee in which it is capable of interacting with other bees
-        self.field_of_view = kwargs.get('field_of_view', 1)
-        # Bee's ability to percept resources, number of samples parameter used to calculate parameters for
-        # Beta distribution, lower number leads to less precise perceived nectar values w.r.t to actual values
-        self.perception = kwargs.get('perception', 100)
         # [1/s] Probability for each bee in the hive to asses nectar resources at the given simulation step
         self.p_nectar_inspection = kwargs.get('p_nectar_inspection', 0.1)
         # [1/s] Probability for each bee in the hive to communicate their perceived nectar level to other bee
@@ -39,10 +33,8 @@ class BeeSwarmConfig:
 
         # ---| Movement and bias towards the resources |---
 
-        # [m/s] Amount of distance covered by the BeeSwarm agent outside the hive
-        self.speed = kwargs.get('speed', 3.5)
-        # [m] Amount of distance covered by the BeeSwarm agent inside the hive, does not scale with time
-        self.speed_in_hive = kwargs.get('speed_in_hive', 1)
+        # [m/s] Amount of distance covered by the BeeSwarm agent in a single step
+        self.speed = kwargs.get('speed', 1)
         # [1/s] Probability for an outside bee to die from random (non weather and age related) factors
         self.p_death = kwargs.get('p_death_by_outside_risk', 0.01)
         # [1/s] Probability that a bee will abort exploration and return to hive
