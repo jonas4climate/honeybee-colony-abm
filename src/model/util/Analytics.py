@@ -37,8 +37,8 @@ def mean_perceived_nectar(model: Model):
     else:
         return 0
     
-def get_bee_count(scheduler: CustomScheduler) -> int:
-    return len(scheduler.all_agents[BeeSwarm].values())
+def get_bee_count(model: Model) -> int:
+    return len(model.get_agents_of_type(BeeSwarm))
 
 def get_scent_scale(model: Model):
     all_bees = model.get_agents_of_type(BeeSwarm)

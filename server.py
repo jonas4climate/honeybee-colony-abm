@@ -8,17 +8,16 @@ from src.model.agents.BeeSwarm import BeeSwarm, BeeState
 from src.model.agents.Hive import Hive
 from src.model.agents.Resource import Resource
 
-from src.model.config.BeeSwarmConfig import BeeSwarmConfig
-from src.model.config.HiveConfig import HiveConfig
-from src.model.config.ResourceConfig import ResourceConfig
-from src.model.config.ModelConfig import ModelConfig
-from src.model.config.VisualConfig import VisualConfig
+from src.model.config.BeeSwarmConfig import BeeSwarmConfig as BSC
+from src.model.config.HiveConfig import HiveConfig as HC
+from src.model.config.ResourceConfig import ResourceConfig as RC
+from src.model.config.ModelConfig import ModelConfig as MC
+from src.model.config.VisualConfig import VisualConfig as VC
 
 # TODO: Should be part of visual config
 bee_colors = {
     BeeState.RESTING : "#fc0303", # red
     BeeState.RETURNING: "#3bf55a", # green
-    BeeState.READY: "#ffA500",   # orange
     BeeState.EXPLORING : "#0af5f1", # blue
     BeeState.CARRYING : "#59a2c2", # light blue
     BeeState.DANCING : "#ff52df", # pink
@@ -28,11 +27,11 @@ bee_colors = {
 # TODO: Should be part of visual config
 hive_colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ff8000", "#ff0080", "#80ff00", "#0080ff"]
 
-visual_config = VisualConfig()
-model_config = ModelConfig()
-hive_config = HiveConfig()
-beeswarm_config = BeeSwarmConfig()
-resource_config = ResourceConfig()
+visual_config = VC()
+model_config = MC()
+hive_config = HC()
+beeswarm_config = BSC()
+resource_config = RC()
 
 def agent_potrayal(agent):
     if isinstance(agent, BeeSwarm):
@@ -40,7 +39,7 @@ def agent_potrayal(agent):
     elif isinstance(agent, Hive):
         return {"Shape": "circle", "r": visual_config.hive_radius, "Filled": "true", "Color": "#82817c"}
     elif isinstance(agent, Resource):
-        return {"Shape": "circle", "r": agent.radius*(visual_config.render_size/model_config.size), "Filled": "true", "Color": "#d1bcf9"}
+        return {"Shape": "circle", "r": visual_config.resource_radius, "Filled": "true", "Color": "#d1bcf9"}
 
 
 forager_canvas = SimpleCanvas(portrayal_method=agent_potrayal, canvas_height=visual_config.render_size, canvas_width=visual_config.render_size)
@@ -103,7 +102,6 @@ bee_number_plot = ChartModule([{"Label": "Bee count 🐝", "Color": "black"},
 
 
 prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": bee_colors[BeeState.RESTING]},
-                             {"Label": "ready", "Color": bee_colors[BeeState.READY]},
                              {"Label": "returning 🔙", "Color": bee_colors[BeeState.RETURNING]},
                              {"Label": "exploring 🗺️", "Color": bee_colors[BeeState.EXPLORING]},
                              {"Label": "carrying 🎒", "Color": bee_colors[BeeState.CARRYING]},

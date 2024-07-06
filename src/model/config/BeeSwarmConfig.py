@@ -2,6 +2,42 @@ from numpy import inf
 from ..util.Units import *
 
 class BeeSwarmConfig:
+    # Quantity deducted from in-hive bee's hunger level at each step
+    FOOD_CONSUMPTION = 0.0002
+    
+    # Amount of distance covered by the BeeSwarm agent in a single step inside the hive
+    SPEED_IN_HIVE = 1
+
+    # Amount of distance covered by the BeeSwarm agent in a single step outside the hive
+    SPEED_FORAGING = 5
+
+    # How eager the bee is to explore based on current resources
+    EXPLORING_INCENTIVE = 50
+
+    # Field of view of a bee in which it is capable of interacting with other bees
+    FOV = 1
+
+    # Probability of nearby in-hive bee to follow a waggle dance
+    P_FOLLOW_WAGGLE_DANCE = 0.7
+
+    # Probability for each bee in the hive to asses nectar resources at the given simulation step
+    P_NECTAR_INSPECTION = 0.1
+
+    # Probability for each bee in the hive to communicate their perceived nectar level to other bee
+    P_NECTAR_COMMUNICATION = 0.1
+
+    # Amount of resource the Bee agent can carry
+    CARRYING_CAPACITY = 0.01
+
+    # Maximal time spent in the ready state, awaiting for recruitment or starting exploration
+    MAX_READY_TIME = 20
+
+    # Probability that a bee will abort exploration and return to hive
+    P_ABORT = 0.025
+
+    # Probability for an outside bee to die from natural factors
+    P_DEATH = 0.01
+
     def __init__(self, **kwargs):
 
         # ---| General parameters |---

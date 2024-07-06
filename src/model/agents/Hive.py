@@ -1,14 +1,13 @@
 from mesa import Agent, Model
 
 from typing import Tuple
-import numpy as np
 from numpy.random import random
 from .BeeSwarm import BeeSwarm
 
-class Hive(Agent):
+from ..config.BeeSwarmConfig import BeeSwarmConfig as BSC
+from ..config.HiveConfig import HiveConfig as HC
 
-    RADIUS = 10
-    P_NEW_FORAGER = 0.05
+class Hive(Agent):
 
     def __init__(
         self,
@@ -21,16 +20,16 @@ class Hive(Agent):
         self.pos = location
 
         # Initial state of resources within the hive
-        self.nectar = self.model.hive_config.default_nectar
+        self.nectar = 5.0
 
     def feed_bees(self):
         """
         Feeds all bees within the hive.
         """
         bees_in_hive = self.model.get_agents_of_type(BeeSwarm)
-        bees_in_hive = list(filter(lambda bee : isinstance(bee, BeeSwarm) and bee.is_exploring, bees_in_hive))
+        bees_in_hive = list(filter(lambda bee : isinstance(bee, BeeSwarm) and bee.is_in_hive, bees_in_hive))
 
-        self.nectar = max(0, len(bees_in_hive) * BeeSwarm.FOOD_CONSUMPTION)
+        self.nectar = max(0, self.nectar - len(bees_in_hive) * BSC.FOOD_CONSUMPTION)
 
     def create_bee(self):
         """
@@ -41,6 +40,6 @@ class Hive(Agent):
     def step(self):
         """Agent's step function required by Mesa package."""
         self.feed_bees()
-        if random() < Hive.P_NEW_FORAGER:
+        if random() < HC.P_NEW_FORAGER:
             self.create_bee()
         

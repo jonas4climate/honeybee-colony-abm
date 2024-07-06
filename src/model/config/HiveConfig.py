@@ -1,4 +1,8 @@
 class HiveConfig:
+
+    RADIUS = 5
+    P_NEW_FORAGER = 0.05
+
     def __init__(self, **kwargs):
 
         # [kg] Default amount of nectar stored in the hive

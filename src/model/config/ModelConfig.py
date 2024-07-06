@@ -2,15 +2,17 @@ from ..util.Units import *
 from ..util.SpaceSetup import SpaceSetup
 
 class ModelConfig:
+    SIZE = 200
+
     def __init__(self, **kwargs):
         # [m] Side length of square continuous space where the bees can forage
-        self.size = kwargs.get('size', 100)
+        self.size = kwargs.get('size', 200)
 
         # [s] Time step of the simulations
         self.dt = kwargs.get('dt', MINUTE)
 
         # [1/s] Probability of storm occuring at each simulation step
-        self.p_storm_default = kwargs.get('p_storm_default', 0.01)
+        self.p_storm_default = kwargs.get('p_storm_default', 0.00)
 
         # [1/s] Default duration of the storm event
         self.storm_duration_default = kwargs.get('storm_duration_default', DAY)
