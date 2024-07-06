@@ -1,24 +1,18 @@
 from __future__ import annotations
-from enum import Enum
+
 from typing import Optional, Tuple
 
 from mesa import Agent, Model
 from math import atan2, cos, sin
 import numpy as np
-from numpy.random import random, normal
-from scipy.stats import beta, expon
+from numpy.random import random
+from scipy.stats import expon, uniform
 
 from .Resource import Resource
-from ..util.Weather import Weather
-from ..config.BeeSwarmConfig import BeeSwarmConfig
+from ..util.BeeState import BeeState
 
-class BeeState(Enum):
-    RESTING = "resting"
-    RETURNING = "returning"
-    EXPLORING = "exploring"
-    CARRYING = "carrying"
-    DANCING = "dancing"
-    FOLLOWING = "following"
+from ..config.BeeSwarmConfig import BeeSwarmConfig as BSC
+from ..config.HiveConfig import HiveConfig as HC
 
 class BeeSwarm(Agent):
 
@@ -26,10 +20,6 @@ class BeeSwarm(Agent):
         self,
         model: Model,  # model the agent belongs to
         hive,  # the Hive the Bee agent belongs to
-        location: Optional[Tuple[float, float]] = None, # agent's current position
-        age: float = 0,  # agent's current age (which has influence on their activity)
-        state: BeeState = BeeState.RESTING,  # Bee's current activity
-        wiggle: bool = False,  # whether the Bee agent is currently wiggle dancing,
     ):
         super().__init__(model.next_id() , model)
 
@@ -37,85 +27,50 @@ class BeeSwarm(Agent):
         self.hive = hive
 
         # Agent's position in space
-        self.pos = hive.pos
-        assert self.pos is not None, f"Bee agent {self} initialized with None position"
+        self.pos = None
 
         # Agent's current activity
-        self.state: BeeState = state
+        self.state: BeeState = BeeState.RESTING
 
-        # Whether the bee is waggle dancing
-        self.wiggle: bool = wiggle
+        # Destination of resource communicated through waggle dance recruitment
+        self.resource_destination: Optional[Tuple[float, float]] = None
 
-        # Destination of resource communicate through waggle dance recruitment
-        self.wiggle_destiny: Optional[Tuple[float, float]] = None
-
-        # Amount of time spent waggle dancing [s]
-        self.dancing_time: int = 0
-
-        # Age of the BeeSwarm agent [s]
-        self.age: int = age
-
-        # Maximum age of the BeeSwarm agent [s]
-        self.max_age: int = model.beeswarm_config.max_age
-
-        # Speed of the BeeSwarm agent [m/s]
-        self.speed: float = model.beeswarm_config.speed
-
-        # Reference to the set of parameters governing BeeSwarm's agent behaviour
-        self.beeswarm_config = model.beeswarm_config
-
-        # Amount of resource load carried by the agent
-        self.load = 0.0
-
-        # Agent's hunger level
-        self.fed = self.beeswarm_config.feed_storage
-
-        # Agent's sampled Gaussian scaling factor for random walk bias towards resources
-        self.scent_scale = max(normal(loc=self.beeswarm_config.scent_scale_mean, scale=self.beeswarm_config.scent_scale_std), 0)
+        # Time spent resting after successful foraging trip
+        self.resting_time = 0
 
         # Agent's perceived amount of resources available in the hive
         self.perceived_nectar = 0.0
 
-        # Agent's perception
-        self.perception = model.beeswarm_config.perception
-
-        # Agent's starvation speed
-        self.starvation_speed = model.beeswarm_config.starvation_speed
-
-        # Agents probability of nectar inspection
-        self.p_nectar_inspection = model.beeswarm_config.p_nectar_inspection
-
-        # Agent's carrying capacity
-        self.carrying_capacity = model.beeswarm_config.carrying_capacity
-
-        # Agent's exploring incentive
-        self.exploring_incentive = model.beeswarm_config.exploring_incentive
-
-        # Agent's probability of death outside hive
-        self.p_death_by_outside_risk = model.beeswarm_config.p_death_by_outside_risk
-
-        # Agent's probability of death during storm
-        self.p_death_by_storm = model.beeswarm_config.p_death_by_storm
-
-        # Agent's probability to follow waggle dance
-        self.p_follow_waggle_dance = model.beeswarm_config.p_follow_waggle_dance
-
-        # Agent's probability to abort exploration
-        self.p_abort = model.beeswarm_config.p_abort
-
-        # Scaling factor for the probability to abort exploration during stormy weather
-        self.storm_abort_factor = model.beeswarm_config.storm_abort_factor
-
-
-        # Inspect hive
+        # Inspect hive and change perceived nectar value
         self.inspect_hive()
 
+    @property
+    def is_resting(self):
+        return self.state == BeeState.RESTING
 
+    @property
+    def is_returning(self):
+        return self.state == BeeState.RETURNING
+
+    @property
+    def is_exploring(self):
+        return self.state == BeeState.EXPLORING
+
+    @property
+    def is_carrying(self):
+        return self.state == BeeState.CARRYING
+
+    @property
+    def is_dancing(self):
+        return self.state == BeeState.DANCING
+
+    @property
+    def is_following(self):
+        return self.state == BeeState.FOLLOWING
 
     def step(self):
         """Agent's step function required by Mesa package."""
-        self.update_properties()        # Manage properties (age and fed)
-        self.step_by_caste()            # Manage action based on caste
+        self.step_by_activity()         # Manage action based on current activity
         self.manage_death()             # Manage death
 
     def scent_strength_at_pos(self, pos, resources, epsilon=1e-24):
@@ -153,31 +108,35 @@ class BeeSwarm(Agent):
         """
         Bee agent inspects the hive and samples perceived nectar level from Beta distribution.
         """
-
         # Mean of the Beta distribution, equal to normalized nectar level within hive
-        mu = self.hive.nectar / self.hive.max_nectar_capacity
-        if mu == 0:
-            mu = 1e-24
-        elif mu == 1:
-            mu = 1 - 1e-24
+        self.perceived_nectar = max(self.hive.nectar + uniform.rvs(-1, 1), 0)
 
-        # Alpha and Beta parameters of Beta distribution, with bee's perception as the no. of samples
-        a = self.perception * (mu)
-        b = self.perception * (1 - mu)
+    def move_random_in_hive(self):
+        """
+        Moves randomly in x and y in the interval [-distance, distance]
+        """
+        # Choose a random point with radius equivalent to speed times time step
+        angle = np.random.uniform(0, 2 * np.pi)
+        dx = BSC.SPEED_IN_HIVE * np.cos(angle)
+        dy = BSC.SPEED_IN_HIVE * np.sin(angle)
+
+        # Calculate the new position, taking the boundaries into account
+        newx = self.pos[0] + dx
+        newy = self.pos[1] + dy
+        newpos = (newx, newy)
         
-        assert a > 0, f"Alpha parameter in Beta distribution is {a} but must be positive"
-        assert b > 0, f"Beta parameter in Beta distribution is {b} but must be positive"
+        # Repeat untill the new position is within the hive
+        while self.model.space.get_distance(self.hive.pos, newpos) > HC.RADIUS:
+            angle = np.random.uniform(0, 2 * np.pi)
+            dx = BSC.SPEED_IN_HIVE * np.cos(angle)
+            dy = BSC.SPEED_IN_HIVE * np.sin(angle)
 
-        # Handle edge cases
-        if np.isclose(a, 0):
-            a += np.finfo(np.float32).eps
+            # Calculate the new position, taking the boundaries into account
+            newx = self.pos[0] + dx
+            newy = self.pos[1] + dy
+            newpos = (newx, newy)
 
-        if np.isclose(b, 0):
-            b += np.finfo(np.float32).eps
-
-        # Sample perceived nectar from the Beta distribution
-        self.perceived_nectar = beta.rvs(a, b) * self.hive.max_nectar_capacity
-
+        self.model.space.move_agent(self, newpos)
 
     def move_random_exploration(self, epsilon=1e-12):
         """
@@ -185,12 +144,11 @@ class BeeSwarm(Agent):
         """
         # Distance the bee agent will cover in the simulation step
         # TODO: Add stochasticity to the distance covered.
-        distance = self.speed * self.model.dt
 
         # Choose a random point with radius equivalent to speed times time step
         angle = np.random.uniform(0, 2 * np.pi)
-        dx = distance * np.cos(angle)
-        dy = distance * np.sin(angle)
+        dx = BSC.SPEED_FORAGING * np.cos(angle)
+        dy = BSC.SPEED_FORAGING * np.sin(angle)
 
         # Calculate the new position, taking the boundaries into account
         newx = self.pos[0] + dx
@@ -201,48 +159,27 @@ class BeeSwarm(Agent):
 
         # Calculate resource attraction bias
         resources = self.model.get_agents_of_type(Resource)
-        if len(resources) == 0: # No resources left, just walk randomly
+
+        # Attraction level at current and new position
+        attraction_current = self.scent_strength_at_pos(self.pos, resources)
+        attraction_new = self.scent_strength_at_pos(newpos, resources)
+
+        # If all resources depleted, just move
+        if attraction_current == 0:
             self.model.space.move_agent(self, newpos)
         else:
-            # Attraction level at current and new position
-            attraction_current = self.scent_strength_at_pos(self.pos, resources)
-            attraction_new = self.scent_strength_at_pos(newpos, resources)
+            ratio = attraction_new / (attraction_current * 10)
 
-            assert attraction_current > 0, f"Current attraction is {attraction_current} but must be > 0"
-            assert 1 + self.scent_scale > 0, f"Scent scale is {self.scent_scale} but must be > 0"
-            ratio = attraction_new / (attraction_current * (1 + self.scent_scale))
-    
             # Metropolis algorithm
             if attraction_new > attraction_current or random() < ratio:
-                assert newpos != None, f"New position for Bee agent {self} is equal to None"
                 self.model.space.move_agent(self, newpos)
-            else:
-                pass
 
     @property
-    def is_outside(self):
-        """
-        Check is the bee agent is outside the hive. Syntactic sugar.
-        """
-        return not self.is_close_to_hive()
-    
-    def is_bee_in_sight(self, bee):
-        """
-        Check if another bee agent is within FOV. Syntactic sugar.
-        """
-        return self.is_close_to(bee, self.beeswarm_config.field_of_view)
-    
-    def is_resource_in_sight(self, resource):
-        """
-        Checks if a specific resource is within FOV of the bee agent. Syntactic sugar.
-        """
-        return self.is_close_to(resource, resource.radius + self.beeswarm_config.field_of_view)
-
-    def is_close_to_hive(self):
+    def is_in_hive(self):
         """
         Check if the bee agent is within hive area. Syntactic sugar.
         """
-        return self.is_close_to(self.hive, self.hive.radius)
+        return self.is_close_to(self.hive, HC.RADIUS)
     
     def is_close_to(self, agent, threshold):
         """Determines if bee agent is in close proximity to another agent.
@@ -255,13 +192,6 @@ class BeeSwarm(Agent):
             bool: True if the bee agent is in close proximity to the other agent
         """
         return self.model.space.get_distance(self.pos, agent.pos) <= threshold
-    
-    def is_hive_in_sight(self):
-        # TODO: Check where that method is used, sounds like flawed logic.
-        """
-        Determines if bee agent is within communication threshold to its hive. Syntactic sugar.
-        """
-        return self.is_close_to(self.hive, self.hive.radius + self.beeswarm_config.field_of_view)
 
     def is_close_to_resource(self, resource):
         """
@@ -275,43 +205,35 @@ class BeeSwarm(Agent):
         """
         self.move_towards(self.hive)
 
-    def move_towards(self, destiny_agent):
+    def move_towards(self, destination):
         """
         Moves deterministically in straight line towards a target location.
         """
-        if destiny_agent.pos == None:
-            # TODO: Do we only use move_towards() for waggle dance recruitment ? If not the line below should be deleted.
-            self.wiggle_destiny = None
-            self.state = BeeState.RETURNING
-            return
+        # TODO: Add stochasticity to the distance covered
 
         # Determines distance to the destination
-        dx = destiny_agent.pos[0] - self.pos[0]
-        dy = destiny_agent.pos[1] - self.pos[1]
-        distance = (dx**2 + dy**2) ** 0.5
-
-        # TODO: Add stochasticity to the distance covered.
-
-        # Determines how much distance will actually be covered
-        move_distance = self.speed * self.model.dt
+        distance = self.model.space.get_distance(self.pos, destination.pos)
 
         # Move towards the destination.
-        if distance > move_distance:
+        if distance > BSC.SPEED_FORAGING:
+            dx = destination.pos[0] - self.pos[0]
+            dy = destination.pos[1] - self.pos[1]
+
             angle = atan2(dy, dx)
-            new_x = self.pos[0] + move_distance * cos(angle)
-            new_y = self.pos[1] + move_distance * sin(angle)
+            new_x = self.pos[0] + BSC.SPEED_FORAGING * cos(angle)
+            new_y = self.pos[1] + BSC.SPEED_FORAGING * sin(angle)
 
             newpos = (new_x, new_y)
             assert newpos != None, f"New position for Bee agent {self} is equal to None"
 
             self.model.space.move_agent(self, newpos)
         else:
-            newpos = (destiny_agent.pos[0], destiny_agent.pos[1])
+            newpos = (destination.pos[0], destination.pos[1])
             assert newpos != None, f"New position for Bee agent {self} is equal to None"
 
             self.model.space.move_agent(self, newpos)
 
-    def step_by_caste(self):
+    def step_by_activity(self):
         """Handles the bee's actions based on their current activity."""
         if self.state == BeeState.RESTING:
             return self.handle_resting()
@@ -330,34 +252,32 @@ class BeeSwarm(Agent):
         """
         Handles the behaviour of a bee resting in the hive.
         """
+        self.move_random_in_hive()
 
-        assert self.load == 0, "Bee cannot be resting and carrying at the same time"
-        assert self.is_close_to_hive(), "Bee cannot be resting and not close to hive"
-
-        if random() < self.p_nectar_inspection*self.model.dt:
+        if random() < BSC.P_NECTAR_INSPECTION:
             # Inspect hive resources with fixed probability
             self.inspect_hive()
+        elif random() < BSC.P_NECTAR_COMMUNICATION:
+            # If not inspecting, communicate the information with all nearby bees
+            nearby_bees = self.model.space.get_neighbors(self.pos, BSC.FOV, include_center=False)
 
-        elif random() < self.p_nectar_inspection*self.model.dt:
-            # If not inspecting, communicate the information with random nearby bee
-            nearby_bees = self.model.space.get_neighbors(self.pos, self.beeswarm_config.field_of_view)
-            nearby_bees = [bee for bee in nearby_bees if isinstance(bee, BeeSwarm) and bee != self]
+            for bee in nearby_bees:
+                if isinstance(bee, BeeSwarm) and random() < BSC.P_NECTAR_COMMUNICATION:
+                    bee.perceived_nectar = self.perceived_nectar
 
-            if len(nearby_bees) > 0:
-                # Pick a random neighboring bee and share the nectar perception
-                random_neighbor = nearby_bees[np.random.randint(0, len(nearby_bees))]
-                random_neighbor.perceived_nectar = self.perceived_nectar
-
-        # Start exploring based on exponential distribution
-        if random() < expon.sf(self.perceived_nectar / self.hive.max_nectar_capacity, scale=self.exploring_incentive):
+        # Start exploring based on exponential distribution and self-perceived nectar
+        if self.resting_time == 0 and random() < expon.pdf(self.perceived_nectar, scale=BSC.EXPLORING_INCENTIVE):
             self.state = BeeState.EXPLORING
+        else:
+            self.resting_time = max(self.resting_time - 1, 0)
 
     def handle_returning(self):
         """
         Handles the behaviour of a bee returning to the hive without carrying resources.
         """
-        if self.is_close_to_hive():
+        if self.is_in_hive:
             self.state = BeeState.RESTING
+            self.resting_time = BSC.RESTING_PERIOD
         else:
             self.move_towards_hive()
 
@@ -365,40 +285,21 @@ class BeeSwarm(Agent):
         """
         Handles the behaviour of bee exploring the space for resources.
         """
-        # Probability to abort the recruitment and return to the hive, scaled with simulation step and storm factor
-        p_abort = self.beeswarm_config.p_abort * self.model.dt
-        if self.model.weather == Weather.STORM:
-            p_abort *= self.storm_abort_factor
-
         # Abort exploration with certain probability, otherwise continue moving towards the resource
-        if random() < p_abort:
+        if self.model.is_raining or random() < BSC.P_ABORT:
             self.state = BeeState.RETURNING
         else:
-            # TODO: This logic seems wrong and / or expensive computationally. There should be a buffer state between rest and exploration.
-            if self.is_hive_in_sight():
-                self.try_follow_wiggle_dance()
-            self.try_gather_resources()
             self.move_random_exploration()
 
     def handle_carrying(self):
         """
         Handles the behaviour of bee carrying the resource back to the hive.
         """
-        # TODO: If we don't vary the load, variable load can be deleted
-        # TODO: This should be done before the bee start exploring. A useless if loop.
-
-        # At the first step, gather the resources
-        if self.load == 0:
-            self.load = self.carrying_capacity
-
         # TODO: Waggle dance should be performed with probability dependent on resource profitability
         # Fly back and put the resources in the hive, then start waggle dancing
-        if self.is_close_to_hive():
-            self.hive.nectar = min(self.hive.nectar + self.load, self.hive.max_nectar_capacity)
-            self.load = 0
-            self.wiggle = True
+        if self.is_in_hive:
+            self.hive.nectar += BSC.CARRYING_CAPACITY
             self.state = BeeState.DANCING
-            self.model.wiggle_dancing_bees.add(self)
         else:
             self.move_towards_hive()
 
@@ -406,126 +307,49 @@ class BeeSwarm(Agent):
         """
         Handles the behaviour of a waggle dancing bee.
         """
-        # TODO: This sucks. Does not work properly if waggle_dance_length is not divisible by dt
+        assert self.resource_destination != None
 
-        # Increment time spent dancing
-        self.dancing_time += self.model.dt
-        
-        # If done waggle dancing, start resting
-        if self.dancing_time >= self.beeswarm_config.waggle_dance_length:
-            self.dancing_time = 0
-            self.wiggle_destiny = None
-            self.wiggle = False
-            self.state = BeeState.RESTING
-            self.model.wiggle_dancing_bees.remove(self)
+        # Find nearby resting bees and try to employ them with certain probability
+        nearby_resting_bees = self.model.space.get_neighbors(self.pos, BSC.FOV, include_center=False)
+        nearby_resting_bees = list(filter(lambda bee : isinstance(bee, BeeSwarm) and bee.state == BeeState.RESTING, nearby_resting_bees))
+
+        for bee in nearby_resting_bees:
+            if bee.resting_time == 0 and random() < BSC.P_FOLLOW_WAGGLE_DANCE:
+                bee.state = BeeState.FOLLOWING
+                bee.resource_destination = self.resource_destination
+
+        self.state = BeeState.RESTING
+        self.resting_time = BSC.RESTING_PERIOD
+        self.resource_destination = None
 
     def handle_following(self):
         """
         Handles the behaviour of a bee recruited through waggle dance.
         """
-        # Check safely if close to resource (could have disappeared), carry resource if arrived
-        if self.wiggle_destiny and self.is_close_to_resource(self.wiggle_destiny):
-            self.state = BeeState.CARRYING
-
-        # Probability to abort the recruitment and return to the hive, scaled with simulation step and storm factor
-        p_abort_following = self.p_abort * self.model.dt
-        if self.model.weather == Weather.STORM:
-            p_abort_following *= self.storm_abort_factor
-
         # Abort recruitment with certain probability, otherwise continue moving towards the resource
-        if random() < p_abort_following:
-            self.state = BeeState.EXPLORING
+        if self.model.is_raining or random() < BSC.P_ABORT:
+            self.state = BeeState.RETURNING
         else:
-            self.move_towards(self.wiggle_destiny)
-
-    def try_follow_wiggle_dance(self):
-        """
-        Checks if waggle dancing bee is in close proximity and becomes a recruit with certain probability.
-        """
-        # TODO: This is not the correct way to go. This is computationally expensive. This sucks.
-        # This should be treated from the waggle dancer perspective, not a random bee in the hive. This should be changed  in optimization commit.
-        dancing_bees = list(self.model.wiggle_dancing_bees)
-        np.random.shuffle(dancing_bees)
-
-        for bee in list(dancing_bees):
-            if self.is_bee_in_sight(bee) and random() < self.p_follow_waggle_dance:
-                self.wiggle_destiny = bee.wiggle_destiny
-                self.state = BeeState.FOLLOWING
-                return
-
-    def try_gather_resources(self):
-        """
-        Checks if the bee is nearby Resource agents and attempts to extract one of them.
-        """
-        # TODO: This is not the correct way to go. This is computationally expensive. This sucks.
-        # Mesa's space module has get_neighborhood() function specifically for that purpose. This should be changed in optimization commit.
-        resources = self.model.get_agents_of_type(Resource)
-        for res in resources:
-            if self.is_close_to_resource(res):
-                self.wiggle_destiny = res
-                self.state = BeeState.CARRYING
-                self.extract(res)
-                return
-            
-    def extract(self, resource: Resource):
-        """Extracts nectar from a Resource agent.
-
-        Args:
-            resource (Resource): agent to extract nectar from
-        """
-        
-        if resource.persistent == True:
-            # If resource is persistent, quantity is essentially infinite
-            self.load = self.carrying_capacity
-        else:
-            # Otherwise we take at most as much as there is available
-            extract_amount = min(resource.quantity, self.carrying_capacity)
-            self.load = extract_amount
-            resource.quantity -= extract_amount
-            resource.extracted_nectar += extract_amount
-            # print(f'Resource quantity: {resource.quantity} | {self} gathered {extract_amount}')
-
-            # If resource is depleted, remove it
-            if not resource.persistent and resource.quantity <= 0:
-                resource._remove_agent()
-
-    def update_properties(self):
-        """Updates the properties of the bee."""
-        # Update hunger level, ensuring it's non-negative
-        self.fed = max(self.fed - self.fed * self.starvation_speed * self.model.dt, 0)
-
-        self.age += self.model.dt
+            assert self.resource_destination != None
+            self.move_towards(self.resource_destination)
 
     def manage_death(self):
-        """Handles tiny bee deaths."""
-        if self.fed == 0:  # Death by starvation
-            # print("Bee died by starvation")
-            return self._remove_agent()
-
         """Handles death of BeeSwarm agent."""
-        # Death by starvation
-        if self.fed == 0:
-            return self._remove_agent()
+        death_factor = BSC.P_DEATH
 
-        # Death by age
-        if self.age >= self.max_age:
+        # Higher death chance during storm
+        if self.model.is_raining:
+            death_factor *= BSC.DEATH_STORM_FACTOR
+    
+        if not self.is_in_hive and random() < BSC.P_DEATH:
+            # Death by random outside risk
             return self._remove_agent()
-
-        # Death by storm
-        if (self.model.weather == Weather.STORM and self.is_outside):
-            if random() < self.p_death_by_storm * self.model.dt:
-                # print("Bee died by storm")
-                return self._remove_agent()
-        
-        # Death by random outside risk
-        if (self.is_outside and random() < self.p_death_by_outside_risk * self.model.dt):
-            # print("Bee died by outside risk")
+        elif self.is_in_hive and random() < 0.1 * expon.pdf(self.hive.nectar, scale=1):
+            # Death by hunger
             return self._remove_agent()
 
     def _remove_agent(self):
         """Helper for removing agents."""
-        # TODO: Mesa provides functionality to do that more efficiently
-        self.model.n_agents_existed -= 1
         self.model.space.remove_agent(self)
         self.model.schedule.remove(self)
         self.model.agents.remove(self)
