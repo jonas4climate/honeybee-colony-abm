@@ -14,8 +14,6 @@ from src.model.config.HiveConfig import HiveConfig
 from src.model.config.ResourceConfig import ResourceConfig
 from src.model.config.ModelConfig import ModelConfig
 
-from src.model.util.Units import *
-
 from src.model.Model import ForagerModel, SpaceSetup
 
 SEED = 42
