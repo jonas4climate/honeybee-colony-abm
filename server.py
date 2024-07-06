@@ -10,28 +10,15 @@ from src.model.agents.Resource import Resource
 
 from src.model.config.ModelConfig import ModelConfig as MC
 from src.model.config.VisualConfig import VisualConfig as VC
-from src.model.config.VisualConfig import VisualMode
-
-# TODO: Should be part of visual config
-bee_colors = {
-    BeeState.RESTING : "#fc0303", # red
-    BeeState.RETURNING: "#3bf55a", # green
-    BeeState.EXPLORING : "#0af5f1", # blue
-    BeeState.CARRYING : "#59a2c2", # light blue
-    BeeState.DANCING : "#ff52df", # pink
-    BeeState.FOLLOWING : "#0a54f5" # dark blue
-}
-
-# TODO: Should be part of visual config
-hive_colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ff8000", "#ff0080", "#80ff00", "#0080ff"]
+from src.model.config.VisualConfig import VisualMode, BEE_COLORS, HIVE_COLOR, RESOURCE_COLOR
 
 def agent_potrayal(agent):
     if isinstance(agent, BeeSwarm):
-        return {"Shape": "circle", "r": VC.BEE_RADIUS, "Filled": "true", "Color": bee_colors[agent.state]}
+        return {"Shape": "circle", "r": VC.BEE_RADIUS, "Filled": "true", "Color": BEE_COLORS[agent.state]}
     elif isinstance(agent, Hive):
-        return {"Shape": "circle", "r": VC.HIVE_RADIUS, "Filled": "true", "Color": "#82817c"}
+        return {"Shape": "circle", "r": VC.HIVE_RADIUS, "Filled": "true", "Color": HIVE_COLOR}
     elif isinstance(agent, Resource):
-        return {"Shape": "circle", "r": VC.RESOURCE_RADIUS, "Filled": "true", "Color": "#d1bcf9"}
+        return {"Shape": "circle", "r": VC.RESOURCE_RADIUS, "Filled": "true", "Color": RESOURCE_COLOR(agent)}
 
 forager_canvas = SimpleCanvas(portrayal_method=agent_potrayal, canvas_height=MC.SIZE*VC.RENDER_SCALE, canvas_width=MC.SIZE*VC.RENDER_SCALE)
 
@@ -71,14 +58,14 @@ model_params = {
 bee_number_plot = ChartModule([{"Label": "Bee count 🐝", "Color": "black"},
                                {"Label": "Storm ⛈️", "Color": "red"}])
 
-prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": bee_colors[BeeState.RESTING]},
-                             {"Label": "returning 🔙", "Color": bee_colors[BeeState.RETURNING]},
-                             {"Label": "exploring 🗺️", "Color": bee_colors[BeeState.EXPLORING]},
-                             {"Label": "carrying 🎒", "Color": bee_colors[BeeState.CARRYING]},
-                             {"Label": "dancing 🪩", "Color": bee_colors[BeeState.DANCING]},
-                             {"Label": "following 🎯", "Color": bee_colors[BeeState.FOLLOWING]}])
+prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": BEE_COLORS[BeeState.RESTING]},
+                             {"Label": "returning 🔙", "Color": BEE_COLORS[BeeState.RETURNING]},
+                             {"Label": "exploring 🗺️", "Color": BEE_COLORS[BeeState.EXPLORING]},
+                             {"Label": "carrying 🎒", "Color": BEE_COLORS[BeeState.CARRYING]},
+                             {"Label": "dancing 🪩", "Color": BEE_COLORS[BeeState.DANCING]},
+                             {"Label": "following 🎯", "Color": BEE_COLORS[BeeState.FOLLOWING]}])
 
-nectar_plot = ChartModule([{"Label": "Mean perceived nectar level", "Color": "black"}, {"Label": f"Hive stock 🍯", "Color": hive_colors[0]}])
+nectar_plot = ChartModule([{"Label": "Mean perceived nectar level", "Color": "black"}, {"Label": f"Hive stock 🍯", "Color": HIVE_COLOR}])
 
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,
