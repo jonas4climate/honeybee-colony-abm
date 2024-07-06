@@ -4,4 +4,4 @@ class ResourceConfig:
     RADIUS = 5
 
     # Default quantity of resource bees can forage from a single Resource agent before it depletes
-    DEFAULT_QUANTITY = 1
+    DEFAULT_QUANTITY = 5

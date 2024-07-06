@@ -9,7 +9,7 @@ class ModelConfig:
     N_BEESWARMS = 200
 
     # Probability of storm event occuring
-    P_STORM_DEFAULT = 0.00
+    P_STORM_DEFAULT = 0.005
 
     # Default duration of the storm event
-    STORM_DURATION_DEFAULT = 10
+    STORM_DURATION_DEFAULT = 20

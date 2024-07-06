@@ -29,7 +29,8 @@ class Resource(Agent):
     def step(self):
         """Agent's step function required by Mesa package."""
         nearby_foragers = self.model.space.get_neighbors(self.pos, RC.RADIUS, include_center=False)
-        nearby_foragers = list(filter(lambda bee : self.model.is_bee(bee) and bee.is_exploring or bee.is_following, nearby_foragers))
+        nearby_foragers = list(filter(lambda agent : self.model.is_bee(agent), nearby_foragers))
+        nearby_foragers = list(filter(lambda bee : (bee.is_exploring or bee.is_following), nearby_foragers))
 
         # Each nearby forager extracts the resource
         for forager in nearby_foragers:

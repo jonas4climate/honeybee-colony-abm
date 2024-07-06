@@ -8,7 +8,7 @@ class BeeSwarmConfig:
     FOV = 1
 
    # Quantity deducted from hive storage per bee in hive
-    FOOD_CONSUMPTION = 0.0002
+    FOOD_CONSUMPTION = 0.0001
     
     # ---| Movement |---
 
