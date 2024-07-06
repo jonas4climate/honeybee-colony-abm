@@ -340,9 +340,12 @@ class BeeSwarm(Agent):
         # Higher death chance during storm
         if self.model.is_raining:
             death_factor *= BSC.DEATH_STORM_FACTOR
-        
-        # Death by random outside risk
+    
         if not self.is_in_hive and random() < BSC.P_DEATH:
+            # Death by random outside risk
+            return self._remove_agent()
+        elif self.is_in_hive and random() < 0.1 * expon.pdf(self.hive.nectar, scale=1):
+            # Death by hunger
             return self._remove_agent()
 
     def _remove_agent(self):
