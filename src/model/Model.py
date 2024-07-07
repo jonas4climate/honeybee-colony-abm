@@ -123,11 +123,11 @@ class ForagerModel(Model):
         ax.add_patch(hive_circle)
         
         for bee in self.get_agents_of_type(BeeSwarm):
-            bee_circle = plt.Circle(bee.pos, 2, color=VC.BEE_COLORS[bee.state])
+            bee_circle = plt.Circle(bee.pos, 1, color=VC.BEE_COLORS[bee.state])
             ax.add_patch(bee_circle)
         
         for resource in self.get_agents_of_type(Resource):
-            resource_circle = plt.Circle(resource.pos, RC.RADIUS, color=VC.RESOURCE_COLOR)
+            resource_circle = plt.Circle(resource.pos, RC.RADIUS, color=VC.RESOURCE_COLOR(resource))
             ax.add_patch(resource_circle)
 
     def create_agent(self, agent_type, location, **kwargs):
