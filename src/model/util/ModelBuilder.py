@@ -31,3 +31,18 @@ def add_resource_in_distance(model, distance: float, quantity: float=RC.DEFAULT_
     y = model.hive.pos[1] + dy
     
     model.create_agent(Resource, (x, y), quantity=quantity)
+
+@staticmethod
+def add_n_resources_in_angle_range(model, distance: float, n_resources: float, max_angle: float, quantity: float=RC.DEFAULT_QUANTITY):
+    assert distance > (HC.RADIUS + RC.RADIUS), "Resources should not overlap with the hive."
+
+    angles = np.arange(0, max_angle, max_angle / n_resources)
+
+    for angle in angles:
+        dx = distance * np.cos(angle)
+        dy = distance * np.sin(angle)
+
+        x = model.hive.pos[0] + dx
+        y = model.hive.pos[1] + dy
+    
+        model.create_agent(Resource, (x, y), quantity=quantity)

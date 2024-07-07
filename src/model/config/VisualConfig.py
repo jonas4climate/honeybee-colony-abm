@@ -7,24 +7,27 @@ from ..util.BeeState import BeeState
 
 from enum import Enum
 
-BEE_COLORS = {
-    BeeState.RESTING : "#fc0303", # red
-    BeeState.RETURNING: "#3bf55a", # green
-    BeeState.EXPLORING : "#0af5f1", # blue
-    BeeState.CARRYING : "#59a2c2", # light blue
-    BeeState.DANCING : "#ff52df", # pink
-    BeeState.FOLLOWING : "#0a54f5" # dark blue
-}
-
-HIVE_COLOR = "#e6cb02" # deep yellow
-
-RESOURCE_COLOR = lambda resource : "#47ad1f" if resource.quantity > 0 else "#ffffff" # deep green or white if empty
-
 class VisualMode(Enum):
     CLASSIC = 0
     SERVER = 1
 
 class VisualConfig:
+
+    # Activity dependent color of bee in the visualization
+    BEE_COLORS = {
+        BeeState.RESTING : "#fc0303", # red
+        BeeState.RETURNING: "#3bf55a", # green
+        BeeState.EXPLORING : "#0af5f1", # blue
+        BeeState.CARRYING : "#59a2c2", # light blue
+        BeeState.DANCING : "#ff52df", # pink
+        BeeState.FOLLOWING : "#0a54f5" # dark blue
+    }
+
+    # Color of hive in the visualization
+    HIVE_COLOR = "#e6cb02" # deep yellow
+
+    # Color of resource in the visualization (white if quantity reached 0)
+    RESOURCE_COLOR = lambda resource : "#47ad1f" if resource.quantity > 0 else "#ffffff" # deep green or white if empty
 
     # Grid size for JS server visualization
     RENDER_SCALE = 3
