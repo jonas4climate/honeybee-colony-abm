@@ -10,15 +10,15 @@ from src.model.agents.Resource import Resource
 
 from src.model.config.ModelConfig import ModelConfig as MC
 from src.model.config.VisualConfig import VisualConfig as VC
-from src.model.config.VisualConfig import VisualMode, BEE_COLORS, HIVE_COLOR, RESOURCE_COLOR
+from src.model.config.VisualConfig import VisualMode
 
 def agent_potrayal(agent):
     if isinstance(agent, BeeSwarm):
-        return {"Shape": "circle", "r": VC.BEE_RADIUS, "Filled": "true", "Color": BEE_COLORS[agent.state]}
+        return {"Shape": "circle", "r": VC.BEE_RADIUS, "Filled": "true", "Color": VC.BEE_COLORS[agent.state]}
     elif isinstance(agent, Hive):
-        return {"Shape": "circle", "r": VC.HIVE_RADIUS, "Filled": "true", "Color": HIVE_COLOR}
+        return {"Shape": "circle", "r": VC.HIVE_RADIUS, "Filled": "true", "Color": VC.HIVE_COLOR}
     elif isinstance(agent, Resource):
-        return {"Shape": "circle", "r": VC.RESOURCE_RADIUS, "Filled": "true", "Color": RESOURCE_COLOR(agent)}
+        return {"Shape": "circle", "r": VC.RESOURCE_RADIUS, "Filled": "true", "Color": VC.RESOURCE_COLOR(agent)}
 
 forager_canvas = SimpleCanvas(portrayal_method=agent_potrayal, canvas_height=MC.SIZE*VC.RENDER_SCALE, canvas_width=MC.SIZE*VC.RENDER_SCALE)
 
@@ -58,12 +58,12 @@ model_params = {
 bee_number_plot = ChartModule([{"Label": "Bee count 🐝", "Color": "black"},
                                {"Label": "Storm ⛈️", "Color": "red"}])
 
-prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": BEE_COLORS[BeeState.RESTING]},
-                             {"Label": "returning 🔙", "Color": BEE_COLORS[BeeState.RETURNING]},
-                             {"Label": "exploring 🗺️", "Color": BEE_COLORS[BeeState.EXPLORING]},
-                             {"Label": "carrying 🎒", "Color": BEE_COLORS[BeeState.CARRYING]},
-                             {"Label": "dancing 🪩", "Color": BEE_COLORS[BeeState.DANCING]},
-                             {"Label": "following 🎯", "Color": BEE_COLORS[BeeState.FOLLOWING]}])
+prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": VC.BEE_COLORS[BeeState.RESTING]},
+                             {"Label": "returning 🔙", "Color": VC.BEE_COLORS[BeeState.RETURNING]},
+                             {"Label": "exploring 🗺️", "Color": VC.BEE_COLORS[BeeState.EXPLORING]},
+                             {"Label": "carrying 🎒", "Color": VC.BEE_COLORS[BeeState.CARRYING]},
+                             {"Label": "dancing 🪩", "Color": VC.BEE_COLORS[BeeState.DANCING]},
+                             {"Label": "following 🎯", "Color": VC.BEE_COLORS[BeeState.FOLLOWING]}])
 
 nectar_plot = ChartModule([{"Label": "Mean perceived nectar level", "Color": "black"}, {"Label": f"Hive stock 🍯", "Color": HIVE_COLOR}])
 

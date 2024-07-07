@@ -114,6 +114,22 @@ class ForagerModel(Model):
             agent_reporters=agent_reporters
         )
 
+    def plot(self, ax):
+        ax.set_xlim(self.space.x_min, self.space.x_max)
+        ax.set_ylim(self.space.y_min, self.space.y_max)
+        ax.set_aspect('equal', 'box')
+
+        hive_circle = plt.Circle(self.hive.pos, HC.RADIUS, color=VC.HIVE_COLOR)
+        ax.add_patch(hive_circle)
+        
+        for bee in self.get_agents_of_type(BeeSwarm):
+            bee_circle = plt.Circle(bee.pos, 2, color=VC.BEE_COLORS[bee.state])
+            ax.add_patch(bee_circle)
+        
+        for resource in self.get_agents_of_type(Resource):
+            resource_circle = plt.Circle(resource.pos, RC.RADIUS, color=VC.RESOURCE_COLOR)
+            ax.add_patch(resource_circle)
+
     def create_agent(self, agent_type, location, **kwargs):
         agent = agent_type(self, **kwargs)
 
