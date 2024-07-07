@@ -26,12 +26,6 @@ class VisualMode(Enum):
 
 class VisualConfig:
 
-    # Default number of resources in JS server visualization
-    N_RESOURCES_DEFAULT = 3
-
-    # Default distance of all resources to the hive in JS server visualization
-    RESOURCE_DISTANCE_DEFAULT = 50
-
     # Grid size for JS server visualization
     RENDER_SCALE = 3
 
