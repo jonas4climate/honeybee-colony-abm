@@ -23,7 +23,7 @@ NECTAR_FILE = os.path.join('data', 'experiment_1', 'nectar.npy')
 RECRUITED_FILE = os.path.join('data', 'experiment_1', 'recruited.npy')
 EXPLORERS_FILE = os.path.join('data', 'experiment_1', 'explorers.npy')
 
-LOAD_DATA = False
+LOAD_DATA = True
 
 def run_simulation(params):
     n_resource, resource_dist = params

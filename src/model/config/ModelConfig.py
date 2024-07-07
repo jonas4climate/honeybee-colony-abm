@@ -13,3 +13,9 @@ class ModelConfig:
 
     # Default duration of the storm event
     STORM_DURATION_DEFAULT = 20
+
+    # Default number of resources in JS server visualization
+    N_RESOURCES_DEFAULT = 2
+
+    # Default distance of all resources to the hive in JS server visualization
+    RESOURCE_DISTANCE_DEFAULT = 50

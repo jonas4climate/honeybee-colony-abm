@@ -42,13 +42,13 @@ model_params = {
     "viz_mode": VisualMode.SERVER,
     "n_resources": mesa.visualization.Slider(
         name = "Number of flower patches",
-        value = VC.N_RESOURCES_DEFAULT,
+        value = MC.N_RESOURCES_DEFAULT,
         min_value=1,
         max_value=10,
         step = 1),
     "resource_dist": mesa.visualization.Slider(
         name = "Distance of resources to the hive",
-        value = VC.RESOURCE_DISTANCE_DEFAULT,
+        value = MC.RESOURCE_DISTANCE_DEFAULT,
         min_value=20,
         max_value=90,
         step = 5),
