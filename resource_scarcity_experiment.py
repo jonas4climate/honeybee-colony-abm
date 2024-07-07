@@ -18,11 +18,12 @@ DATA_NECTAR = np.zeros((len(DIST_RESOURCES), len(N_RESOURCES), N_REPEATS, N_STEP
 DATA_RECRUITED = np.zeros((len(DIST_RESOURCES), len(N_RESOURCES), N_REPEATS, N_STEPS))
 DATA_EXPLORERS = np.zeros((len(DIST_RESOURCES), len(N_RESOURCES), N_REPEATS, N_STEPS))
 
-BEE_COUNT_FILE = os.path.join('data', 'experiment_1', 'bee_count.npy')
-NECTAR_FILE = os.path.join('data', 'experiment_1', 'nectar.npy')
-RECRUITED_FILE = os.path.join('data', 'experiment_1', 'recruited.npy')
-EXPLORERS_FILE = os.path.join('data', 'experiment_1', 'explorers.npy')
+BEE_COUNT_FILE = os.path.join('data', 'resource_scarcity', 'bee_count.npy')
+NECTAR_FILE = os.path.join('data', 'resource_scarcity', 'nectar.npy')
+RECRUITED_FILE = os.path.join('data', 'resource_scarcity', 'recruited.npy')
+EXPLORERS_FILE = os.path.join('data', 'resource_scarcity', 'explorers.npy')
 
+# Turn this off if you want to rerun the experiment and generate new data
 LOAD_DATA = True
 
 def run_simulation(params):
@@ -52,11 +53,12 @@ if __name__ == '__main__':
         with Pool() as pool:
             for (i, n_res) in enumerate(N_RESOURCES):
                 for (j, dist_res) in enumerate(DIST_RESOURCES):
+
+                    # Run the simulations in parallel
                     params_list = [(n_res, dist_res) for _ in range(N_REPEATS)]
-                    # nectar_batch, recruited_batch, explorers_batch, bee_count_batch = pool.map(run_simulation, params_list)
                     data = pool.map(run_simulation, params_list)
                     
-                    # for k in range(N_REPEATS)
+                    # Put the data into containers
                     for (k, data_row) in enumerate(data):
                         DATA_NECTAR[i,j,k] = data_row[0]
                         DATA_RECRUITED[i,j,k] = data_row[1]
@@ -64,7 +66,10 @@ if __name__ == '__main__':
                         DATA_BEE_COUNT[i,j,k] = data_row[3]
 
                     pbar.update(N_REPEATS)
+                    
         pbar.close()
+
+        # Save the data to files
         np.save(BEE_COUNT_FILE, DATA_BEE_COUNT)
         np.save(NECTAR_FILE, DATA_NECTAR)
         np.save(RECRUITED_FILE, DATA_RECRUITED)
