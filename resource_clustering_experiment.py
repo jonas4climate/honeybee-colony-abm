@@ -25,7 +25,7 @@ RECRUITED_FILE = os.path.join('data', 'resource_clustering', 'recruited.npy')
 EXPLORERS_FILE = os.path.join('data', 'resource_clustering', 'explorers.npy')
 
 # Turn this off if you want to rerun the experiment and generate new data
-LOAD_DATA = False
+LOAD_DATA = True
 
 def run_simulation(params):
     max_angle, resource_dist = params

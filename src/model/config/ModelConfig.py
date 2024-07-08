@@ -10,3 +10,10 @@ class ModelConfig:
 
         # Default duration of the storm event
         self.STORM_DURATION = kwargs.get('STORM_DURATION', 20)
+
+        # Number of resources in the default model setup
+        self.N_RESOURCES_DEFAULT = kwargs.get('N_RESOURCES_DEFAULT', 2)
+
+        # Distance from hive to resource in the default model setup
+        self.RESOURCE_DISTANCE_DEFAULT = kwargs.get('RESOURCE_DISTANCE_DEFAULT', 50)
+
