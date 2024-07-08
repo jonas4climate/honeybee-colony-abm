@@ -27,16 +27,16 @@ model_params = {
         name="Storm probability",
         value=MC.P_STORM_DEFAULT,
         min_value=0.0,
-        max_value=0.1,
-        step=0.1,
+        max_value=0.01,
+        step=0.0025,
         description="What is the probability of a storm event starting in a single step",
     ),
     "storm_duration": mesa.visualization.Slider(
         name="Storm duration",
         value=MC.STORM_DURATION_DEFAULT,
         min_value=5,
-        max_value=25,
-        step=1,
+        max_value=35,
+        step=5,
         description="How many steps will the storm event last",
     ),
     "viz_mode": VisualMode.SERVER,
@@ -65,7 +65,7 @@ prop_bee_plot = ChartModule([{"Label": "resting 💤", "Color": VC.BEE_COLORS[Be
                              {"Label": "dancing 🪩", "Color": VC.BEE_COLORS[BeeState.DANCING]},
                              {"Label": "following 🎯", "Color": VC.BEE_COLORS[BeeState.FOLLOWING]}])
 
-nectar_plot = ChartModule([{"Label": "Mean perceived nectar level", "Color": "black"}, {"Label": f"Hive stock 🍯", "Color": HIVE_COLOR}])
+nectar_plot = ChartModule([{"Label": "Mean perceived nectar level", "Color": "black"}, {"Label": f"Hive stock 🍯", "Color": VC.HIVE_COLOR}])
 
 server = mesa.visualization.ModularServer(
     model_cls=ForagerModel,
