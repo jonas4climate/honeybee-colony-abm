@@ -11,7 +11,7 @@ from mesa.space import ContinuousSpace
 from mesa.time import BaseScheduler
 
 from .config.ModelConfig import ModelConfig as MC
-from .config.BeeSwarmConfig import BeeSwarmConfig as BSC
+from .config.BeeSwarmConfig import BeeSwarmConfig
 from .config.HiveConfig import HiveConfig as HC
 from .config.ResourceConfig import ResourceConfig as RC
 from .config.VisualConfig import VisualConfig as VC
@@ -23,7 +23,7 @@ from .util.ModelBuilder import *
 
 class ForagerModel(Model):
     def __init__(self, p_storm=MC.P_STORM_DEFAULT, storm_duration=MC.STORM_DURATION_DEFAULT,
-                viz_mode=VisualMode.CLASSIC, n_resources=None, resource_dist=None):
+                 bee_config=BeeSwarmConfig(), viz_mode=VisualMode.CLASSIC, n_resources=None, resource_dist=None):
         super().__init__()
 
         if viz_mode == VisualMode.CLASSIC:
@@ -59,6 +59,9 @@ class ForagerModel(Model):
 
         # One single hive in the center of the space
         self.hive = self.create_agent(Hive, (self.size // 2, self.size // 2))
+
+        # Configuration of parameters related to bee agents
+        self.bee_config = bee_config
 
         # Create bee agents
         for _ in range(HC.N_BEES):

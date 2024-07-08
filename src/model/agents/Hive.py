@@ -28,7 +28,7 @@ class Hive(Agent):
         bees_in_hive = self.model.get_agents_of_type(BeeSwarm)
         bees_in_hive = list(filter(lambda bee : isinstance(bee, BeeSwarm) and bee.is_in_hive, bees_in_hive))
 
-        self.nectar = max(0, self.nectar - len(bees_in_hive) * BSC.FOOD_CONSUMPTION)
+        self.nectar = max(0, self.nectar - len(bees_in_hive) * self.model.bee_config.FOOD_CONSUMPTION)
 
     def create_bee(self):
         """

@@ -10,6 +10,6 @@ class HiveConfig:
     DEFAULT_INIT_NECTAR = 5.0
 
     # Probability of a new forager emerging from young population at each simulation step
-    P_BIRTH = 0.1
+    P_BIRTH = 0.2
     
         
