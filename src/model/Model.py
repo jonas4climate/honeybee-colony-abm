@@ -1,5 +1,6 @@
 import numpy as np
 from random import shuffle
+from enum import Enum
 
 from .agents.BeeSwarm import BeeSwarm
 from .agents.Resource import Resource
@@ -15,27 +16,34 @@ from .config.BeeSwarmConfig import BeeSwarmConfig
 from .config.HiveConfig import HiveConfig
 from .config.ResourceConfig import ResourceConfig
 from .config.VisualConfig import VisualConfig as VC
-from .config.VisualConfig import VisualMode
 
 from .util.Weather import Weather
 from .util.Analytics import *
 from .util.ModelBuilder import *
 
+class RunMode(Enum):
+    EXPERIMENTS = 0
+    SERVER = 1
+    SENSITIVITY_ANALYSIS = 2
+
 class ForagerModel(Model):
     def __init__(self, model_config=ModelConfig(), bee_config=BeeSwarmConfig(), hive_config=HiveConfig(), resource_config=ResourceConfig(),
-                 viz_mode=VisualMode.CLASSIC, p_storm=None, storm_duration=None, n_resources=None, resource_dist=None):
+                 run_mode=RunMode.EXPERIMENTS, p_storm=None, storm_duration=None, n_resources=None, resource_dist=None):
         super().__init__()
 
-        if viz_mode == VisualMode.CLASSIC:
+        if run_mode == RunMode.EXPERIMENTS:
             assert n_resources == None, "This parameter is reserved for JS server visualization. Use ModelBuilder class to create resources."
             assert resource_dist == None, "This parameter is reserved for JS server visualization. Use ModelBuilder class to create resources."
             assert p_storm == None, "This parameter is reserved for JS server visualization. Use ModelConfig instance to change weather parameters."
             assert storm_duration == None, "This parameter is reserved for JS server visualization. Use ModelConfig instance to change weather parameters."
-        elif viz_mode == VisualMode.SERVER:
-            assert n_resources != None, "VisualMode.SERVER is reserved for JS server visualization. To run your simulations use VisualMode.CLASSIC"
-            assert resource_dist != None, "VisualMode.SERVER is reserved for JS server visualization. To run your simulations use VisualMode.CLASSIC"
-            assert p_storm != None, "VisualMode.SERVER is reserved for JS server visualization. To run your simulations use VisualMode.CLASSIC"
-            assert storm_duration != None, "VisualMode.SERVER is reserved for JS server visualization. To run your simulations use VisualMode.CLASSIC"
+        elif run_mode == RunMode.SERVER:
+            assert n_resources != None, "You are running the model in JS server visualization mode. Provide number of resources as direct parameter."
+            assert resource_dist != None, "You are running the model in JS server visualization mode. Provide distance to resources as direct parameter."
+            assert p_storm != None, "You are running the model in JS server visualization mode. Provide probability of storm as direct parameter."
+            assert storm_duration != None, "You are running the model in JS server visualization mode. Provide storm duration as direct parameter."
+        elif run_mode == RunMode.SENSITIVITY_ANALYSIS:
+            assert n_resources != None, "You are running the model in sensitivity analysis mode. Provide number of resources as direct parameter."
+            assert resource_dist != None, "You are running the model in sensitivity analysis mode. Provide distance to resources as direct parameter."
 
         # Side length of the square-shaped continuous space
         self.size = ModelConfig.SIZE
@@ -59,15 +67,15 @@ class ForagerModel(Model):
         self.weather = Weather.SUNNY
 
         # Probability of a storm event occuring
-        if viz_mode == VisualMode.SERVER:
+        if run_mode == RunMode.SERVER:
             self.p_storm = p_storm
-        elif viz_mode == VisualMode.CLASSIC:
+        else:
             self.p_storm = model_config.P_STORM
 
         # Storm event duration
-        if viz_mode == VisualMode.SERVER:
+        if run_mode == RunMode.SERVER:
             self.storm_duration = storm_duration
-        elif viz_mode == VisualMode.CLASSIC:
+        elif run_mode == RunMode.CLASSIC:
             self.storm_duration = model_config.STORM_DURATION
 
         # Time duration of storm event thus far
@@ -83,8 +91,8 @@ class ForagerModel(Model):
         for _ in range(hive_config.N_BEES):
             self.create_agent(BeeSwarm, self.hive.pos, hive=self.hive)
 
-        # If running JS server visualization, spawn resources, otherwise use ModelBuilder class.
-        if viz_mode == VisualMode.SERVER:
+        # If running JS server visualization or sensitivity analysis, automatically spawn resources, otherwise use ModelBuilder class.
+        if run_mode == RunMode.SERVER or run_mode == RunMode.SENSITIVITY_ANALYSIS:
             for _ in range(n_resources):
                 add_resource_in_distance(self, resource_dist, quantity=resource_config.QUANTITY)
 

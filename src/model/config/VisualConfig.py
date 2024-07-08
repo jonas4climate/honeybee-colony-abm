@@ -7,10 +7,6 @@ from ..util.BeeState import BeeState
 
 from enum import Enum
 
-class VisualMode(Enum):
-    CLASSIC = 0
-    SERVER = 1
-
 class VisualConfig:
 
     # Activity dependent color of bee in the visualization

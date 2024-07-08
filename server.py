@@ -3,14 +3,13 @@ import mesa
 from SimpleContinuousModule import SimpleCanvas
 from mesa.visualization.modules import ChartModule
 
-from src.model.Model import ForagerModel
+from src.model.Model import ForagerModel, RunMode
 from src.model.agents.BeeSwarm import BeeSwarm, BeeState
 from src.model.agents.Hive import Hive
 from src.model.agents.Resource import Resource
 
 from src.model.config.ModelConfig import ModelConfig as MC
 from src.model.config.VisualConfig import VisualConfig as VC
-from src.model.config.VisualConfig import VisualMode
 
 def agent_potrayal(agent):
     if isinstance(agent, BeeSwarm):
@@ -39,7 +38,7 @@ model_params = {
         step=5,
         description="How many steps will the storm event last",
     ),
-    "viz_mode": VisualMode.SERVER,
+    "run_mode": RunMode.SERVER,
     "n_resources": mesa.visualization.Slider(
         name = "Number of flower patches",
         value = VC.N_RESOURCES_DEFAULT,
