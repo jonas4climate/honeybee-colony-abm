@@ -1,5 +1,3 @@
-from ..util.SpaceSetup import SpaceSetup
-
 class ModelConfig:
 
     # Side length of square continuous space where the bees can forage
