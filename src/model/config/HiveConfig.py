@@ -9,8 +9,4 @@ class HiveConfig:
 
         # Default initial amount of nectar stored in the hive at the start of the simulation
         self.DEFAULT_INIT_NECTAR = kwargs.get('DEFAULT_INIT_NECTAR', 5.0)
-
-        # Probability of a new forager emerging from young population at each simulation step
-        self.P_BIRTH = kwargs.get('P_BIRTH', 0.2)
-    
         

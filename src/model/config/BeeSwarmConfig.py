@@ -43,7 +43,10 @@ class BeeSwarmConfig:
         # Probability that a bee will abort exploration and return to hive
         self.P_ABORT = kwargs.get('P_ABORT', 0.025)
 
-        # ---| Death |---
+        # ---| Birth & Death |---
+
+        # Probability of a single new forager emerging from young population at each simulation step
+        self.P_BIRTH = kwargs.get('P_BIRTH', 0.2)
 
         # Probability for an outside bee to die from natural factors
         self.P_DEATH = kwargs.get('P_DEATH', 0.001)

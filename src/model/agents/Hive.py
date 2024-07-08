@@ -40,6 +40,6 @@ class Hive(Agent):
         """Agent's step function required by Mesa package."""
         self.feed_bees()
         
-        if random() < self.model.hive_config.P_BIRTH:
+        if random() < self.model.bee_config.P_BIRTH:
             self.create_bee()
         

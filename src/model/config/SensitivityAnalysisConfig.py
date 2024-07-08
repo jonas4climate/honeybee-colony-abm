@@ -1,9 +1,9 @@
 class SensitivityAnalysisConfig:
 
-    # Sampling bounds for probability of storm
-    P_STORM_MIN = 0.0
-    P_STORM_MAX = 0.01
+    class HiveParamBounds:
+        # TODO
+        pass
 
-    # Sampling bounds for storm duration
-    STORM_DURATION_MIN = 5
-    STORM_DURATION_MAX = 50
+    class BeeParamBounds:
+        #TODO
+        pass

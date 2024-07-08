@@ -7,6 +7,10 @@ from src.model.agents.BeeSwarm import BeeSwarm
 from src.model.config.SensitivityAnalysisConfig import SensitivityAnalysisConfig as SAConfig
 from src.model.Model import ForagerModel
 
+bee_vars = ['FOV', 'FOOD_CONSUMPTION', 'SPEED_IN_HIVE', 'SPEED_FORAGING', 
+            'RESTING_PERIOD', 'P_NECTAR_INSPECTION', 'P_NECTAR_COMMUNICATION', 'EXPLORING_INCENTIVE', 
+            'CARRYING_CAPACITY', 'P_ABORT', 'P_DEATH', 'DEATH_STORM_FACTOR']
+
 # We define our variables and bounds
 problem = {
     'num_vars': 2,
