@@ -19,8 +19,8 @@ problem = {
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
 N_ITERATIONS = 1 # TODO: Change
-N_STEPS = 100
-N_SAMPLES = 8
+N_STEPS = 100   # TODO: Change
+N_SAMPLES = 8   # TODO: Change (?)
 
 data = {}
 

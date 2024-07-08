@@ -11,7 +11,6 @@ from scipy.stats import expon, uniform
 from .Resource import Resource
 from ..util.BeeState import BeeState
 
-from ..config.BeeSwarmConfig import BeeSwarmConfig as BSC
 from ..config.HiveConfig import HiveConfig as HC
 
 class BeeSwarm(Agent):

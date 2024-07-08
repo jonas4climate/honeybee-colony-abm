@@ -19,7 +19,7 @@ class Hive(Agent):
         self.pos = None
 
         # Initial state of resources within the hive
-        self.nectar = HC.DEFAULT_INIT_NECTAR
+        self.nectar = self.model.hive_config.DEFAULT_INIT_NECTAR
 
     def feed_bees(self):
         """
@@ -40,6 +40,6 @@ class Hive(Agent):
         """Agent's step function required by Mesa package."""
         self.feed_bees()
         
-        if random() < HC.P_BIRTH:
+        if random() < self.model.hive_config.P_BIRTH:
             self.create_bee()
         

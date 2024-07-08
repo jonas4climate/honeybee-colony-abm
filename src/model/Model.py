@@ -10,10 +10,10 @@ from mesa.datacollection import DataCollector
 from mesa.space import ContinuousSpace
 from mesa.time import BaseScheduler
 
-from .config.ModelConfig import ModelConfig as MC
+from .config.ModelConfig import ModelConfig
 from .config.BeeSwarmConfig import BeeSwarmConfig
-from .config.HiveConfig import HiveConfig as HC
-from .config.ResourceConfig import ResourceConfig as RC
+from .config.HiveConfig import HiveConfig
+from .config.ResourceConfig import ResourceConfig
 from .config.VisualConfig import VisualConfig as VC
 from .config.VisualConfig import VisualMode
 
@@ -22,19 +22,23 @@ from .util.Analytics import *
 from .util.ModelBuilder import *
 
 class ForagerModel(Model):
-    def __init__(self, p_storm=MC.P_STORM_DEFAULT, storm_duration=MC.STORM_DURATION_DEFAULT,
-                 bee_config=BeeSwarmConfig(), viz_mode=VisualMode.CLASSIC, n_resources=None, resource_dist=None):
+    def __init__(self, model_config=ModelConfig(), bee_config=BeeSwarmConfig(), hive_config=HiveConfig(), resource_config=ResourceConfig(),
+                 viz_mode=VisualMode.CLASSIC, p_storm=None, storm_duration=None, n_resources=None, resource_dist=None):
         super().__init__()
 
         if viz_mode == VisualMode.CLASSIC:
-            assert n_resources == None, "This parameter is reserved for JS server visualization. Use ModelBuilder class to run your simulations."
-            assert resource_dist == None, "This parameter is reserved for JS server visualization. Use ModelBuilder class to run your simulations."
+            assert n_resources == None, "This parameter is reserved for JS server visualization. Use ModelBuilder class to create resources."
+            assert resource_dist == None, "This parameter is reserved for JS server visualization. Use ModelBuilder class to create resources."
+            assert p_storm == None, "This parameter is reserved for JS server visualization. Use ModelConfig instance to change weather parameters."
+            assert storm_duration == None, "This parameter is reserved for JS server visualization. Use ModelConfig instance to change weather parameters."
         elif viz_mode == VisualMode.SERVER:
             assert n_resources != None, "VisualMode.SERVER is reserved for JS server visualization. To run your simulations use VisualMode.CLASSIC"
             assert resource_dist != None, "VisualMode.SERVER is reserved for JS server visualization. To run your simulations use VisualMode.CLASSIC"
+            assert p_storm != None, "VisualMode.SERVER is reserved for JS server visualization. To run your simulations use VisualMode.CLASSIC"
+            assert storm_duration != None, "VisualMode.SERVER is reserved for JS server visualization. To run your simulations use VisualMode.CLASSIC"
 
         # Side length of the square-shaped continuous space
-        self.size = MC.SIZE
+        self.size = ModelConfig.SIZE
 
         # Continous space container from mesa package
         self.space = ContinuousSpace(self.size, self.size, False)
@@ -42,14 +46,29 @@ class ForagerModel(Model):
         # Scheduler from Mesa's time module
         self.schedule = BaseScheduler(self)
 
+        # Configuration of parameters related to bee agents
+        self.bee_config = bee_config
+
+        # Configuration of parameters related to hive agent
+        self.hive_config = hive_config
+
+        # Configuration of parameters related to resource agents
+        self.resource_config = resource_config
+
         # Weather state
         self.weather = Weather.SUNNY
 
         # Probability of a storm event occuring
-        self.p_storm = p_storm
+        if viz_mode == VisualMode.SERVER:
+            self.p_storm = p_storm
+        elif viz_mode == VisualMode.CLASSIC:
+            self.p_storm = model_config.P_STORM
 
         # Storm event duration
-        self.storm_duration = storm_duration
+        if viz_mode == VisualMode.SERVER:
+            self.storm_duration = storm_duration
+        elif viz_mode == VisualMode.CLASSIC:
+            self.storm_duration = model_config.STORM_DURATION
 
         # Time duration of storm event thus far
         self.storm_time_passed = 0
@@ -60,17 +79,14 @@ class ForagerModel(Model):
         # One single hive in the center of the space
         self.hive = self.create_agent(Hive, (self.size // 2, self.size // 2))
 
-        # Configuration of parameters related to bee agents
-        self.bee_config = bee_config
-
         # Create bee agents
-        for _ in range(HC.N_BEES):
+        for _ in range(hive_config.N_BEES):
             self.create_agent(BeeSwarm, self.hive.pos, hive=self.hive)
 
         # If running JS server visualization, spawn resources, otherwise use ModelBuilder class.
         if viz_mode == VisualMode.SERVER:
             for _ in range(n_resources):
-                add_resource_in_distance(self, resource_dist, quantity=RC.DEFAULT_QUANTITY)
+                add_resource_in_distance(self, resource_dist, quantity=resource_config.QUANTITY)
 
     @property
     def is_sunny(self):

@@ -6,8 +6,6 @@ import math
 from mesa import Agent, Model
 
 from ..util.BeeState import BeeState
-
-from ..config.BeeSwarmConfig import BeeSwarmConfig as BSC
 from ..config.ResourceConfig import ResourceConfig as RC
 
 class Resource(Agent):
@@ -15,7 +13,7 @@ class Resource(Agent):
     def __init__(
             self, 
             model: 'Model',
-            quantity: float = RC.DEFAULT_QUANTITY
+            quantity: float = None,
         ):
         super().__init__(model.next_id(), model)
 
@@ -23,7 +21,11 @@ class Resource(Agent):
         self.pos = None
 
         # Quantity of nectar available at the resource
-        self.quantity = quantity
+        if quantity == None:
+            self.quantity = self.model.resource_config.DEFAULT_QUANTITY
+        else:
+            self.quantity = quantity
+            
         assert self.quantity // self.model.bee_config.CARRYING_CAPACITY
 
     def step(self):
