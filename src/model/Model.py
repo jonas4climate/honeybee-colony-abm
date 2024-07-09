@@ -131,7 +131,8 @@ class ForagerModel(Model):
             'dancing 🪩': lambda mod: bees_proportion(mod)["dancing"],
             'following 🎯': lambda mod: bees_proportion(mod)["following"],
             'Mean perceived nectar level': lambda mod: mean_perceived_nectar(mod),
-            'Hive stock 🍯': lambda mod: self.hive.nectar
+            'Hive stock 🍯': lambda mod: self.hive.nectar,
+            'Foragers': lambda mod: forager_ratio(mod)
         }
 
         agent_reporters = {}

@@ -16,6 +16,11 @@ def bees_proportion(model):
     else:
         return {state.value: 0 for state in BeeState}
 
+def forager_ratio(model):
+    bees_by_activity = bees_proportion(model)
+
+    return bees_by_activity["exploring"] + bees_by_activity["following"]
+
 def nectar_in_hives(model):
     all_hives = model.get_agents_of_type(Hive)
     if all_hives:
