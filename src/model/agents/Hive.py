@@ -19,7 +19,7 @@ class Hive(Agent):
         self.pos = None
 
         # Initial state of resources within the hive
-        self.nectar = HC.DEFAULT_INIT_NECTAR
+        self.nectar = self.model.hive_config.DEFAULT_INIT_NECTAR
 
     def feed_bees(self):
         """
@@ -28,7 +28,7 @@ class Hive(Agent):
         bees_in_hive = self.model.get_agents_of_type(BeeSwarm)
         bees_in_hive = list(filter(lambda bee : isinstance(bee, BeeSwarm) and bee.is_in_hive, bees_in_hive))
 
-        self.nectar = max(0, self.nectar - len(bees_in_hive) * BSC.FOOD_CONSUMPTION)
+        self.nectar = max(0, self.nectar - len(bees_in_hive) * self.model.bee_config.FOOD_CONSUMPTION)
 
     def create_bee(self):
         """
@@ -40,6 +40,6 @@ class Hive(Agent):
         """Agent's step function required by Mesa package."""
         self.feed_bees()
         
-        if random() < HC.P_BIRTH:
+        if random() < self.model.bee_config.P_BIRTH:
             self.create_bee()
         

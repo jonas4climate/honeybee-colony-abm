@@ -7,10 +7,6 @@ from ..util.BeeState import BeeState
 
 from enum import Enum
 
-class VisualMode(Enum):
-    CLASSIC = 0
-    SERVER = 1
-
 class VisualConfig:
 
     # Activity dependent color of bee in the visualization
@@ -40,3 +36,15 @@ class VisualConfig:
 
     # Resource agent radius size in JS server visualization
     RESOURCE_RADIUS = RC.RADIUS * RENDER_SCALE
+
+    # Default value of storm probability in JS server visualization
+    P_STORM_DEFAULT = 0.005
+
+    # Default value of storm duration in JS server visualization
+    STORM_DURATION_DEFAULT = 20
+
+    # Default number of resources in JS server visualization
+    N_RESOURCES_DEFAULT = 2
+
+    # Default distance of all resources to the hive in JS server visualization
+    RESOURCE_DISTANCE_DEFAULT = 50

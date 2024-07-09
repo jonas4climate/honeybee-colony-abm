@@ -3,14 +3,13 @@ import mesa
 from SimpleContinuousModule import SimpleCanvas
 from mesa.visualization.modules import ChartModule
 
-from src.model.Model import ForagerModel
+from src.model.Model import ForagerModel, RunMode
 from src.model.agents.BeeSwarm import BeeSwarm, BeeState
 from src.model.agents.Hive import Hive
 from src.model.agents.Resource import Resource
 
 from src.model.config.ModelConfig import ModelConfig as MC
 from src.model.config.VisualConfig import VisualConfig as VC
-from src.model.config.VisualConfig import VisualMode
 
 def agent_potrayal(agent):
     if isinstance(agent, BeeSwarm):
@@ -25,7 +24,7 @@ forager_canvas = SimpleCanvas(portrayal_method=agent_potrayal, canvas_height=MC.
 model_params = {
     "p_storm": mesa.visualization.Slider(
         name="Storm probability",
-        value=MC.P_STORM_DEFAULT,
+        value=VC.P_STORM_DEFAULT,
         min_value=0.0,
         max_value=0.01,
         step=0.0025,
@@ -33,24 +32,24 @@ model_params = {
     ),
     "storm_duration": mesa.visualization.Slider(
         name="Storm duration",
-        value=MC.STORM_DURATION_DEFAULT,
+        value=VC.STORM_DURATION_DEFAULT,
         min_value=5,
         max_value=35,
         step=5,
         description="How many steps will the storm event last",
     ),
-    "viz_mode": VisualMode.SERVER,
+    "run_mode": RunMode.SERVER,
     "n_resources": mesa.visualization.Slider(
         name = "Number of flower patches",
-        value = MC.N_RESOURCES_DEFAULT,
+        value = VC.N_RESOURCES_DEFAULT,
         min_value=1,
         max_value=10,
         step = 1),
     "resource_dist": mesa.visualization.Slider(
         name = "Distance of resources to the hive",
-        value = MC.RESOURCE_DISTANCE_DEFAULT,
+        value = VC.RESOURCE_DISTANCE_DEFAULT,
         min_value=20,
-        max_value=90,
+        max_value=140,
         step = 5),
 }
 

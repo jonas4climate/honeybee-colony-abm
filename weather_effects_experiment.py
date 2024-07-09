@@ -4,7 +4,7 @@ from multiprocess.pool import Pool
 from tqdm import tqdm
 
 from src.model.Model import ForagerModel
-from src.model.config.ModelConfig import ModelConfig as MC
+from src.model.config.ModelConfig import ModelConfig
 import src.model.util.ModelBuilder as ModelBuilder
 
 
@@ -25,15 +25,17 @@ RECRUITED_FILE = os.path.join('data', 'weather_effects', 'recruited.npy')
 EXPLORERS_FILE = os.path.join('data', 'weather_effects', 'explorers.npy')
 
 # Turn this off if you want to rerun the experiment and generate new data
-LOAD_DATA = False
+LOAD_DATA = True
 
 def run_simulation(params):
     p_storm, storm_duration = params
 
     # Instatiate the model
-    model = ForagerModel(p_storm=p_storm, storm_duration=storm_duration)
-    for _ in range(MC.N_RESOURCES_DEFAULT):
-        ModelBuilder.add_resource_in_distance(model, MC.RESOURCE_DISTANCE_DEFAULT)
+    model_config = ModelConfig(p_storm=p_storm, storm_duration=storm_duration)
+
+    model = ForagerModel(model_config=model_config)
+    for _ in range(model_config.N_RESOURCES_DEFAULT):
+        ModelBuilder.add_resource_in_distance(model, model_config.RESOURCE_DISTANCE_DEFAULT)
 
     # Run the model
     for _ in range(N_STEPS):
