@@ -6,4 +6,4 @@ class ResourceConfig:
     def __init__(self, **kwargs):
 
         # Default quantity of resource bees can forage from a single Resource agent before it depletes
-        self.QUANTITY = kwargs.get('QUANTITY', 5)
+        self.QUANTITY = kwargs.get('QUANTITY', 10)

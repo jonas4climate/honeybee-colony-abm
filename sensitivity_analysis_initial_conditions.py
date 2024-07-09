@@ -41,7 +41,7 @@ DATA = np.zeros((len(PROBLEM['names']), N_SAMPLES * N_ITERATIONS, len(DATA_COLLE
 if __name__ == '__main__':
     freeze_support()
     for i, var in enumerate(PROBLEM['names']):
-        # Get the bounds for this variable and get <distinct_samples> samples within this space (uniform)
+        # Get the bounds for this variable and get N_SAMPLES uniform samples within this space
         if var not in INTEGER_PARAMS:
             samples = np.linspace(*PROBLEM['bounds'][i], num=N_SAMPLES)
         else:

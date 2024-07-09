@@ -52,5 +52,5 @@ class BeeSwarmConfig:
         self.P_DEATH = kwargs.get('P_DEATH', 0.001)
 
         # Probability for an outside bee to die will be this times higher during storm
-        self.DEATH_STORM_FACTOR = kwargs.get('DEATH_STORM_FACTOR', 0.001)
+        self.DEATH_STORM_FACTOR = kwargs.get('DEATH_STORM_FACTOR', 10)
 
