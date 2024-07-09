@@ -54,8 +54,8 @@ PROBLEM = {
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
-N_ITERATIONS = 8 # TODO: Change to 32
-N_STEPS = 100   # TODO: Change to 1000
+N_ITERATIONS = 32
+N_STEPS = 1000
 N_SAMPLES = 8
 
 # Container for storing data
