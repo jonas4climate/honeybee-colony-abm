@@ -73,6 +73,8 @@ class ForagerModel(Model):
             self.p_storm = model_config.P_STORM
 
         # Storm event duration
+        self.storm_duration = 0
+        
         if run_mode == RunMode.SERVER:
             self.storm_duration = storm_duration
         elif run_mode == RunMode.EXPERIMENTS:

@@ -7,6 +7,7 @@ from multiprocessing import freeze_support
 from src.model.config.SensitivityAnalysisConfig import SensitivityAnalysisConfig as SAC
 from src.model.Model import ForagerModel, RunMode
 from src.model.config.HiveConfig import HiveConfig
+from src.model.config.ModelConfig import ModelConfig
 
 # Which data to actually collect from the model
 DATA_COLLECTORS = ['Bee count 🐝', 'Hive stock 🍯', 'Foragers']
@@ -30,8 +31,8 @@ PROBLEM = {
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
-N_ITERATIONS = 8
-N_STEPS = 500
+N_ITERATIONS = 32
+N_STEPS = 1000
 N_SAMPLES = 8
 
 # Container for storing data
@@ -47,12 +48,14 @@ if __name__ == '__main__':
             samples = np.linspace(*PROBLEM['bounds'][i], num=N_SAMPLES, dtype=int)
         
         params = {
-            {'hive_config': [HiveConfig(**{var:sample}) for sample in samples]},
-            {''}
+            'hive_config': [HiveConfig(**{var:sample}) for sample in samples],
+            'run_mode': RunMode.SENSITIVITY_ANALYSIS,
+            'n_resources': ModelConfig().N_RESOURCES_DEFAULT,
+            'resource_dist': ModelConfig().RESOURCE_DISTANCE_DEFAULT
         }
 
         results = batch_run(ForagerModel, 
-                parameters={'hive_config': [HiveConfig(**{var:sample}) for sample in samples]},
+                parameters=params,
                 number_processes=8, 
                 iterations=N_ITERATIONS, 
                 max_steps=N_STEPS,
