@@ -7,6 +7,7 @@ from src.model.config.ModelConfig import ModelConfig as MC
 
 from src.model.Model import ForagerModel
 import src.model.util.ModelBuilder as ModelBuilder
+from src.model.config.ModelConfig import ModelConfig
 
 # Total number of batches where at each batch N_POOLS runs are simulated.
 N_BATCHES = 32
@@ -32,10 +33,13 @@ EXPLORERS_FILE = os.path.join('data', 'baseline_dynamics', 'explorers.npy')
 LOAD_DATA = True
 
 def run_simulation(params):
-    # Instatiate the model
+    # Instatiate the model in default state
     model = ForagerModel()
-    for _ in range(MC.N_RESOURCES_DEFAULT):
-        ModelBuilder.add_resource_in_distance(model, MC.RESOURCE_DISTANCE_DEFAULT)
+    # Instatiate the model
+    model_config = ModelConfig()
+
+    for _ in range(model_config.N_RESOURCES_DEFAULT):
+        ModelBuilder.add_resource_in_distance(model, model_config.RESOURCE_DISTANCE_DEFAULT)
 
     # Run the model
     for _ in range(N_STEPS):
