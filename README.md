@@ -1,15 +1,6 @@
-# Beehive ABM
-Agent-based modelling project and complexity analysis for Agent-based Models class (2024) @ UvA
-<!-- 
-## Setup
+# Honeybee colony ABM
 
-Ideally, set up the environment using `conda` (see [anaconda](https://www.anaconda.com/) or [miniconda](https://docs.anaconda.com/miniconda/)) via the `environment.yml` file by opening a terminal instance and running `conda env create -f environment.yml`. Then run `conda activate abm-bees`.
-
-## Getting Started
-
-After setup, move into the web server directory `continous_model` and run `python run.py` to start the web server GUI.
-
-<br/> -->
+Agent-based modelling project and complexity analysis for Agent-based Models class (2024) @ UvA. This is the corresponding code repository for a research report investigating honey bee colony survival outcomes and emergent adaptation on the colony level in response to weather effects and resource scarcity and distribution.
 
 ## Repository structure
 
@@ -30,7 +21,7 @@ This repository has the following file structure:
 
 ## Environment setup
 
-To set up the environment, we recommend the use of conda ([install conda](https://anaconda.org/anaconda/conda) or [install miniconda](https://docs.anaconda.com/miniconda/miniconda-install/)). The environment can then be set up by running `conda env create -f environment.yml`. Alternatively, the `environment.yml` file can be converted for use with `pip` if preferred.
+To set up the environment, we recommend the use of conda ([install conda](https://anaconda.org/anaconda/conda) or [install miniconda](https://docs.anaconda.com/miniconda/miniconda-install/)). The environment can then be set up by running `conda env create -f environment.yml`. Then run `conda activate abm-bees` before running any python scripts. Alternatively, the `environment.yml` file can be converted for use with `pip` if preferred.
 
 ## JS server visualization
 
