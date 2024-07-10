@@ -26,7 +26,7 @@ To set up the environment, we recommend the use of conda ([install conda](https:
 
 ## JS server visualization
 
-Mesa's [visualization module](https://mesa.readthedocs.io/en/latest/apis/visualization.html) provides functionality for animated simulation of the model. To run the simulation, open the terminal in the root directory of this repo and run `mesa runserver`. This starts the `run.py` file, which opens the server. This uses `simple_continuous_canvas.js` and `SimpleContinuousModule.py` under the hood which are used to visualize Mesa's [ContinuousSpace](https://mesa.readthedocs.io/en/latest/apis/space.html#mesa.space.ContinuousSpace) grid.
+Mesa's [visualization module](https://mesa.readthedocs.io/en/latest/apis/visualization.html) provides functionality for animated simulation of the model. To run the simulation, open the terminal in the root directory of this repo and run `mesa runserver`. This starts the `run.py` file, which opens the server. This uses `simple_continuous_canvas.js` and `SimpleContinuousModule.py` under the hood which are used to visualize Mesa's [ContinuousSpace](https://mesa.readthedocs.io/en/latest/apis/space.html#mesa.space.ContinuousSpace) grid. By default, the settings of the server refers to the clustering experimentation setup. Other sliders and parameters to vary can be adjusted in the server folder.
 
 ## Reproducing the experiments
 
