@@ -7,7 +7,6 @@ import math
 from ..agents.BeeSwarm import BeeSwarm, BeeState
 from ..agents.Hive import Hive
 from ..agents.Resource import Resource
-from .CustomScheduler import CustomScheduler
 
 def bees_proportion(model):
     all_bees = model.get_agents_of_type(BeeSwarm)

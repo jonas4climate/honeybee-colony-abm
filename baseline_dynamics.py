@@ -4,7 +4,6 @@ from multiprocess.pool import Pool
 from tqdm import tqdm
 
 from src.model.config.ModelConfig import ModelConfig as MC
-
 from src.model.Model import ForagerModel
 import src.model.util.ModelBuilder as ModelBuilder
 from src.model.config.ModelConfig import ModelConfig
