@@ -30,7 +30,7 @@ RECRUITED_FILE = os.path.join('data', 'baseline_dynamics', 'recruited.npy')
 EXPLORERS_FILE = os.path.join('data', 'baseline_dynamics', 'explorers.npy')
 
 # Turn this off if you want to rerun the experiment and generate new data
-LOAD_DATA = True
+LOAD_DATA = False
 
 def run_simulation(params):
     # Instatiate the model in default state
