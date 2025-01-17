@@ -1,6 +1,6 @@
 # Honeybee colony ABM
 
-Agent-based modelling project and complexity analysis for Agent-based Models class (2024) @ UvA. This is the corresponding code repository for a research report investigating honey bee colony survival outcomes and emergent adaptation on the colony level in response to weather effects and resource scarcity and distribution.
+Agent-based modelling project and complexity analysis for Agent-based Models class (2024) @ UvA. This is the corresponding code repository for a research report investigating honey bee colony survival outcomes and emergent adaptation on the colony level in response to weather effects and resource scarcity and distribution. The presentation can be found [here](./presentation.pdf).
 
 ## Repository structure
 
